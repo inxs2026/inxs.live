@@ -81,8 +81,15 @@
    • Positives: "finished well", "strong finish", "rallied", "drew clear"
    • Example: "checked 1/4, rallied late" = legitimate excuse for bad finish
    • Example: "turned away final furlong" = concern despite decent finish
-8. **Write 2-3 sentence explanation** per pick
-9. **Verify:** Can I explain why this horse in 2-3 sentences?
+8. **Write 2-3 sentence explanation** per pick **WITH POST POSITION**
+   • Format: `**1. #3 HORSE NAME** - Avg Beyer (last 3): XX.X`
+   • Post position (#) is MANDATORY - prevents data scrambling errors
+9. **VERIFY DATA INTEGRITY** before creating PDF
+   • Cross-check: Does horse name match this post position in DRF?
+   • Cross-check: Do Beyers match this specific horse's past performances?
+   • Cross-check: Does trainer match this horse?
+   • **STOP if ANY mismatch** - fix before proceeding
+10. **Final check:** Can I explain why each horse in 2-3 sentences?
 
 ---
 

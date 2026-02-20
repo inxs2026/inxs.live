@@ -34,7 +34,7 @@ Last updated: February 19, 2026
 
 **File:** `TOP-3-PICKS-METHODOLOGY.md` (git tracked, backed up)
 
-**THE PROCESS (9 steps, NO shortcuts):**
+**THE PROCESS (10 steps, NO shortcuts):**
 1. Read DRF past performances for the field
 2. Calculate Beyer average (last 3) for ALL contenders - MANDATORY
 3. Note recent finishes and form
@@ -47,10 +47,13 @@ Last updated: February 19, 2026
    • Quit signs: "turned away", "gave way", "stopped"
    • Mechanical: "wrong lead", "lugged in/out", "bore in/out"
    • Positives: "finished well", "rallied", "drew clear"
-8. Write 2-3 sentence explanation per pick
-9. Verify: Can I explain why this horse in 2-3 sentences?
+8. Write explanations **WITH POST POSITIONS**: `#3 HORSE NAME - Avg Beyer...`
+9. **VERIFY DATA INTEGRITY** - horse name, post position, Beyers, trainer ALL match DRF
+10. Final check: Can I explain each pick in 2-3 sentences?
 
 **Rule:** "In Beyers We Trust" - Numbers + form, not hunches
+
+**CRITICAL:** Post positions (#1, #2, #3) are MANDATORY. Prevents data scrambling errors (Feb 20, 2026 - wrong names/trainers matched to wrong horses).
 
 **NO EXCUSES:** This process is committed to git, backed up, and in MEMORY.md. Follow it exactly.
 

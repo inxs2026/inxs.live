@@ -35,6 +35,41 @@
 
 ---
 
+### ❌ DATA SCRAMBLING ERRORS - POST POSITIONS MANDATORY (Feb 20, 2026)
+
+**The Problem:** Generated picks with correct analysis but WRONG HORSE NAMES.
+
+**Examples:**
+- **Race 9:** Analyzed #3 Giftedbydesign (Beyers 72-70-74, Tharrenos trainer) but labeled pick as "CRYPTONYM"
+- **Race 4:** Wrote "#2 O'HEARN" but gave it #5 Here Comes Petal's trainer (O'Connell) and Beyers
+
+**Root cause:** Sub-agent scrambled horse names, post positions, and analysis data during picks generation.
+
+**The Fix (MANDATORY going forward):**
+
+1. **ALWAYS include post position in pick format:**
+   - ❌ Wrong: `1. HORSE NAME - Avg Beyer...`
+   - ✅ Right: `1. #3 HORSE NAME - Avg Beyer...`
+
+2. **VERIFICATION STEP (Step 9)** added to methodology:
+   - Does horse name match this post position in DRF?
+   - Do Beyers match this specific horse's data?
+   - Does trainer match this horse?
+   - **BLOCK email if ANY mismatch**
+
+3. **Verification script:** `verify_picks.py` cross-checks picks against DRF before emailing
+
+**Why post positions matter:**
+- Forces explicit mapping: post # → horse name → data
+- Makes errors obvious (can't write "#2 O'HEARN" if O'Hearn is actually #4)
+- Standard racing picks format
+
+**Split-batch timing gives us room** to verify before emailing - use it!
+
+**Updated:** TOP-3-PICKS-METHODOLOGY.md (now 10 steps), MEMORY.md, verification script created
+
+---
+
 ### ✅ GULFSTREAM RACING SCHEDULE (Feb 15, 2026)
 
 **Gulfstream Park races Thursday-Sunday only**
