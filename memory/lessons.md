@@ -2,6 +2,39 @@
 
 ## Racing Analysis
 
+### ✅ TOP 3 PICKS METHODOLOGY - DEFINITIVE PROCESS (Feb 20, 2026)
+
+**THE ONLY WAY TO DO RACING PICKS**
+
+**File:** `TOP-3-PICKS-METHODOLOGY.md` (git tracked + backup copy)
+
+**9-Step Process (NO shortcuts, NO skipping):**
+1. Read DRF past performances
+2. Calculate Beyer average (last 3) - MANDATORY for ALL contenders
+3. Note recent finishes and form
+4. Check class level vs today
+5. Look for trainer/jockey angles
+6. Consider pace scenario
+7. Rank horses by MOST positive factors
+**7½. READ COMMENT LINES** ← NEW (Feb 20, 2026)
+   • Excuses: "checked", "bumped", "off slowly", "blocked", "wide trip"
+   • Quit signs: "turned away", "gave way", "stopped", "no response"
+   • Mechanical: "wrong lead", "lugged in/out", "bore in/out"
+   • Positives: "finished well", "rallied", "drew clear"
+8. Write 2-3 sentence explanation per pick
+9. Verify explanation is clear
+
+**Backups:**
+- Git: `/home/damato/.openclaw/workspace/TOP-3-PICKS-METHODOLOGY.md`
+- Backup: `TOP-3-PICKS-METHODOLOGY.backup.md`
+- MEMORY.md: Full 9-step process documented
+
+**Rule:** "In Beyers We Trust" - Numbers + form, not hunches
+
+**NO EXCUSES:** This is etched in stone. Follow it exactly, every race, every time.
+
+---
+
 ### ✅ GULFSTREAM RACING SCHEDULE (Feb 15, 2026)
 
 **Gulfstream Park races Thursday-Sunday only**
