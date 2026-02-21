@@ -12,11 +12,16 @@
 📊 TOTAL PICKS: X (Y races × 3 picks)
 
 🏆 WINNERS: X/30 (X.X%)
+   Pick #1 wins: X/10
+   Pick #2 wins: X/10
+   Pick #3 wins: X/10
+
 📈 TOP 3 FINISHES: X/30 (X.X%)
 
 **WINNING PICKS:**
-• Race X: #X HORSE NAME (Pick #X) - [brief note]
-• Race X: #X HORSE NAME (Pick #X) - [brief note]
+• Race X: #X HORSE NAME (Pick #1) - [brief note]
+• Race X: #X HORSE NAME (Pick #2) - [brief note]
+• Race X: #X HORSE NAME (Pick #3) - [brief note]
 
 **KEY INSIGHTS:**
 [Methodology observations, what worked/didn't work]
