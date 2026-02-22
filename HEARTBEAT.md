@@ -10,7 +10,7 @@ Heavy work → cron jobs. Heartbeat → quick file/flag checks only.
 Run the heartbeat check script:
 
 ```bash
-bash /home/damato/.openclaw/workspace/heartbeat_check.sh
+bash /home/damato/.openclaw/workspace/scripts/heartbeat_check.sh
 ```
 
 The script will:
