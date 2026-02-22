@@ -2,7 +2,7 @@
 
 **Charlie's curated memory - what matters across sessions**
 
-Last updated: February 19, 2026
+Last updated: February 21, 2026
 
 ---
 
@@ -22,13 +22,31 @@ Last updated: February 19, 2026
 
 ### **WORKFLOW (Never Skip)**
 
-1. **Check TrackData.live FIRST** (scratches & surface changes)
-2. Find DRF PDF for today
-3. Read `TOP-3-PICKS-METHODOLOGY.md`
-4. Generate picks (ALL races, skip scratched horses)
-5. Create PDF
-6. **Email using `send_email_pdf.py`** (MANDATORY)
-7. Verify delivery ("✅ Email sent successfully")
+**STEP 0 (DO THIS FIRST, BEFORE ANYTHING ELSE):**
+1. **Run:** `mcporter call trackdata.get_scratches` (gets today's scratches with horse names)
+2. **Document scratches** in scratches.txt
+3. **DO NOT PROCEED** until scratches are known
+- *(Fallback if MCP down: go to TrackData.live, password: damatopi)*
+
+**THEN:**
+5. Find DRF PDF for today
+6. Read `TOP-3-PICKS-METHODOLOGY.md`
+7. Generate picks (ALL races, SKIP scratched horses)
+   - **IF DATA MISSING:** Open the actual PDF, find the horse, read past performances
+   - **NEVER fabricate or guess data**
+8. **PRE-FINALIZATION VERIFICATION** (MANDATORY - cannot skip)
+   - For EACH pick: verify horse name, post position, Beyers, trainer ALL match DRF PDF
+   - Confirm comments describe ACTUAL race results from PDF
+   - If ANY data cannot be verified: STOP and alert Carlo
+9. Create PDF
+10. **Email using `send_email_pdf.py`** (MANDATORY)
+11. Verify delivery ("✅ Email sent successfully")
+
+**ABSOLUTE RULES:** 
+- Scratches FIRST, picks SECOND
+- PRE-FINALIZATION VERIFICATION mandatory before PDF
+- If you can't verify it from the PDF, don't write it
+- Better late with correct picks than on-time with fabricated analysis
 
 ### **METHODOLOGY FILE (ETCHED IN STONE)**
 
@@ -64,11 +82,28 @@ Last updated: February 19, 2026
 - **Claiming analysis:** `CLAIMING-PROSPECTS-CRITERIA.md` (different from betting picks)
 - **Cron job:** "Gulfstream Racing Picks (Day Of)" - 11:45 AM Thu/Fri/Sat/Sun
 
-### **What Went Wrong (Feb 19, 2026)**
+### **What Went Wrong**
 
+**Feb 19, 2026:**
 - Tried to run picks 2 days early → Can't know scratches/changes
 - Email script wasn't executed → PDF created but not sent
 - Learned: DAY OF is the only way. Scratches change everything.
+
+**Feb 21, 2026 - THE BIG ONE (Morning):**
+- **Sub-agent SKIPPED scratch check entirely**
+- Generated picks without checking TrackData.live first
+- Result: Picked 3 SCRATCHED horses (#13 Mia Familia, #3 Miss Candy Girl, #8 Mi Triguena)
+- **Root cause:** Workflow didn't enforce "STEP 0: CHECK SCRATCHES FIRST"
+- **Fix:** Updated cron job with mandatory STEP 0 - scratches BEFORE any analysis
+- **Lesson:** SCRATCHES FIRST is not optional. It's STEP 0. Period.
+
+**Feb 21, 2026 - Race 3 Data Fabrication (Afternoon):**
+- **Fabricated Beyers for #5 Outlaw Country** (wrote 83.0 avg when couldn't find data)
+- Wrong comments for #6 Gallant Knight (scrambled race sequence/margins)
+- Result: Had the WINNER (#6) but put it at #2 because fake data pushed wrong horse to #1
+- **Root cause:** Didn't open actual DRF PDF to verify data, gave up and invented it
+- **Fix:** Added PRE-FINALIZATION VERIFICATION checklist - mandatory before PDF
+- **Lesson:** If you can't verify it from the PDF, don't write it. No fabricated data. Ever.
 
 ---
 

@@ -1,0 +1,33 @@
+# Credentials & secrets
+.gmail_credentials
+.trackdata_credentials
+*.credentials
+*.secret
+*.key
+
+# Generated output files
+morning_briefing.html
+*.pdf
+
+# OpenClaw internals
+.openclaw/
+
+# Heartbeat state flags
+.heartbeat-*
+
+# Python cache & virtual envs
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# Backup files
+*.bak
+*.backup
+
+# Temp files
+*.tmp
+*.swp
+.DS_Store

@@ -1,0 +1,56 @@
+{
+  "date": "2026-02-12",
+  "track": "GP",
+  "picks": {
+    "1": {
+      "top_pick": "New Lease On Life",
+      "second": "Soda",
+      "third": "Lucky Berry"
+    },
+    "2": {
+      "top_pick": "Pemberley",
+      "second": "Seeking A Prayer",
+      "third": "Lu's Redemption"
+    },
+    "3": {
+      "top_pick": "Nice Try Riley",
+      "second": "Jimbo Bailey",
+      "third": "R Markovich"
+    },
+    "4": {
+      "top_pick": "Five Eyes Onmichel",
+      "second": "Lady Patrick's",
+      "third": "Drink Deeply"
+    },
+    "5": {
+      "top_pick": "Manoah's Glory",
+      "second": "Bolero Bay",
+      "third": "Laser"
+    },
+    "6": {
+      "top_pick": "Prom Queen",
+      "second": "Squander",
+      "third": "San Antonio Sara"
+    },
+    "7": {
+      "top_pick": "Doctrine",
+      "second": "Zucchero",
+      "third": "Bronze Bullet"
+    },
+    "8": {
+      "top_pick": "Mom's Martini",
+      "second": "Calathea",
+      "third": "North End Lady"
+    },
+    "9": {
+      "top_pick": "Spicy Guacamole",
+      "second": "Bad Gal Party",
+      "third": "Waittilmidnitehour"
+    },
+    "10": {
+      "top_pick": "Kigali",
+      "second": "Bluff",
+      "third": "Saratoga Flash"
+    }
+  }
+}

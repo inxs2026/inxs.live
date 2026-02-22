@@ -1,0 +1,56 @@
+{
+  "date": "2026-02-12",
+  "track": "GP",
+  "results": {
+    "1": {
+      "winner": "Lisa Connects",
+      "second": "Soda",
+      "third": "Lucky Berry"
+    },
+    "2": {
+      "winner": "Lu's Redemption",
+      "second": "Gimme Some Luck",
+      "third": "Pemberley"
+    },
+    "3": {
+      "winner": "Nice Try Riley",
+      "second": "Jimbo Bailey",
+      "third": "Magic Red"
+    },
+    "4": {
+      "winner": "Golden Valley",
+      "second": "Beautiful Bolt",
+      "third": "Smooth Claret"
+    },
+    "5": {
+      "winner": "My Favorite Bird",
+      "second": "Ramses the Great",
+      "third": "Chicken Dance"
+    },
+    "6": {
+      "winner": "Prom Queen",
+      "second": "Squander",
+      "third": "Song of Sarah"
+    },
+    "7": {
+      "winner": "Immortalised (FR)",
+      "second": "Doctrine",
+      "third": "Bronze Bullet"
+    },
+    "8": {
+      "winner": "Calathea",
+      "second": "Mary Marguerite",
+      "third": "Z Train (IRE)"
+    },
+    "9": {
+      "winner": "Roxy",
+      "second": "Waittilmidnitehour",
+      "third": "Super Sicily"
+    },
+    "10": {
+      "winner": "Saratoga Flash",
+      "second": "Bluff",
+      "third": "El Kabong"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "regex-patterns": {
+      "version": "1.0.0",
+      "installedAt": 1770937889958
+    },
+    "ralph-loops": {
+      "version": "1.0.2",
+      "installedAt": 1771289632423
+    },
+    "mcporter": {
+      "version": "1.0.0",
+      "installedAt": 1771705206692
+    }
+  }
+}

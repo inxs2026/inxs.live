@@ -1,0 +1,71 @@
+{
+  "date": "2026-02-12",
+  "track": "GP",
+  "total_races": 10,
+  "top_pick_wins": 2,
+  "hit_board": 8,
+  "win_pct": 20.0,
+  "board_pct": 80.0,
+  "details": [
+    {
+      "race": "1",
+      "our_pick": "New Lease On Life",
+      "winner": "Lisa Connects",
+      "result": "\ud83d\udcca Hit board"
+    },
+    {
+      "race": "2",
+      "our_pick": "Pemberley",
+      "winner": "Lu's Redemption",
+      "result": "\ud83e\udd49 Top pick 3rd"
+    },
+    {
+      "race": "3",
+      "our_pick": "Nice Try Riley",
+      "winner": "Nice Try Riley",
+      "result": "\ud83c\udfc6 TOP PICK WON"
+    },
+    {
+      "race": "4",
+      "our_pick": "Five Eyes Onmichel",
+      "winner": "Golden Valley",
+      "result": "\u274c Missed"
+    },
+    {
+      "race": "5",
+      "our_pick": "Manoah's Glory",
+      "winner": "My Favorite Bird",
+      "result": "\u274c Missed"
+    },
+    {
+      "race": "6",
+      "our_pick": "Prom Queen",
+      "winner": "Prom Queen",
+      "result": "\ud83c\udfc6 TOP PICK WON"
+    },
+    {
+      "race": "7",
+      "our_pick": "Doctrine",
+      "winner": "Immortalised (FR)",
+      "result": "\ud83e\udd48 Top pick 2nd"
+    },
+    {
+      "race": "8",
+      "our_pick": "Mom's Martini",
+      "winner": "Calathea",
+      "result": "\u2705 2nd pick WON"
+    },
+    {
+      "race": "9",
+      "our_pick": "Spicy Guacamole",
+      "winner": "Roxy",
+      "result": "\ud83d\udcca Hit board"
+    },
+    {
+      "race": "10",
+      "our_pick": "Kigali",
+      "winner": "Saratoga Flash",
+      "result": "\u2705 3rd pick WON"
+    }
+  ]
+}
