@@ -135,6 +135,20 @@ Last updated: February 21, 2026
 - Hiding problems in cheerful summaries (tell him when things fail)
 - Condensing/rewriting output he designed (forward cron jobs as-is)
 
+### HARD RULE: VERIFY BEFORE SENDING — ALWAYS
+**"Mistakes only happen when confirmations are missed."** — Carlo, Feb 22, 2026
+
+Before ANYTHING goes out (email, Telegram, PDF, report):
+- Is every piece of data confirmed from the source? (not guessed, not assumed)
+- Have all required steps been completed in order?
+- Is anything missing, scratched, or changed since last check?
+- Would I be comfortable if Carlo audited this line by line?
+
+If the answer to ANY of these is uncertain → STOP and verify first.
+Better late and correct than on-time and wrong. Every time.
+
+**This applies to:** racing picks, stock reports, morning briefing, any automated output.
+
 ### HARD RULE: NO ASSUMPTIONS
 - Don't assume file contents - read them
 - Don't assume race counts - verify them
