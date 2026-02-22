@@ -1,0 +1,31 @@
+GULFSTREAM PARK SCRATCHES - February 22, 2026
+============================================
+Retrieved via MCP trackdata.get_scratches
+
+RACE 1 (12:20 PM) - 6 SCRATCHES:
+  #11 - Munny Problem (Trainer: Michael J. Trombetta)
+  #12 - Blind River (Trainer: Katerina Vassilieva)
+  #13 - Wrathchild (Trainer: Brendan P. Walsh)
+  #14 - Bootsontheground (Trainer: Mark E. Casse)
+  #15 - Gotcha (Trainer: Brendan P. Walsh)
+  #16 - Vol Du Condor (Trainer: Victor Barboza, Jr.)
+
+RACE 2 (12:50 PM) - 1 SCRATCH:
+  #2  - Majestuosa (Trainer: Bruno Tessore)
+
+RACE 4 (1:49 PM) - 1 SCRATCH:
+  #7  - Noche de Damas (Trainer: William Tharrenos)
+
+RACE 5 (2:19 PM) - 1 SCRATCH:
+  #8  - Spirit of the Law (Trainer: Nicholas Palmer)
+
+RACE 7 (3:19 PM) - 2 SCRATCHES:
+  #1  - High Limit Room (Trainer: Saffie A. Joseph, Jr.)
+  #5  - Nero Tulip (GB) (Trainer: Rohan G. Crichton)
+
+RACE 9 (4:19 PM) - 1 SCRATCH:
+  #7  - Adios Now (Trainer: Luis M. Ramirez)
+
+============================================
+SUMMARY: 12 total GP scratches across 6 races
+============================================

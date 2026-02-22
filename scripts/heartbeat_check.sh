@@ -83,7 +83,33 @@ if [ ! -f "$LAST_CRON_CHECK" ] || [ "$(cat $LAST_CRON_CHECK 2>/dev/null)" != "$T
 fi
 
 #############################################
-# 5. Racing Results Ready? (only on race days, after 7 PM)
+# 5. Racing Picks Cron — smart error check (race days only)
+#############################################
+# The picks cron sometimes shows "error" even after successful delivery
+# (context overflow during announce phase). Check PDFs exist before alerting.
+DAY_OF_WEEK=$(date +%u)  # 1=Mon ... 7=Sun; race days: 4=Thu 5=Fri 6=Sat 7=Sun
+TODAY_COMPACT=$(date +%b%d | tr 'A-Z' 'a-z')
+PICKS_DIR="${WORKSPACE}/racing/picks/${TODAY_COMPACT}"
+
+if [ "$DAY_OF_WEEK" -ge 4 ]; then
+    # Check if picks cron errored today
+    PICKS_ERROR=$(openclaw cron list 2>/dev/null | grep "Gulfstream Racing Pic" | grep "error")
+    if [ -n "$PICKS_ERROR" ]; then
+        # Check if PDFs actually exist (real success indicator)
+        PDF_COUNT=$(ls "${PICKS_DIR}"/*picks*.pdf 2>/dev/null | wc -l | tr -d ' ')
+        if [ "$PDF_COUNT" -ge 2 ]; then
+            : # PDFs exist — emails sent successfully, cron error was post-delivery noise. No alert.
+        else
+            echo "⚠️ Racing picks cron errored AND no pick PDFs found in racing/picks/${TODAY_COMPACT}/"
+            echo "Picks may NOT have been generated or emailed. Check immediately."
+            echo ""
+            ISSUES_FOUND=1
+        fi
+    fi
+fi
+
+#############################################
+# 6. Racing Results Ready? (only on race days, after 7 PM)
 #############################################
 HOUR=$(date +%H)
 if [ "$HOUR" -ge 19 ]; then
