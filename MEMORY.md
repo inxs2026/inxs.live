@@ -8,42 +8,54 @@ Last updated: February 21, 2026
 
 ## 🏇 RACING PICKS SYSTEM - CRITICAL RULES
 
-### **TIMING (ETCHED IN STONE)**
+### **TIMING**
 
-**❌ WRONG:** Picks 2 days before races  
-**✅ CORRECT:** Picks DAY OF RACE at 11:45 AM
+- Picks are **on-demand** — Carlo requests when he wants them
+- All racing cron jobs cancelled as of March 6, 2026
+- Picks should be done on race day for best accuracy (DRF available)
 
-**Why:** Scratches and surface changes happen DAY OF. You CANNOT generate picks without current scratch info.
+### **WHO RUNS PICKS (Mar 2, 2026)**
+**Main session directly — NO sub-agents.**
+- Sub-agents = wasted tokens + time for racing
+- Mar 1, 2026: Did picks myself → 33 picks, 6 winners, 7 seconds, 4 thirds ✅
+- Carlo confirmed: direct approach works better
 
-**Cron Schedule:**
-- **When:** 11:45 AM on Thu/Fri/Sat/Sun (race days)
-- **First post:** ~12:20 PM
-- **Deadline:** Picks emailed by noon
+### **WHO DOES THE PICKS (ETCHED IN STONE)**
 
-### **WORKFLOW (Never Skip)**
+**❌ WRONG:** Spawning sub-agents for racing picks  
+**✅ CORRECT:** Main session (Charlie) does all picks directly
 
-**STEP 0 (DO THIS FIRST, BEFORE ANYTHING ELSE):**
-1. **Run:** `mcporter call trackdata.get_scratches` (gets today's scratches with horse names)
-2. **Document scratches** in scratches.txt
-3. **DO NOT PROCEED** until scratches are known
-- *(Fallback if MCP down: go to TrackData.live, password: damatopi)*
+**Why:** Sub-agents waste tokens/time and perform worse. Carlo confirmed March 2, 2026:
+- Direct picks by Charlie: 33 picks → 6 winners, 7 seconds, 4 thirds ✅
+- Sub-agents: slower, more expensive, inferior results ❌
 
-**THEN:**
-5. Find DRF PDF for today
-6. Read `TOP-3-PICKS-METHODOLOGY.md`
-7. Generate picks (ALL races, SKIP scratched horses)
+**Rule:** No sub-agents for racing. Charlie does it herself, every time.
+
+---
+
+### **SUB-AGENTS: DO NOT USE FOR RACING PICKS**
+- Carlo confirmed March 2, 2026: sub-agents are a waste of time and tokens for racing
+- I did better doing picks myself: 33 picks, 6 winners, 7 seconds, 4 thirds (Mar 1, 2026)
+- **Rule:** Do racing picks inline, in main session, no delegation
+
+### **WORKFLOW**
+
+1. Find DRF PDF for today
+2. Read `TOP-3-PICKS-METHODOLOGY.md`
+3. Generate picks for all races
    - **IF DATA MISSING:** Open the actual PDF, find the horse, read past performances
    - **NEVER fabricate or guess data**
-8. **PRE-FINALIZATION VERIFICATION** (MANDATORY - cannot skip)
+4. **PRE-FINALIZATION VERIFICATION** (MANDATORY - cannot skip)
    - For EACH pick: verify horse name, post position, Beyers, trainer ALL match DRF PDF
    - Confirm comments describe ACTUAL race results from PDF
    - If ANY data cannot be verified: STOP and alert Carlo
-9. Create PDF
-10. **Email using `send_email_pdf.py`** (MANDATORY)
-11. Verify delivery ("✅ Email sent successfully")
+5. Create PDF with post position colors (reportlab)
+6. **Email using `send_email_pdf.py`** (MANDATORY)
+7. Verify delivery ("✅ Email sent successfully")
 
-**ABSOLUTE RULES:** 
-- Scratches FIRST, picks SECOND
+**SCRATCHES:** Handled **separately on demand** — Carlo will ask when he wants them checked. Do NOT build scratch checking into the picks workflow.
+
+**ABSOLUTE RULES:**
 - PRE-FINALIZATION VERIFICATION mandatory before PDF
 - If you can't verify it from the PDF, don't write it
 - Better late with correct picks than on-time with fabricated analysis
@@ -75,6 +87,11 @@ Last updated: February 21, 2026
 
 **NO EXCUSES:** This process is committed to git, backed up, and in MEMORY.md. Follow it exactly.
 
+### **Telegram / Notifications**
+- **NO Telegram message after picks email** — Carlo gets the email. That's enough.
+- **Only message Carlo if:** email FAILS, or he explicitly asks for a notification
+- Do NOT send "✅ Picks sent!" messages — they're annoying and redundant
+
 ### **Files & Scripts**
 
 - **Methodology:** `TOP-3-PICKS-METHODOLOGY.md` (Carlo's exact process)
@@ -90,12 +107,16 @@ Last updated: February 21, 2026
 - Learned: DAY OF is the only way. Scratches change everything.
 
 **Feb 21, 2026 - THE BIG ONE (Morning):**
-- **Sub-agent SKIPPED scratch check entirely**
-- Generated picks without checking TrackData.live first
-- Result: Picked 3 SCRATCHED horses (#13 Mia Familia, #3 Miss Candy Girl, #8 Mi Triguena)
-- **Root cause:** Workflow didn't enforce "STEP 0: CHECK SCRATCHES FIRST"
-- **Fix:** Updated cron job with mandatory STEP 0 - scratches BEFORE any analysis
-- **Lesson:** SCRATCHES FIRST is not optional. It's STEP 0. Period.
+- Sub-agent skipped scratch check — picked 3 scratched horses (Mia Familia, Miss Candy Girl, Mi Triguena)
+- **Lesson:** Always verify field vs scratches. (Now handled separately on demand — not part of picks workflow.)
+
+**March 1, 2026 - DRF Post Position Parsing Error:**
+- Sent picks with "#5 Leinani" — she was actually **#2 Leinani**
+- Root cause: DRF text extraction format `"NNN - M HorseName"` = PP is FIRST DIGIT of NNN, rest is ML odds
+  - `"27 - 5 Leinani"` = PP **2**, ML **7-5** ← the "5" is the ML denominator, NOT the post position
+- Fix: After parsing PP from this format, always verify against the horse's data block where PP appears on its own line below the horse name
+- Caught by Carlo, corrected and re-emailed same day
+- **New mandatory step:** Confirm every PP by reading the DRF entry block directly
 
 **Feb 21, 2026 - Race 3 Data Fabrication (Afternoon):**
 - **Fabricated Beyers for #5 Outlaw Country** (wrote 83.0 avg when couldn't find data)
@@ -175,7 +196,7 @@ Better late and correct than on-time and wrong. Every time.
 
 ### Racing Picks
 - **Schedule:** 11:45 AM race days (Thu/Fri/Sat/Sun)
-- **Process:** TrackData scratches → Methodology → Email PDF
+- **Process:** DRF PDF → Methodology → PDF → Email (scratches separate on demand)
 - **Status:** Fixed Feb 19, 2026 ✅
 
 ---

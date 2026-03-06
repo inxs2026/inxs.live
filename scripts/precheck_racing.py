@@ -122,22 +122,46 @@ except (socket.timeout, ConnectionRefusedError, OSError) as e:
 except Exception as e:
     fail(f"Gmail SMTP error: {e}")
 
-# ── CHECK 8: TrackData MCP access + scratches
-print("\n[8] TrackData MCP (scratches)")
-result = subprocess.run(
-    ["mcporter", "call", "trackdata.get_scratches"],
-    capture_output=True, text=True, timeout=15
-)
-if result.returncode == 0:
-    try:
-        import json
-        data = json.loads(result.stdout)
-        count = data.get("count", 0)
-        ok(f"TrackData MCP live — {count} scratch(es) so far today")
-    except Exception:
-        ok("TrackData MCP reachable (could not parse response)")
+# ── CHECK 8: Equibase scraper (primary scratches) + TrackData MCP (backup)
+print("\n[8] Equibase scraper (primary scratches)")
+scraper = WORKSPACE / "scripts/equibase_scraper.py"
+venv_python = Path.home() / "scraping_env/bin/python3"
+equibase_ok = False
+if not scraper.exists():
+    fail("scripts/equibase_scraper.py missing")
+elif not venv_python.exists():
+    fail("scraping_env not found — run: python3 -m venv ~/scraping_env && ~/scraping_env/bin/pip install 'scrapling[all]'")
 else:
-    fail("TrackData MCP unreachable — fallback: TrackData.live (password: damatopi)")
+    result = subprocess.run(
+        [str(venv_python), str(scraper)],
+        capture_output=True, text=True, timeout=60,
+        cwd=str(WORKSPACE)
+    )
+    if result.returncode == 0 and "Done!" in result.stdout:
+        import re
+        m = re.search(r'(\d+) scratches', result.stdout)
+        count = m.group(1) if m else "0"
+        ok(f"Equibase scraper ran — {count} scratch(es), entries + scratches.txt saved")
+        equibase_ok = True
+    else:
+        warn(f"Equibase scraper failed — trying TrackData MCP as backup")
+
+if not equibase_ok:
+    print("\n[8b] TrackData MCP (backup scratches)")
+    result = subprocess.run(
+        ["mcporter", "call", "trackdata.get_scratches"],
+        capture_output=True, text=True, timeout=15
+    )
+    if result.returncode == 0:
+        try:
+            import json
+            data = json.loads(result.stdout)
+            count = data.get("count", 0)
+            ok(f"TrackData MCP live — {count} scratch(es) so far today")
+        except Exception:
+            ok("TrackData MCP reachable (could not parse response)")
+    else:
+        fail("Both Equibase scraper AND TrackData MCP failed — scratches unknown!")
 
 # ── CHECK 9: No stale picks already exist for today
 print("\n[9] Stale picks check")

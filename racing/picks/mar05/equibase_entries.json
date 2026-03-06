@@ -1,0 +1,744 @@
+{
+  "track": "GP",
+  "date": "2026-03-05",
+  "generated": "2026-03-05T11:46:35-05:00",
+  "total_races": 10,
+  "scratches": [
+    "MORE THERAPY (Race 1)",
+    "AUTHENTIC HONOUR (Race 1)",
+    "FRIOLENTO (Race 2)",
+    "COME ON POPPI (Race 4)",
+    "FIDELA (Race 6)",
+    "SOROKIN (Race 6)",
+    "GRAY ASTRAY (Race 8)",
+    "FULL NELSON (Race 9)"
+  ],
+  "races": [
+    {
+      "race_num": 1,
+      "conditions": "Maiden Claiming - $26,500 5 1/2 F All Weather Track",
+      "post_time": "12:50 PM ET",
+      "entries": [
+        {
+          "pp": 1,
+          "horse": "WAR WARRIOR",
+          "jockey": "E   Gonzalez",
+          "trainer": "M E Casse",
+          "morning_line": "4/1",
+          "scratched": false
+        },
+        {
+          "pp": 2,
+          "horse": "MORE THERAPY",
+          "jockey": "D   Egan",
+          "trainer": "C M Gambolati",
+          "morning_line": "15/1",
+          "scratched": true
+        },
+        {
+          "pp": 3,
+          "horse": "SO GRAND",
+          "jockey": "R   Montanez",
+          "trainer": "S   Davis",
+          "morning_line": "7/2",
+          "scratched": false
+        },
+        {
+          "pp": 4,
+          "horse": "FREEDOM STREET",
+          "jockey": "C J Lanerie",
+          "trainer": "J   Engler",
+          "morning_line": "10/1",
+          "scratched": false
+        },
+        {
+          "pp": 5,
+          "horse": "AUTHENTIC HONOUR",
+          "jockey": "J L Gonzalez",
+          "trainer": "D   Nunn",
+          "morning_line": "10/1",
+          "scratched": true
+        },
+        {
+          "pp": 6,
+          "horse": "WAR TO REMEMBER",
+          "jockey": "L   Panici",
+          "trainer": "C   Hall",
+          "morning_line": "8/1",
+          "scratched": false
+        },
+        {
+          "pp": 7,
+          "horse": "VINO'S VALENTINE",
+          "jockey": "M A Vasquez",
+          "trainer": "A M Rodriguez",
+          "morning_line": "10/1",
+          "scratched": false
+        },
+        {
+          "pp": 8,
+          "horse": "MULLY'S MOON",
+          "jockey": "J   Ruiz",
+          "trainer": "J M Castro",
+          "morning_line": "6/1",
+          "scratched": false
+        },
+        {
+          "pp": 9,
+          "horse": "FOUR BEACH FRIENDS",
+          "jockey": "R   Maragh",
+          "trainer": "C   Maragh",
+          "morning_line": "8/1",
+          "scratched": false
+        },
+        {
+          "pp": 10,
+          "horse": "RAMBLIN BETTS",
+          "jockey": "Y   Torres",
+          "trainer": "L   Cazares",
+          "morning_line": "15/1",
+          "scratched": false
+        },
+        {
+          "pp": 11,
+          "horse": "DISTINGUISHED GENT",
+          "jockey": "C   Martinez",
+          "trainer": "E   Luces",
+          "morning_line": "30/1",
+          "scratched": false
+        },
+        {
+          "pp": 12,
+          "horse": "HOW ABOUT IT",
+          "jockey": "E J Zayas",
+          "trainer": "J D Braddy",
+          "morning_line": "10/1",
+          "scratched": false
+        }
+      ]
+    },
+    {
+      "race_num": 2,
+      "conditions": "Claiming - $24,500 1 M Dirt",
+      "post_time": "1:20 PM ET",
+      "entries": [
+        {
+          "pp": 1,
+          "horse": "DIME PAPI",
+          "jockey": "J E Morelos",
+          "trainer": "P   Garcia, Jr.",
+          "morning_line": "9/2",
+          "scratched": false
+        },
+        {
+          "pp": 2,
+          "horse": "BRODERICK",
+          "jockey": "W   Henry",
+          "trainer": "P L Reynolds",
+          "morning_line": "7/2",
+          "scratched": false
+        },
+        {
+          "pp": 3,
+          "horse": "FRIOLENTO",
+          "jockey": "M A Vasquez",
+          "trainer": "N   Palmer",
+          "morning_line": "3/1",
+          "scratched": true
+        },
+        {
+          "pp": 4,
+          "horse": "RUN FOR YOUR LIFE",
+          "jockey": "R R Maragh",
+          "trainer": "D   Dougherty",
+          "morning_line": "20/1",
+          "scratched": false
+        },
+        {
+          "pp": 5,
+          "horse": "SONG SO SWEET",
+          "jockey": "J L Gonzalez",
+          "trainer": "L J McKanas",
+          "morning_line": "15/1",
+          "scratched": false
+        },
+        {
+          "pp": 6,
+          "horse": "FREDERICKSBURG",
+          "jockey": "D   Boraco",
+          "trainer": "B   Campos",
+          "morning_line": "20/1",
+          "scratched": false
+        },
+        {
+          "pp": 7,
+          "horse": "FLAG OFFICER",
+          "jockey": "D   Egan",
+          "trainer": "A   Sano",
+          "morning_line": "6/5",
+          "scratched": false
+        }
+      ]
+    },
+    {
+      "race_num": 3,
+      "conditions": "Starter Optional Claiming - $42,000 1 M Turf",
+      "post_time": "1:50 PM ET",
+      "entries": [
+        {
+          "pp": 1,
+          "horse": "SMILING ROSIE",
+          "jockey": "T   Gaffalione",
+          "trainer": "M A Hennig",
+          "morning_line": "8/1",
+          "scratched": false
+        },
+        {
+          "pp": 2,
+          "horse": "NEW LIFE",
+          "jockey": "E   Perez",
+          "trainer": "V   Barboza, Jr.",
+          "morning_line": "6/1",
+          "scratched": false
+        },
+        {
+          "pp": 3,
+          "horse": "BINT MISCHIEF",
+          "jockey": "D   Egan",
+          "trainer": "J   Cibelli",
+          "morning_line": "2/1",
+          "scratched": false
+        },
+        {
+          "pp": 4,
+          "horse": "BETTER WITH VINO",
+          "jockey": "J   Alvarado",
+          "trainer": "A R Margotta, Jr.",
+          "morning_line": "12/1",
+          "scratched": false
+        },
+        {
+          "pp": 5,
+          "horse": "STEEL CITY LADY",
+          "jockey": "J   Bravo",
+          "trainer": "D   Fawkes",
+          "morning_line": "3/1",
+          "scratched": false
+        },
+        {
+          "pp": 6,
+          "horse": "OSCAR BOUND",
+          "jockey": "S   Bridgmohan",
+          "trainer": "M   Giddings",
+          "morning_line": "4/1",
+          "scratched": false
+        },
+        {
+          "pp": 7,
+          "horse": "ALWAYS READY",
+          "jockey": "J L Gonzalez",
+          "trainer": "D   Nunn",
+          "morning_line": "8/1",
+          "scratched": false
+        },
+        {
+          "pp": 8,
+          "horse": "IMPERIA BLUE",
+          "jockey": "J   Castellano",
+          "trainer": "A   Sano",
+          "morning_line": "15/1",
+          "scratched": false
+        }
+      ]
+    },
+    {
+      "race_num": 4,
+      "conditions": "Maiden Claiming - $29,000 1 1/16 Ms All Weather Track",
+      "post_time": "2:20 PM ET",
+      "entries": [
+        {
+          "pp": 1,
+          "horse": "COME ON POPPI",
+          "jockey": "J   Alvarado",
+          "trainer": "V   Barboza, Jr.",
+          "morning_line": "4/1",
+          "scratched": true
+        },
+        {
+          "pp": 2,
+          "horse": "ESTRELLA",
+          "jockey": "M   Nicholls",
+          "trainer": "D C Hurtak",
+          "morning_line": "15/1",
+          "scratched": false
+        },
+        {
+          "pp": 3,
+          "horse": "LUCKY BERRY",
+          "jockey": "T   Gaffalione",
+          "trainer": "A   Sano",
+          "morning_line": "8/1",
+          "scratched": false
+        },
+        {
+          "pp": 4,
+          "horse": "DIRTY DIANA",
+          "jockey": "Y   Torres",
+          "trainer": "J F D'Angelo",
+          "morning_line": "3/1",
+          "scratched": false
+        },
+        {
+          "pp": 5,
+          "horse": "SODA",
+          "jockey": "D   Egan",
+          "trainer": "T   Moubarak",
+          "morning_line": "8/1",
+          "scratched": false
+        },
+        {
+          "pp": 6,
+          "horse": "MISCHIEVOUS SCOUT",
+          "jockey": "L   Panici",
+          "trainer": "H   Smullen",
+          "morning_line": "7/2",
+          "scratched": false
+        },
+        {
+          "pp": 7,
+          "horse": "WORLD BUILDER",
+          "jockey": "J E Morelos",
+          "trainer": "J K Sweezey",
+          "morning_line": "2/1",
+          "scratched": false
+        }
+      ]
+    },
+    {
+      "race_num": 5,
+      "conditions": "Claiming - $25,000 5 1/2 F Dirt",
+      "post_time": "2:51 PM ET",
+      "entries": [
+        {
+          "pp": 1,
+          "horse": "SLEW DIVA",
+          "jockey": "I   Ortiz, Jr.",
+          "trainer": "R G Crichton",
+          "morning_line": "7/5",
+          "scratched": false
+        },
+        {
+          "pp": 2,
+          "horse": "MY LADY JAMES",
+          "jockey": "C D Lugo",
+          "trainer": "A   Quiroz",
+          "morning_line": "8/1",
+          "scratched": false
+        },
+        {
+          "pp": 3,
+          "horse": "R FIREBIRD",
+          "jockey": "J M Rios",
+          "trainer": "S   Budhoo",
+          "morning_line": "12/1",
+          "scratched": false
+        },
+        {
+          "pp": 4,
+          "horse": "SWEET SASH",
+          "jockey": "M   Nicholls",
+          "trainer": "R G Crichton",
+          "morning_line": "15/1",
+          "scratched": false
+        },
+        {
+          "pp": 5,
+          "horse": "BRENNA",
+          "jockey": "J L Gonzalez",
+          "trainer": "A M Rodriguez",
+          "morning_line": "9/2",
+          "scratched": false
+        },
+        {
+          "pp": 6,
+          "horse": "CHAINA",
+          "jockey": "C   Martinez",
+          "trainer": "P   Garcia, Jr.",
+          "morning_line": "6/1",
+          "scratched": false
+        },
+        {
+          "pp": 7,
+          "horse": "EVANORA",
+          "jockey": "J   Alvarado",
+          "trainer": "A M Rodriguez",
+          "morning_line": "5/2",
+          "scratched": false
+        }
+      ]
+    },
+    {
+      "race_num": 6,
+      "conditions": "Maiden Special Weight - $84,000 6 F Dirt",
+      "post_time": "3:22 PM ET",
+      "entries": [
+        {
+          "pp": 1,
+          "horse": "PIPPA ADDS",
+          "jockey": "E J Zayas",
+          "trainer": "T A Pletcher",
+          "morning_line": "2/1",
+          "scratched": false
+        },
+        {
+          "pp": 2,
+          "horse": "SIPPIN PRETTY",
+          "jockey": "E   Perez",
+          "trainer": "I R Wilkes",
+          "morning_line": "5/2",
+          "scratched": false
+        },
+        {
+          "pp": 3,
+          "horse": "FIDELA",
+          "jockey": "D   Egan",
+          "trainer": "J   Delgado",
+          "morning_line": "30/1",
+          "scratched": true
+        },
+        {
+          "pp": 4,
+          "horse": "GRACE OF MONACO",
+          "jockey": "I   Ortiz, Jr.",
+          "trainer": "D   Gargan",
+          "morning_line": "8/1",
+          "scratched": false
+        },
+        {
+          "pp": 5,
+          "horse": "LEXI V.",
+          "jockey": "J   Ruiz",
+          "trainer": "G R Arnold II",
+          "morning_line": "12/1",
+          "scratched": false
+        },
+        {
+          "pp": 6,
+          "horse": "SOROKIN",
+          "jockey": "D   Davis",
+          "trainer": "S A Joseph, Jr.",
+          "morning_line": "12/1",
+          "scratched": true
+        },
+        {
+          "pp": 7,
+          "horse": "EXQUISITE",
+          "jockey": "T   Gaffalione",
+          "trainer": "S A Joseph, Jr.",
+          "morning_line": "4/1",
+          "scratched": false
+        },
+        {
+          "pp": 8,
+          "horse": "DAD'S TWO SENSE",
+          "jockey": "J R Velazquez",
+          "trainer": "B P Walsh",
+          "morning_line": "5/1",
+          "scratched": false
+        }
+      ]
+    },
+    {
+      "race_num": 7,
+      "conditions": "Claiming - $36,000 1 M Turf",
+      "post_time": "3:53 PM ET",
+      "entries": [
+        {
+          "pp": 1,
+          "horse": "ITHINKILOVEYOU",
+          "jockey": "M A Vasquez",
+          "trainer": "C J Stewart",
+          "morning_line": "12/1",
+          "scratched": false
+        },
+        {
+          "pp": 2,
+          "horse": "ZO ZUCCHERA",
+          "jockey": "I   Ortiz, Jr.",
+          "trainer": "J F D'Angelo",
+          "morning_line": "9/5",
+          "scratched": false
+        },
+        {
+          "pp": 3,
+          "horse": "DRUM ROLL",
+          "jockey": "T   Gaffalione",
+          "trainer": "N   Ramsey",
+          "morning_line": "3/1",
+          "scratched": false
+        },
+        {
+          "pp": 4,
+          "horse": "LOGISTICS",
+          "jockey": "E J Zayas",
+          "trainer": "M   Drexler",
+          "morning_line": "12/1",
+          "scratched": false
+        },
+        {
+          "pp": 5,
+          "horse": "TIC TIC TIC BOOM",
+          "jockey": "R   Maragh",
+          "trainer": "M   McGoey",
+          "morning_line": "20/1",
+          "scratched": false
+        },
+        {
+          "pp": 6,
+          "horse": "SHE TAKES CASH",
+          "jockey": "J   Alvarado",
+          "trainer": "J S Englehart",
+          "morning_line": "8/1",
+          "scratched": false
+        },
+        {
+          "pp": 7,
+          "horse": "YANKEE DOLLAR",
+          "jockey": "J E Morelos",
+          "trainer": "M J Vitali",
+          "morning_line": "5/1",
+          "scratched": false
+        },
+        {
+          "pp": 8,
+          "horse": "MOBAY PRINCESS",
+          "jockey": "A   Morales",
+          "trainer": "M   McGoey",
+          "morning_line": "20/1",
+          "scratched": false
+        },
+        {
+          "pp": 9,
+          "horse": "FISH MOONEY",
+          "jockey": "D   Egan",
+          "trainer": "M   Drexler",
+          "morning_line": "8/1",
+          "scratched": false
+        },
+        {
+          "pp": 10,
+          "horse": "CELESTIAL EXPRESS",
+          "jockey": "J   Ruiz",
+          "trainer": "D J Seyler",
+          "morning_line": "30/1",
+          "scratched": false
+        }
+      ]
+    },
+    {
+      "race_num": 8,
+      "conditions": "Allowance - $54,000 5 F All Weather Track",
+      "post_time": "4:24 PM ET",
+      "entries": [
+        {
+          "pp": 1,
+          "horse": "GRAY ASTRAY",
+          "jockey": "M   Nicholls",
+          "trainer": "R   Sierra",
+          "morning_line": "15/1",
+          "scratched": true
+        },
+        {
+          "pp": 2,
+          "horse": "REBEL WITH A CAUSE",
+          "jockey": "J R Velazquez",
+          "trainer": "L   Robson",
+          "morning_line": "7/2",
+          "scratched": false
+        },
+        {
+          "pp": 3,
+          "horse": "WINE CANDY",
+          "jockey": "M A Vasquez",
+          "trainer": "M   Yates",
+          "morning_line": "8/1",
+          "scratched": false
+        },
+        {
+          "pp": 4,
+          "horse": "MIDNIGHT MARTINI",
+          "jockey": "J   Castellano",
+          "trainer": "M E Casse",
+          "morning_line": "9/5",
+          "scratched": false
+        },
+        {
+          "pp": 5,
+          "horse": "AUGUSTINIAN",
+          "jockey": "I   Ortiz, Jr.",
+          "trainer": "M E Casse",
+          "morning_line": "2/1",
+          "scratched": false
+        },
+        {
+          "pp": 6,
+          "horse": "SKIPPING STARS",
+          "jockey": "T   Gaffalione",
+          "trainer": "J F D'Angelo",
+          "morning_line": "4/1",
+          "scratched": false
+        }
+      ]
+    },
+    {
+      "race_num": 9,
+      "conditions": "Claiming - $27,000 1 M 70 Y All Weather Track",
+      "post_time": "4:54 PM ET",
+      "entries": [
+        {
+          "pp": 1,
+          "horse": "SHINIGAMI",
+          "jockey": "J   Alvarado",
+          "trainer": "R   Coy",
+          "morning_line": "6/1",
+          "scratched": false
+        },
+        {
+          "pp": 2,
+          "horse": "FULL NELSON",
+          "jockey": "I   Ortiz, Jr.",
+          "trainer": "V   Barboza, Jr.",
+          "morning_line": "7/2",
+          "scratched": true
+        },
+        {
+          "pp": 3,
+          "horse": "WINOOSKI",
+          "jockey": "E   Gonzalez",
+          "trainer": "S   Wilensky",
+          "morning_line": "9/2",
+          "scratched": false
+        },
+        {
+          "pp": 4,
+          "horse": "NAVY CROSS",
+          "jockey": "E   Perez",
+          "trainer": "P   Garcia, Jr.",
+          "morning_line": "8/1",
+          "scratched": false
+        },
+        {
+          "pp": 5,
+          "horse": "ROCK THE STARS",
+          "jockey": "J E Morelos",
+          "trainer": "E L Dobles",
+          "morning_line": "15/1",
+          "scratched": false
+        },
+        {
+          "pp": 6,
+          "horse": "HONESTO",
+          "jockey": "J M Rios",
+          "trainer": "S   Budhoo",
+          "morning_line": "5/2",
+          "scratched": false
+        },
+        {
+          "pp": 7,
+          "horse": "BOLD ADVANCE",
+          "jockey": "T   Gaffalione",
+          "trainer": "V   Barboza, Jr.",
+          "morning_line": "8/1",
+          "scratched": false
+        },
+        {
+          "pp": 8,
+          "horse": "NEVER SAY NEVER",
+          "jockey": "M A Vasquez",
+          "trainer": "S   Pulgarin",
+          "morning_line": "5/1",
+          "scratched": false
+        }
+      ]
+    },
+    {
+      "race_num": 10,
+      "conditions": "Claiming - $31,000 1 1/16 Ms Turf",
+      "post_time": "5:24 PM ET",
+      "entries": [
+        {
+          "pp": 1,
+          "horse": "MAMUKA",
+          "jockey": "R R Maragh",
+          "trainer": "R   Brathwaite",
+          "morning_line": "20/1",
+          "scratched": false
+        },
+        {
+          "pp": 2,
+          "horse": "WHITE CLAW WOMAN",
+          "jockey": "P   Moran",
+          "trainer": "J F D'Angelo",
+          "morning_line": "8/1",
+          "scratched": false
+        },
+        {
+          "pp": 3,
+          "horse": "MAGICAL TRICK",
+          "jockey": "Y   Torres",
+          "trainer": "J   Cibelli",
+          "morning_line": "15/1",
+          "scratched": false
+        },
+        {
+          "pp": 4,
+          "horse": "GIMME SOME LUCK",
+          "jockey": "R   Maragh",
+          "trainer": "C   Maragh",
+          "morning_line": "10/1",
+          "scratched": false
+        },
+        {
+          "pp": 5,
+          "horse": "PEMBERLEY",
+          "jockey": "J   Ruiz",
+          "trainer": "J F D'Angelo",
+          "morning_line": "5/2",
+          "scratched": false
+        },
+        {
+          "pp": 6,
+          "horse": "SEEKINGBYTHESTORM",
+          "jockey": "R   Rojas",
+          "trainer": "A E Lizardi",
+          "morning_line": "3/1",
+          "scratched": false
+        },
+        {
+          "pp": 7,
+          "horse": "MAGNETIC BEACH",
+          "jockey": "T   Gaffalione",
+          "trainer": "J F Orseno",
+          "morning_line": "7/2",
+          "scratched": false
+        },
+        {
+          "pp": 8,
+          "horse": "DITCHED",
+          "jockey": "D   Davis",
+          "trainer": "S A Joseph, Jr.",
+          "morning_line": "4/1",
+          "scratched": false
+        },
+        {
+          "pp": 9,
+          "horse": "CLASSY LASS",
+          "jockey": "I   Ortiz, Jr.",
+          "trainer": "M J Vitali",
+          "morning_line": "50/1",
+          "scratched": false
+        }
+      ]
+    }
+  ]
+}

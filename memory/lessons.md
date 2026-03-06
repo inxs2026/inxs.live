@@ -390,6 +390,43 @@ These are core working rules. Follow them strictly.
 
 ---
 
+### DRF Post Position Parsing — CRITICAL RULE (March 1, 2026)
+
+**The Bug:** In DRF PDF text extractions, horses sometimes appear as `"NNN - M HorseName"` instead of a clean `"PP HorseName"` format. I incorrectly read `"27 - 5 Leinani"` as PP5 when it actually means PP **2**, ML **7-5**.
+
+**The Rule — How to decode `"NNN - M HorseName"`:**
+- First digit(s) of NNN = **Post Position**
+- Remaining digits + `-M` = **Morning Line odds**
+
+**Examples:**
+- `"27 - 5 Leinani"` → PP **2**, ML 7-5
+- `"410 - 1 Conn Smythe"` → PP **4**, ML 10-1
+- `"59 - 2 Fear"` → PP **5**, ML 9-2
+- `"74 - 1 Mizzou"` → PP **7**, ML 4-1
+- `"615 - 1 Cookie's Run"` → PP **6**, ML 15-1
+
+**Mandatory verification step:** After parsing any PP from this format, confirm by reading the DRF text block for that horse — the post position number appears **on its own line directly below the horse's name**, e.g.:
+```
+Leinani
+2
+7-5
+```
+Always cross-check the line-embedded number with the actual entry block. Never trust the "NNN" prefix alone.
+
+**Result of this bug:** Race 2 picks had "#5 Leinani" when she was #2. Caught by Carlo, corrected and re-emailed March 1, 2026.
+
+---
+
+### No Telegram After Picks Email (March 1, 2026)
+
+Carlo's rule: **Never send a Telegram message after emailing picks**, unless:
+1. Email delivery FAILS → then alert via Telegram immediately
+2. Carlo explicitly asks for a summary
+
+Picks go to email only. Telegram confirmation = noise.
+
+---
+
 ### 6. Backup Policy
 **Rule:** Commit or backup before major changes to important files.
 

@@ -79,7 +79,7 @@ When Carlo asks for race analysis, ALWAYS reference these files FIRST:
 - **CLI:** `mcporter call trackdata.<tool>`
 - **Config:** `/home/damato/.openclaw/workspace/config/mcporter.json`
 - **Tools:**
-  - `get_scratches` — today's scratches with horse names (use this for STEP 0!)
+  - `get_scratches` — today's scratches with horse names (on-demand when Carlo asks)
   - `get_changes` — change log (no horse names, limited use)
   - `get_todays_races` — today's full card (e.g. `track=GP`)
   - `get_race_details` — full entry details by key `GP-YYYYMMDD-RACENUM`

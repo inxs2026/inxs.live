@@ -161,7 +161,8 @@ Before finalizing picks, verify:
 - [ ] #1 pick clearly has MOST positive factors
 - [ ] #2 and #3 picks have distinct rationale (not "also ran well")
 - [ ] Class levels make sense (no $5K horse vs $50K horses)
-- [ ] Scratches noted if known
+- [ ] Field is based on DRF entries (scratches handled separately on demand)
+- [ ] **Also Eligible (AE) horses checked** — if an AE has strong figures, note them explicitly with: "IF [horse] draws in, move to #1" or similar. AEs can flip a race if they're the best horse.
 
 ---
 
