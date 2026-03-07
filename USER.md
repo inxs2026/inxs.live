@@ -15,3 +15,6 @@
 ## Context
 
 *(Still learning — this is day one.)*
+
+## Saved Locations
+- **Stephanie's House:** 347188 County Rd 8, Mono, ON L9W 6S3 — coords 44.0075322, -80.0784479

@@ -135,6 +135,7 @@ Last updated: February 21, 2026
 - **Location:** Toronto, Ontario (Eastern Time)
 - **Home:** Erin Centre Blvd & Mississauga Rd, Mississauga, ON — coords 43.57341, -79.702558
 - **Routing:** Always use home coords as the origin for any directions or traffic queries
+- **Stephanie's House:** 347188 County Rd 8, Mono, ON L9W 6S3 — coords 44.0075322, -80.0784479
 - **Interests:** Horse racing (handicapping), stock portfolio tracking
 - **Personality:** Direct, expects me to listen and follow instructions exactly
 
