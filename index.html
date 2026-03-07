@@ -349,6 +349,12 @@
       border: 1px solid rgba(124,58,237,0.25);
     }
 
+    .badge-new {
+      background: rgba(245,158,11,0.12);
+      color: #f59e0b;
+      border: 1px solid rgba(245,158,11,0.3);
+    }
+
     /* ── COMING SOON CARD ── */
     .tool-card.coming-soon {
       opacity: 0.55;
@@ -359,6 +365,225 @@
       transform: none;
       box-shadow: none;
       border-color: var(--border);
+    }
+
+    /* ── X VIDEO DOWNLOADER SECTION ── */
+    .downloader-section {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .downloader-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 100px 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .downloader-copy .section-sub { margin-bottom: 0; }
+
+    .downloader-steps {
+      margin-top: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .downloader-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      background: var(--purple-glow);
+      border: 1px solid rgba(124,58,237,0.4);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--purple3);
+      margin-top: 1px;
+    }
+
+    .step-text {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .step-text strong { color: var(--text); }
+
+    /* ── DOWNLOADER WIDGET ── */
+    .downloader-widget {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .downloader-widget::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--purple), var(--purple2), var(--purple3));
+    }
+
+    .widget-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .widget-icon {
+      width: 44px;
+      height: 44px;
+      background: #000;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      border: 1px solid #333;
+    }
+
+    .widget-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .widget-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .url-input-wrap {
+      position: relative;
+      margin-bottom: 14px;
+    }
+
+    .url-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .url-input::placeholder { color: var(--faint); }
+
+    .url-input:focus {
+      border-color: rgba(124,58,237,0.5);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+    }
+
+    .dl-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--purple), var(--purple2));
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+      box-shadow: 0 4px 20px rgba(124,58,237,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .dl-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(124,58,237,0.45);
+    }
+
+    .dl-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* spinner */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* result / error states */
+    .dl-result {
+      margin-top: 16px;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 13px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dl-result.success {
+      background: rgba(16,185,129,0.08);
+      border: 1px solid rgba(16,185,129,0.25);
+      color: #10b981;
+      display: flex;
+    }
+
+    .dl-result.error {
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.25);
+      color: #f87171;
+      display: flex;
+    }
+
+    .dl-result a {
+      color: #10b981;
+      font-weight: 700;
+      text-decoration: none;
+      margin-left: auto;
+      white-space: nowrap;
+      border: 1px solid rgba(16,185,129,0.35);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      transition: background 0.2s;
+    }
+
+    .dl-result a:hover { background: rgba(16,185,129,0.12); }
+
+    .privacy-note {
+      margin-top: 14px;
+      font-size: 11.5px;
+      color: var(--faint);
+      text-align: center;
+      line-height: 1.5;
     }
 
     /* ── FEATURE STRIP ── */
@@ -434,6 +659,13 @@
     footer .footer-links a:hover { color: var(--text); }
 
     /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .downloader-inner {
+        grid-template-columns: 1fr;
+        gap: 48px;
+      }
+    }
+
     @media (max-width: 768px) {
       nav { padding: 16px 20px; }
       .nav-links { display: none; }
@@ -460,6 +692,7 @@
     <div class="nav-logo">INXS</div>
     <ul class="nav-links">
       <li><a href="#tools">Tools</a></li>
+      <li><a href="#downloader">X Downloader</a></li>
       <li><a href="#about">About</a></li>
       <li><a href="https://pdf.inxs.live" class="nav-cta">Try PDF Converter →</a></li>
     </ul>
@@ -472,7 +705,7 @@
     <p class="hero-sub">A growing suite of clean, fast tools built to cut through the noise and get things done. No bloat. No nonsense.</p>
     <div class="hero-actions">
       <a href="#tools" class="btn-primary">Explore Tools →</a>
-      <a href="#about" class="btn-ghost">Learn More</a>
+      <a href="#downloader" class="btn-ghost">X Video Downloader</a>
     </div>
   </div>
 
@@ -500,7 +733,7 @@
   <section id="tools">
     <div class="section-tag fade-up">Tools</div>
     <h2 class="section-title fade-up">Everything in one place</h2>
-    <p class="section-sub fade-up">Each tool lives on its own subdomain. Clean, focused, fast. More dropping regularly.</p>
+    <p class="section-sub fade-up">Each tool is fast, focused, and free. More dropping regularly.</p>
 
     <div class="tools-grid">
 
@@ -514,6 +747,20 @@
           <div class="tool-desc">Convert any PDF to a fully editable Microsoft Word .docx file. Fast, accurate, free. Up to 100MB.</div>
         </div>
         <div class="tool-link">Open tool <span>→</span></div>
+      </a>
+
+      <!-- X VIDEO DOWNLOADER CARD -->
+      <a href="#downloader" class="tool-card fade-up">
+        <div class="tool-icon">🐦</div>
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+            <div class="tool-name">X Video Downloader</div>
+            <span class="tool-badge badge-new">New</span>
+            <span class="tool-badge badge-live">Live</span>
+          </div>
+          <div class="tool-desc">Download any video from X (Twitter) in seconds. Paste the post URL and get the file — no login, no app.</div>
+        </div>
+        <div class="tool-link">Use now <span>↓</span></div>
       </a>
 
       <div class="tool-card coming-soon fade-up">
@@ -560,19 +807,89 @@
         </div>
       </div>
 
-      <div class="tool-card coming-soon fade-up">
-        <div class="tool-icon">✂️</div>
-        <div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-            <div class="tool-name">PDF Splitter</div>
-            <span class="tool-badge badge-soon">Coming Soon</span>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       X VIDEO DOWNLOADER SECTION
+       ══════════════════════════════════════════ -->
+  <div class="downloader-section" id="downloader">
+    <div class="downloader-inner">
+
+      <!-- Left: copy -->
+      <div class="downloader-copy fade-up">
+        <div class="section-tag">X Video Downloader</div>
+        <h2 class="section-title">Save any X video<br/>in seconds.</h2>
+        <p class="section-sub">
+          Paste the URL of any post on X (formerly Twitter) that contains a video
+          and we'll grab the highest-quality version for you to download directly.
+          No login. No app. No stored files.
+        </p>
+
+        <div class="downloader-steps">
+          <div class="downloader-step">
+            <div class="step-num">1</div>
+            <div class="step-text">
+              <strong>Copy the post URL</strong> — tap the share icon on any X post and
+              hit "Copy link."
+            </div>
           </div>
-          <div class="tool-desc">Split, merge, reorder or extract pages from PDFs. No software, no sign up required.</div>
+          <div class="downloader-step">
+            <div class="step-num">2</div>
+            <div class="step-text">
+              <strong>Paste it below</strong> and click Download. We extract the
+              highest-quality MP4 directly from X's servers.
+            </div>
+          </div>
+          <div class="downloader-step">
+            <div class="step-num">3</div>
+            <div class="step-text">
+              <strong>Your browser downloads</strong> the file straight from X's CDN —
+              nothing passes through or is stored on our servers.
+            </div>
+          </div>
         </div>
       </div>
 
+      <!-- Right: widget -->
+      <div class="downloader-widget fade-up">
+        <div class="widget-header">
+          <div class="widget-icon">𝕏</div>
+          <div>
+            <div class="widget-title">X Video Downloader</div>
+            <div class="widget-sub">Best quality MP4 · Free · No login</div>
+          </div>
+        </div>
+
+        <div class="url-input-wrap">
+          <input
+            class="url-input"
+            id="xUrl"
+            type="url"
+            placeholder="https://x.com/username/status/..."
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+
+        <button class="dl-btn" id="dlBtn" onclick="handleDownload()">
+          <div class="spinner" id="spinner"></div>
+          <span id="dlBtnText">⬇ Download Video</span>
+        </button>
+
+        <div class="dl-result" id="dlResult">
+          <span id="dlMsg"></span>
+          <a id="dlLink" href="#" target="_blank" download>Download ↓</a>
+        </div>
+
+        <p class="privacy-note">
+          🔒 Videos download directly from X's CDN.<br/>
+          Nothing is stored on our servers.
+        </p>
+      </div>
+
     </div>
-  </section>
+  </div>
 
   <!-- FEATURES -->
   <div class="features" id="about">
@@ -606,13 +923,14 @@
     <p style="margin-top:8px;">Tools built to get things done.</p>
     <div class="footer-links">
       <a href="#tools">Tools</a>
+      <a href="#downloader">X Downloader</a>
       <a href="https://pdf.inxs.live">PDF Converter</a>
       <a href="mailto:hello@inxs.live">Contact</a>
     </div>
   </footer>
 
   <script>
-    // Fade-up on scroll
+    // ── Fade-up on scroll ──
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(e => {
         if (e.isIntersecting) {
@@ -623,6 +941,75 @@
     }, { threshold: 0.1 });
 
     document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+    // ── X Video Downloader logic ──
+    async function handleDownload() {
+      const urlInput = document.getElementById('xUrl');
+      const btn      = document.getElementById('dlBtn');
+      const spinner  = document.getElementById('spinner');
+      const btnText  = document.getElementById('dlBtnText');
+      const result   = document.getElementById('dlResult');
+      const msg      = document.getElementById('dlMsg');
+      const link     = document.getElementById('dlLink');
+
+      const url = urlInput.value.trim();
+
+      // Client-side validation
+      if (!url) {
+        showError(result, msg, link, 'Please paste an X post URL first.');
+        return;
+      }
+
+      const xPattern = /^https?:\/\/(www\.)?(twitter\.com|x\.com|t\.co)\//i;
+      if (!xPattern.test(url)) {
+        showError(result, msg, link, 'Please enter a valid X (twitter.com or x.com) URL.');
+        return;
+      }
+
+      // Loading state
+      btn.disabled = true;
+      spinner.style.display = 'block';
+      btnText.textContent = 'Extracting video…';
+      result.className = 'dl-result';  // hide
+
+      try {
+        const res = await fetch('/api/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url }),
+        });
+
+        const data = await res.json();
+
+        if (data.url) {
+          // Success — show download link
+          result.className = 'dl-result success';
+          msg.textContent = '✅ Video ready!';
+          link.href = data.url;
+          link.style.display = 'inline-block';
+        } else {
+          showError(result, msg, link, data.error || 'Something went wrong. Please try again.');
+        }
+
+      } catch (err) {
+        showError(result, msg, link, 'Network error — please check your connection and try again.');
+      } finally {
+        btn.disabled = false;
+        spinner.style.display = 'none';
+        btnText.textContent = '⬇ Download Video';
+      }
+    }
+
+    function showError(result, msg, link, text) {
+      result.className = 'dl-result error';
+      msg.textContent = '❌ ' + text;
+      link.style.display = 'none';
+    }
+
+    // Allow Enter key in input
+    document.getElementById('xUrl').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') handleDownload();
+    });
   </script>
 
 </body>

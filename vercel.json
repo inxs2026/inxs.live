@@ -1,9 +1,11 @@
 {
   "version": 2,
   "builds": [
-    { "src": "index.html", "use": "@vercel/static" }
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "api/download.py", "use": "@vercel/python" }
   ],
   "routes": [
+    { "src": "/api/download", "dest": "/api/download.py" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
