@@ -133,6 +133,8 @@ Last updated: February 21, 2026
 - **Name:** Carlo D'Amato
 - **Email:** cdamato@rogers.com
 - **Location:** Toronto, Ontario (Eastern Time)
+- **Home:** Erin Centre Blvd & Mississauga Rd, Mississauga, ON — coords 43.57341, -79.702558
+- **Routing:** Always use home coords as the origin for any directions or traffic queries
 - **Interests:** Horse racing (handicapping), stock portfolio tracking
 - **Personality:** Direct, expects me to listen and follow instructions exactly
 
@@ -176,6 +178,29 @@ Better late and correct than on-time and wrong. Every time.
 - Don't assume times - check them
 - Don't assume anything worked - confirm it
 - If you don't know, say "Let me check" and actually check
+
+---
+
+## 🌐 Web Projects (inxs.live)
+
+### Overview
+Carlo owns **inxs.live** — a tools & services hub. Each tool lives on a subdomain.
+
+### Infrastructure
+- **Landing page:** `github.com/inxs2026/inxs.live` → Vercel (auto-deploy on push)
+- **PDF to Word:** `github.com/inxs2026/PDFtoWord` → running locally at `10.0.0.49:5050` as systemd service `pdf2docx`
+- **GitHub PAT:** stored at `config/github_token.txt`
+
+### Adding a new tool
+1. Build it in `tools/<name>/`
+2. Add a card to `tools/inxs-live/index.html` (tools grid)
+3. Push both repos
+4. Point new subdomain on Vercel
+
+### Installed
+- `lucide-static` — SVG icons, `workspace/node_modules/lucide-static/`
+- `pdf2docx` — Python PDF converter
+- `flask` — Python web framework
 
 ---
 
