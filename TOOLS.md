@@ -62,6 +62,58 @@ When Carlo asks for race analysis, ALWAYS reference these files FIRST:
 
 ---
 
+---
+
+## 🌐 Web Projects
+
+### inxs.live — Tools & Services Landing Page
+- **Repo:** https://github.com/inxs2026/inxs.live.git
+- **Hosting:** Vercel (auto-deploys on push to `main`)
+- **Local files:** `tools/inxs-live/`
+- **Stack:** Plain HTML/CSS/JS, no frameworks
+- **Live tool:** PDF to Word → `pdf.inxs.live`
+- **Future tools:** add as subdomains, add card to tools grid in `index.html`
+
+### PDF to Word Converter
+- **Repo:** https://github.com/inxs2026/PDFtoWord.git
+- **Local files:** `tools/pdf2docx-web/`
+- **Running:** systemd service `pdf2docx` on port 5050
+- **Local URL:** http://10.0.0.49:5050
+- **Public URL:** pdf.inxs.live (point subdomain to server)
+- **Stack:** Flask + pdf2docx library
+
+---
+
+## 📦 Installed Libraries & Tools
+
+### lucide-static (SVG Icons)
+- **Installed:** `workspace/node_modules/lucide-static/`
+- **Version:** ^0.577.0 (see `workspace/package.json`)
+- **Usage:** Drop SVG icons inline — `node_modules/lucide-static/icons/<name>.svg`
+- **Sprite:** `node_modules/lucide-static/sprite.svg`
+- **When to use:** Any web project needing clean, consistent icons — no CDN needed
+
+### pdf2docx (Python)
+- **Installed:** system-wide (`--break-system-packages`)
+- **Usage:** `python3 scripts/pdf_to_docx.py <input.pdf> [output.docx]`
+- **Script:** `scripts/pdf_to_docx.py`
+
+### Flask (Python)
+- **Installed:** system-wide
+- **Usage:** Web apps/APIs (used by PDF converter)
+
+---
+
+## 🔑 API Keys & Tokens
+
+### GitHub PAT
+- **Token file:** `config/github_token.txt` (chmod 600)
+- **Scope:** repo
+- **Accounts:** inxs2026
+- **Usage:** `git remote set-url origin https://$(cat config/github_token.txt)@github.com/...`
+
+---
+
 ## TTS (Text-to-Speech)
 
 - **Provider:** Edge TTS (Microsoft neural voices, no API key needed)
@@ -99,3 +151,20 @@ When Carlo asks for race analysis, ALWAYS reference these files FIRST:
 ---
 
 Add whatever helps you do your job. This is your cheat sheet.
+
+---
+
+## 📄 PDF to Word Converter
+
+**Script:** `scripts/pdf_to_docx.py`
+**Library:** `pdf2docx` (installed system-wide)
+
+**When Carlo says:** "convert X to Word / docx / Microsoft format" → run this script
+
+```bash
+python3 scripts/pdf_to_docx.py <input.pdf> [output.docx]
+```
+
+- Output defaults to same folder as input, same name, `.docx` extension
+- Works on any PDF — picks, reports, documents, etc.
+- Fast (~1 sec per 4 pages)
