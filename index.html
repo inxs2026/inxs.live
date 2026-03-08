@@ -877,18 +877,27 @@
           </div>
         </div>
 
-        <div class="embed-wrap">
-          <iframe
-            src="https://ssstwitter.com"
-            title="X Video Downloader"
-            frameborder="0"
-            scrolling="no"
-            allowfullscreen
-          ></iframe>
+        <div class="url-input-wrap">
+          <input
+            class="url-input"
+            id="xUrl"
+            type="url"
+            placeholder="https://x.com/username/status/..."
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+
+        <button class="dl-btn" id="dlBtn" onclick="handleDownload()">
+          <span id="dlBtnText">⬇ Download Video</span>
+        </button>
+
+        <div class="dl-result" id="dlResult" style="display:none;">
+          <span id="dlMsg"></span>
         </div>
 
         <p class="privacy-note">
-          🔒 Powered by ssstwitter · Videos download directly from X's CDN.
+          🔒 Opens ssstwitter.com with your video ready to download.
         </p>
       </div>
 
@@ -946,6 +955,34 @@
 
     document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 
+
+  // ── X Video Downloader ──
+    function handleDownload() {
+      const url = document.getElementById('xUrl').value.trim();
+      const result = document.getElementById('dlResult');
+      const msg = document.getElementById('dlMsg');
+
+      if (!url) {
+        result.className = 'dl-result error';
+        result.style.display = 'flex';
+        msg.textContent = '❌ Please paste an X post URL first.';
+        return;
+      }
+
+      if (!/https?:\/\/(www\.)?(twitter\.com|x\.com)/i.test(url)) {
+        result.className = 'dl-result error';
+        result.style.display = 'flex';
+        msg.textContent = '❌ Please enter a valid x.com or twitter.com URL.';
+        return;
+      }
+
+      // Open ssstwitter in new tab with the URL pre-filled via query string
+      window.open('https://ssstwitter.com/?url=' + encodeURIComponent(url), '_blank');
+    }
+
+    document.getElementById('xUrl').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') handleDownload();
+    });
 
   </script>
 
