@@ -672,6 +672,22 @@
       .stats { gap: 32px; padding: 48px 24px; }
     }
 
+    /* ── IFRAME EMBED ── */
+    .embed-wrap {
+      width: 100%;
+      height: 180px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    .embed-wrap iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
     /* ── SCROLL ANIMATION ── */
     .fade-up {
       opacity: 0;
@@ -861,30 +877,18 @@
           </div>
         </div>
 
-        <div class="url-input-wrap">
-          <input
-            class="url-input"
-            id="xUrl"
-            type="url"
-            placeholder="https://x.com/username/status/..."
-            autocomplete="off"
-            spellcheck="false"
-          />
-        </div>
-
-        <button class="dl-btn" id="dlBtn" onclick="handleDownload()">
-          <div class="spinner" id="spinner"></div>
-          <span id="dlBtnText">⬇ Download Video</span>
-        </button>
-
-        <div class="dl-result" id="dlResult">
-          <span id="dlMsg"></span>
-          <a id="dlLink" href="#" target="_blank" download>Download ↓</a>
+        <div class="embed-wrap">
+          <iframe
+            src="https://ssstwitter.com"
+            title="X Video Downloader"
+            frameborder="0"
+            scrolling="no"
+            allowfullscreen
+          ></iframe>
         </div>
 
         <p class="privacy-note">
-          🔒 Videos download directly from X's CDN.<br/>
-          Nothing is stored on our servers.
+          🔒 Powered by ssstwitter · Videos download directly from X's CDN.
         </p>
       </div>
 
@@ -942,111 +946,7 @@
 
     document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 
-    // ── X Video Downloader — 100% client-side via fxtwitter API ──
-    function parseTweetUrl(url) {
-      // Extract username + tweet ID from any x.com / twitter.com URL
-      const m = url.match(/(?:twitter\.com|x\.com)\/([\w]+)\/status\/(\d+)/i);
-      return m ? { username: m[1], id: m[2] } : null;
-    }
 
-    async function handleDownload() {
-      const urlInput = document.getElementById('xUrl');
-      const btn      = document.getElementById('dlBtn');
-      const spinner  = document.getElementById('spinner');
-      const btnText  = document.getElementById('dlBtnText');
-      const result   = document.getElementById('dlResult');
-      const msg      = document.getElementById('dlMsg');
-      const link     = document.getElementById('dlLink');
-
-      const url = urlInput.value.trim();
-
-      if (!url) {
-        showError(result, msg, link, 'Please paste an X post URL first.');
-        return;
-      }
-
-      const parsed = parseTweetUrl(url);
-      if (!parsed) {
-        showError(result, msg, link, 'Please enter a valid X (x.com or twitter.com) post URL.');
-        return;
-      }
-
-      btn.disabled = true;
-      spinner.style.display = 'block';
-      btnText.textContent = 'Fetching video…';
-      result.className = 'dl-result';
-
-      try {
-        const apiUrl = `https://api.fxtwitter.com/${parsed.username}/status/${parsed.id}`;
-        const res = await fetch(apiUrl);
-        const data = await res.json();
-
-        const tweet = data.tweet;
-        if (!tweet) {
-          showError(result, msg, link, 'Could not find that post. Make sure the URL is correct.');
-          return;
-        }
-
-        const media = tweet.media;
-        if (!media || !media.all || media.all.length === 0) {
-          showError(result, msg, link, 'No video found in that post.');
-          return;
-        }
-
-        // Find best quality MP4 from the media
-        let bestUrl = null;
-        let bestBitrate = 0;
-
-        for (const item of media.all) {
-          if (item.type !== 'video' && item.type !== 'animated_gif') continue;
-
-          // Use top-level URL first (already best quality)
-          if (item.url && item.url.includes('.mp4')) {
-            bestUrl = item.url;
-            break;
-          }
-
-          // Otherwise pick highest bitrate from formats
-          if (item.formats) {
-            for (const fmt of item.formats) {
-              if (fmt.container === 'mp4' && (fmt.bitrate || 0) > bestBitrate) {
-                bestBitrate = fmt.bitrate || 0;
-                bestUrl = fmt.url;
-              }
-            }
-          }
-        }
-
-        if (!bestUrl) {
-          showError(result, msg, link, 'Could not extract a downloadable video URL.');
-          return;
-        }
-
-        // Success
-        result.className = 'dl-result success';
-        msg.textContent = '✅ Video ready!';
-        link.href = bestUrl;
-        link.setAttribute('download', `${parsed.username}_${parsed.id}.mp4`);
-        link.style.display = 'inline-block';
-
-      } catch (err) {
-        showError(result, msg, link, 'Network error — please check your connection and try again.');
-      } finally {
-        btn.disabled = false;
-        spinner.style.display = 'none';
-        btnText.textContent = '⬇ Download Video';
-      }
-    }
-
-    function showError(result, msg, link, text) {
-      result.className = 'dl-result error';
-      msg.textContent = '❌ ' + text;
-      link.style.display = 'none';
-    }
-
-    document.getElementById('xUrl').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') handleDownload();
-    });
   </script>
 
 </body>
