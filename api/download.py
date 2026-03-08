@@ -1,12 +1,10 @@
 """
 Vercel Python Serverless Function — /api/download
-Extracts the direct video URL from an X (Twitter) post using yt-dlp.
-Returns JSON with the direct CDN URL so the browser downloads
-straight from X — no file storage, no size limits on our end.
+Uses yt-dlp as a Python library (not subprocess) to extract the direct
+CDN video URL from an X/Twitter post. Browser downloads straight from X.
 """
 
 import json
-import subprocess
 import re
 from http.server import BaseHTTPRequestHandler
 
@@ -22,52 +20,76 @@ def is_valid_url(url: str) -> bool:
     return bool(ALLOWED_DOMAINS.match(url))
 
 
-def get_video_url(tweet_url: str) -> dict:
+def get_video_info(tweet_url: str) -> dict:
     try:
-        result = subprocess.run(
-            [
-                "yt-dlp",
-                "--no-playlist", "--no-warnings",
-                "-g",
-                "-f", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
-                "--user-agent",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/122.0.0.0 Safari/537.36",
-                tweet_url,
-            ],
-            capture_output=True, text=True, timeout=30,
-        )
+        import yt_dlp
 
-        if result.returncode != 0:
-            stderr = result.stderr.strip()
-            if "No video" in stderr or "no formats" in stderr.lower():
-                return {"error": "No downloadable video found in that post."}
-            if "429" in stderr or "rate limit" in stderr.lower():
-                return {"error": "X is rate-limiting us — try again in a moment."}
-            if "login" in stderr.lower() or "age" in stderr.lower():
-                return {"error": "That video requires a login to access."}
-            return {"error": "Could not extract video. Make sure the post contains a video."}
+        ydl_opts = {
+            'quiet': True,
+            'no_warnings': True,
+            'skip_download': True,
+            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+            'http_headers': {
+                'User-Agent': (
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                    'AppleWebKit/537.36 (KHTML, like Gecko) '
+                    'Chrome/122.0.0.0 Safari/537.36'
+                )
+            },
+        }
 
-        lines = [l.strip() for l in result.stdout.strip().splitlines() if l.strip()]
-        if not lines:
-            return {"error": "No video URL found — the post may not contain a video."}
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(tweet_url, download=False)
 
-        return {"url": lines[0]}
+        if not info:
+            return {"error": "No video found in that post."}
 
-    except subprocess.TimeoutExpired:
-        return {"error": "Request timed out. The video may be too large or X is slow."}
-    except FileNotFoundError:
-        return {"error": "yt-dlp is not available on this server."}
+        # Grab the best direct URL
+        direct_url = None
+        title = info.get('title', 'video')
+
+        if info.get('url'):
+            direct_url = info['url']
+        elif info.get('formats'):
+            # Pick best mp4 format
+            mp4_formats = [
+                f for f in info['formats']
+                if f.get('ext') == 'mp4' and f.get('url')
+            ]
+            if mp4_formats:
+                # Sort by resolution descending
+                mp4_formats.sort(
+                    key=lambda f: (f.get('height') or 0),
+                    reverse=True
+                )
+                direct_url = mp4_formats[0]['url']
+            else:
+                # Fallback: last format with a URL
+                for f in reversed(info['formats']):
+                    if f.get('url'):
+                        direct_url = f['url']
+                        break
+
+        if not direct_url:
+            return {"error": "Could not extract a download URL from that post."}
+
+        return {"url": direct_url, "title": title}
+
     except Exception as exc:
-        return {"error": f"Unexpected error: {exc}"}
+        msg = str(exc)
+        if 'login' in msg.lower() or 'age' in msg.lower():
+            return {"error": "That video requires a login to access."}
+        if '429' in msg or 'rate limit' in msg.lower():
+            return {"error": "X is rate-limiting requests — try again in a moment."}
+        if 'No video' in msg or 'no formats' in msg.lower():
+            return {"error": "No downloadable video found in that post."}
+        return {"error": f"Could not extract video. Make sure the post contains a video."}
 
 
 class handler(BaseHTTPRequestHandler):
-    """Vercel Python runtime expects a class named 'handler'."""
 
     def _cors(self):
-        self.send_header("Access-Control-Allow-Origin", "https://inxs.live")
+        self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
 
@@ -86,10 +108,12 @@ class handler(BaseHTTPRequestHandler):
 
         url = (body.get("url") or "").strip()
         if not is_valid_url(url):
-            self._respond(400, {"error": "Only X (twitter.com / x.com) URLs are supported."})
+            self._respond(400, {
+                "error": "Only X (twitter.com or x.com) URLs are supported."
+            })
             return
 
-        result = get_video_url(url)
+        result = get_video_info(url)
         self._respond(200 if "url" in result else 422, result)
 
     def _respond(self, status, payload):
