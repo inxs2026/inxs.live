@@ -6,15 +6,20 @@
       "src": "api/proxy.py",
       "use": "@vercel/python",
       "config": { "maxLambdaSize": "10mb" }
+    },
+    {
+      "src": "api/download.py",
+      "use": "@vercel/python",
+      "config": { "maxLambdaSize": "50mb" }
     }
   ],
   "routes": [
     { "src": "/api/proxy", "dest": "/api/proxy.py" },
+    { "src": "/api/download", "dest": "/api/download.py" },
     { "src": "/(.*)", "dest": "/index.html" }
   ],
   "functions": {
-    "api/proxy.py": {
-      "maxDuration": 30
-    }
+    "api/proxy.py": { "maxDuration": 30 },
+    "api/download.py": { "maxDuration": 30 }
   }
 }

@@ -1022,13 +1022,31 @@
           return;
         }
 
-        // Success
+        // Success — try fetch+blob for a true download; fall back to direct link
         result.className = 'dl-result success';
-        msg.textContent = '✅ Video ready!';
         const filename = `${parsed.username}_${parsed.id}.mp4`;
-        link.href = `/api/proxy?url=${encodeURIComponent(bestUrl)}&filename=${encodeURIComponent(filename)}`;
-        
-        link.style.display = 'inline-block';
+        msg.textContent = '✅ Preparing download…';
+        link.style.display = 'none';
+
+        try {
+          const videoResp = await fetch(bestUrl, { mode: 'cors' });
+          if (!videoResp.ok) throw new Error('fetch failed');
+          const blob = await videoResp.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+          msg.textContent = '✅ Download started!';
+        } catch (_corsErr) {
+          // CORS blocked — open via proxy or direct link
+          msg.textContent = '✅ Video ready — click Download';
+          link.href = `/api/proxy?url=${encodeURIComponent(bestUrl)}&filename=${encodeURIComponent(filename)}`;
+          link.style.display = 'inline-block';
+        }
 
       } catch (err) {
         showError(result, msg, link, 'Network error — please check your connection and try again.');
