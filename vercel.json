@@ -3,17 +3,17 @@
   "builds": [
     { "src": "index.html", "use": "@vercel/static" },
     {
-      "src": "api/download.py",
+      "src": "api/proxy.py",
       "use": "@vercel/python",
-      "config": { "maxLambdaSize": "50mb" }
+      "config": { "maxLambdaSize": "10mb" }
     }
   ],
   "routes": [
-    { "src": "/api/download", "dest": "/api/download.py" },
+    { "src": "/api/proxy", "dest": "/api/proxy.py" },
     { "src": "/(.*)", "dest": "/index.html" }
   ],
   "functions": {
-    "api/download.py": {
+    "api/proxy.py": {
       "maxDuration": 30
     }
   }
