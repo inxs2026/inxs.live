@@ -20,3 +20,5 @@ Self-contained monorepo for the `inxs.live` landing page and its deployable tool
 ## Deployment
 
 Use [deploy/docker-compose.yml](/home/damato/Projects/INXS-Live/deploy/docker-compose.yml) as the Portainer stack file from this repo.
+
+This repo is set up to work with Cloudflare Tunnel, so the Umbrel host does not need inbound `80` or `443` port mappings.

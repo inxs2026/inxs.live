@@ -3,18 +3,11 @@ services:
     image: caddy:2.10
     container_name: inxs-caddy
     restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
+    expose:
+      - "80"
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - ..:/srv/site:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - pdf-docs
-      - video-converter
-      - video-downloader
 
   pdf-docs:
     build:
@@ -63,9 +56,20 @@ services:
       retries: 3
       start_period: 40s
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: inxs-cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - caddy
+      - pdf-docs
+      - video-converter
+      - video-downloader
+
 volumes:
-  caddy_data:
-  caddy_config:
   video_converter_downloads:
   video_converter_uploads:
   video_downloader_downloads:

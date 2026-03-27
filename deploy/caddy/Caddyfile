@@ -1,26 +1,8 @@
-{
-  email hello@inxs.live
-}
-
-inxs.live, www.inxs.live {
+:80 {
+  auto_https off
   root * /srv/site
   encode zstd gzip
   @blocked path /apps* /deploy* /.git*
   respond @blocked 404
   file_server
-}
-
-pdf.inxs.live {
-  encode zstd gzip
-  reverse_proxy pdf-docs:8000
-}
-
-convert.inxs.live {
-  encode zstd gzip
-  reverse_proxy video-converter:3000
-}
-
-download.inxs.live {
-  encode zstd gzip
-  reverse_proxy video-downloader:4000
 }
