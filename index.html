@@ -161,6 +161,40 @@
       justify-content: center;
     }
 
+    .hero-links {
+      margin-top: 28px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      max-width: 960px;
+    }
+
+    .hero-link-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(14,15,23,0.82);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 13px;
+      transition: border-color 0.2s, transform 0.2s, background 0.2s;
+    }
+
+    .hero-link-chip:hover {
+      border-color: rgba(124,58,237,0.4);
+      background: var(--bg3);
+      transform: translateY(-1px);
+    }
+
+    .hero-link-chip strong {
+      color: var(--purple3);
+      font-weight: 700;
+    }
+
     .btn-primary {
       background: linear-gradient(135deg, var(--purple), var(--purple2));
       color: #fff;
@@ -654,6 +688,11 @@
     <div class="hero-actions">
       <a href="#tools" class="btn-primary">Explore Tools →</a>
       <a href="#downloader" class="btn-ghost">Media Stack</a>
+    </div>
+    <div class="hero-links fade-up">
+      <a class="hero-link-chip" href="https://pdf.inxs.live"><strong>PDF:</strong> pdf.inxs.live</a>
+      <a class="hero-link-chip" href="https://download.inxs.live"><strong>Download:</strong> download.inxs.live</a>
+      <a class="hero-link-chip" href="https://convert.inxs.live"><strong>Convert:</strong> convert.inxs.live</a>
     </div>
   </div>
 
