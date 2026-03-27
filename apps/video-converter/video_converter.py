@@ -10,6 +10,17 @@ from tkinter import filedialog, messagebox, ttk
 SUPPORTED_FORMATS = ["mp4", "mkv", "avi", "mov", "webm", "flv", "wmv", "m4v"]
 
 
+def parse_progress_timestamp(raw_value: str) -> int | None:
+    value = raw_value.strip()
+    if not value or value.upper() == "N/A":
+        return None
+
+    try:
+        return int(value)
+    except ValueError:
+        return None
+
+
 class VideoConverterApp:
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
@@ -188,7 +199,9 @@ class VideoConverterApp:
 
                 line = line.strip()
                 if line.startswith("out_time_ms=") and duration_seconds > 0:
-                    out_time_ms = int(line.split("=", 1)[1])
+                    out_time_ms = parse_progress_timestamp(line.split("=", 1)[1])
+                    if out_time_ms is None:
+                        continue
                     percent = min((out_time_ms / (duration_seconds * 1_000_000)) * 100, 100)
                     self.root.after(0, self.progress_var.set, percent)
                 elif line.startswith("progress=end"):
