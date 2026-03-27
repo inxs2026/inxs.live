@@ -7,7 +7,334 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+  <style>
+    :root {
+      --bg: #08090d;
+      --bg-2: #0e0f17;
+      --bg-3: #141625;
+      --panel: rgba(14, 15, 23, 0.9);
+      --panel-strong: rgba(20, 22, 37, 0.98);
+      --border: #23263a;
+      --text: #edf0f7;
+      --muted: #9197b3;
+      --faint: #606684;
+      --accent: #7c3aed;
+      --accent-2: #9d5cf6;
+      --success: #10b981;
+      --danger: #f87171;
+      --shadow: 0 22px 60px rgba(0, 0, 0, 0.32);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Inter", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(124, 58, 237, 0.22), transparent 30%),
+        radial-gradient(circle at 90% 0%, rgba(44, 63, 173, 0.2), transparent 24%),
+        linear-gradient(180deg, #07080c 0%, var(--bg) 100%);
+    }
+
+    .site-nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      background: rgba(8, 9, 13, 0.84);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      font-size: 1.2rem;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 18px;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 48px 0 72px;
+    }
+
+    .hero {
+      margin-bottom: 28px;
+    }
+
+    .eyebrow,
+    .card-kicker,
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow,
+    .card-kicker {
+      color: var(--accent-2);
+    }
+
+    .hero h1,
+    .card h2 {
+      margin: 0;
+      letter-spacing: -0.04em;
+    }
+
+    .hero h1 {
+      max-width: 700px;
+      font-size: clamp(2.3rem, 6vw, 4.8rem);
+      line-height: 0.98;
+      margin-top: 14px;
+    }
+
+    .subtitle,
+    .meta,
+    .footnote,
+    .feature-list {
+      color: var(--muted);
+    }
+
+    .subtitle {
+      max-width: 720px;
+      line-height: 1.7;
+      margin: 16px 0 0;
+      font-size: 1rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.9fr);
+      gap: 20px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, var(--panel), var(--panel-strong));
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+
+    .chip {
+      color: #d8ccff;
+      background: rgba(124, 58, 237, 0.14);
+      border: 1px solid rgba(124, 58, 237, 0.35);
+      border-radius: 999px;
+      padding: 6px 10px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 9px;
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-width: 0;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--bg-3);
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    input::placeholder {
+      color: var(--faint);
+    }
+
+    input:focus,
+    select:focus {
+      border-color: rgba(124, 58, 237, 0.55);
+      box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12);
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .controls-row {
+      align-items: end;
+      margin-top: 16px;
+    }
+
+    .field {
+      flex: 0 0 220px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-weight: 800;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      box-shadow: 0 10px 28px rgba(124, 58, 237, 0.28);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    button.secondary {
+      background: #23263a;
+      box-shadow: none;
+    }
+
+    .status {
+      min-height: 24px;
+      margin: 18px 0 12px;
+      font-weight: 700;
+    }
+
+    .progress-wrap {
+      width: 100%;
+      height: 14px;
+      background: #1c1f31;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #c4b5fd);
+      transition: width 0.2s ease;
+    }
+
+    .meta {
+      min-height: 22px;
+      margin-top: 10px;
+      line-height: 1.6;
+    }
+
+    .file-link a,
+    .download-link {
+      color: #d8ccff;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .feature-list {
+      margin: 18px 0 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 10px;
+      line-height: 1.6;
+    }
+
+    .feature-list strong {
+      color: var(--text);
+    }
+
+    .footnote {
+      margin-top: 18px;
+      line-height: 1.6;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    @media (max-width: 860px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .site-nav,
+      .shell {
+        width: calc(100% - 24px);
+      }
+
+      .site-nav {
+        padding: 16px 0;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .row,
+      .controls-row,
+      .actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .field {
+        flex: 1;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      .card {
+        padding: 22px;
+      }
+    }
+  </style>
 </head>
 <body data-downloads-uri="{{ downloads_uri }}" data-downloads-path="{{ downloads_path }}">
   <nav class="site-nav">
@@ -78,6 +405,148 @@
     </section>
   </main>
 
-  <script src="{{ url_for('static', filename='app.js') }}"></script>
+  <script>
+    const urlInput = document.getElementById("urlInput");
+    const formatSelect = document.getElementById("formatSelect");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const openFolderBtn = document.getElementById("openFolderBtn");
+    const progressBar = document.getElementById("progressBar");
+    const statusText = document.getElementById("statusText");
+    const metaText = document.getElementById("metaText");
+    const pathText = document.getElementById("pathText");
+    const fileLinkWrap = document.getElementById("fileLinkWrap");
+    const downloadsUri = document.body.dataset.downloadsUri || "";
+    const downloadsPath = document.body.dataset.downloadsPath || "~/Downloads";
+
+    let pollTimer = null;
+
+    function setProgress(percent) {
+      const safe = Math.max(0, Math.min(100, Number(percent) || 0));
+      progressBar.style.width = `${safe}%`;
+    }
+
+    function setStatus(text) {
+      statusText.textContent = text;
+    }
+
+    function stopPolling() {
+      if (pollTimer) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+    }
+
+    async function pollStatus(jobId) {
+      stopPolling();
+      pollTimer = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/status/${jobId}`);
+          const data = await res.json();
+
+          if (!res.ok) {
+            stopPolling();
+            setStatus(data.error || "Status failed");
+            downloadBtn.disabled = false;
+            return;
+          }
+
+          setProgress(data.progress);
+          const speed = data.speed ? ` | Speed: ${data.speed}` : "";
+          const eta = data.eta ? ` | ETA: ${data.eta}s` : "";
+          setStatus(`${data.message || data.status}${speed}${eta}`);
+
+          if (data.status === "completed") {
+            stopPolling();
+            downloadBtn.disabled = false;
+            setProgress(100);
+            const label = (data.selected_format || "best_quality").replace("_", " ").toUpperCase();
+            metaText.textContent = `Done: ${data.title || "Video"} (${data.extractor || "Unknown site"}) | Format: ${label}`;
+            pathText.textContent = `Saved to: ${data.file_path || downloadsPath}`;
+            fileLinkWrap.innerHTML = `<a class="download-link" href="/api/file/${jobId}">Download file</a>`;
+          } else if (data.status === "error") {
+            stopPolling();
+            downloadBtn.disabled = false;
+            metaText.textContent = data.error || "Unknown error";
+            pathText.textContent = "";
+            fileLinkWrap.textContent = "";
+          }
+        } catch (err) {
+          stopPolling();
+          downloadBtn.disabled = false;
+          setStatus("Connection lost while polling status");
+          metaText.textContent = err.message;
+        }
+      }, 900);
+    }
+
+    async function startDownload() {
+      const url = urlInput.value.trim();
+      const format = formatSelect.value;
+
+      if (!url) {
+        setStatus("Please enter a URL");
+        return;
+      }
+
+      downloadBtn.disabled = true;
+      setProgress(0);
+      setStatus("Submitting download...");
+      metaText.textContent = "";
+      pathText.textContent = "";
+      fileLinkWrap.textContent = "";
+
+      try {
+        const res = await fetch("/api/download", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url, format }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          downloadBtn.disabled = false;
+          setStatus(data.error || "Failed to start");
+          return;
+        }
+
+        setStatus("Queued...");
+        pollStatus(data.job_id);
+      } catch (err) {
+        downloadBtn.disabled = false;
+        setStatus("Failed to start download");
+        metaText.textContent = err.message;
+      }
+    }
+
+    function openDownloadsFolder() {
+      fetch("/api/open-downloads", { method: "POST" })
+        .then(async (res) => {
+          const data = await res.json();
+          if (!res.ok) {
+            setStatus(data.error || `Open this folder manually: ${downloadsPath}`);
+            return;
+          }
+          setStatus(`Opened folder: ${data.path}`);
+        })
+        .catch(() => {
+          if (!downloadsUri) {
+            setStatus(`Open this folder manually: ${downloadsPath}`);
+            return;
+          }
+          window.open(downloadsUri, "_blank");
+        });
+    }
+
+    downloadBtn.addEventListener("click", startDownload);
+    if (openFolderBtn) {
+      openFolderBtn.addEventListener("click", openDownloadsFolder);
+    }
+    urlInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        startDownload();
+      }
+    });
+  </script>
 </body>
 </html>
