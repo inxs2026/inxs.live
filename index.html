@@ -161,38 +161,80 @@
       justify-content: center;
     }
 
-    .hero-links {
-      margin-top: 28px;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px;
-      max-width: 960px;
+    .featured-tools {
+      width: min(1100px, 100%);
+      margin-top: 42px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
     }
 
-    .hero-link-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: rgba(14,15,23,0.82);
-      color: var(--text);
+    .featured-tool {
+      text-align: left;
       text-decoration: none;
-      font-size: 13px;
-      transition: border-color 0.2s, transform 0.2s, background 0.2s;
+      color: inherit;
+      background:
+        linear-gradient(180deg, rgba(157,92,246,0.12), rgba(19,20,31,0.92)),
+        var(--bg2);
+      border: 1px solid rgba(124,58,237,0.22);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.22);
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
     }
 
-    .hero-link-chip:hover {
-      border-color: rgba(124,58,237,0.4);
-      background: var(--bg3);
-      transform: translateY(-1px);
+    .featured-tool:hover {
+      transform: translateY(-4px);
+      border-color: rgba(124,58,237,0.5);
+      box-shadow: 0 24px 60px rgba(124,58,237,0.16);
     }
 
-    .hero-link-chip strong {
+    .featured-tool-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .featured-tool-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(8,9,13,0.7);
+      border: 1px solid rgba(124,58,237,0.2);
+      font-size: 24px;
+    }
+
+    .featured-tool-domain {
+      font-size: 12px;
       color: var(--purple3);
       font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .featured-tool h3 {
+      font-size: 22px;
+      line-height: 1.15;
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+    }
+
+    .featured-tool p {
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    .featured-tool-link {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
     }
 
     .btn-primary {
@@ -646,6 +688,10 @@
         grid-template-columns: 1fr;
         gap: 48px;
       }
+
+      .featured-tools {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media (max-width: 768px) {
@@ -689,10 +735,37 @@
       <a href="#tools" class="btn-primary">Explore Tools →</a>
       <a href="#downloader" class="btn-ghost">Media Stack</a>
     </div>
-    <div class="hero-links fade-up">
-      <a class="hero-link-chip" href="https://pdf.inxs.live"><strong>PDF:</strong> pdf.inxs.live</a>
-      <a class="hero-link-chip" href="https://download.inxs.live"><strong>Download:</strong> download.inxs.live</a>
-      <a class="hero-link-chip" href="https://convert.inxs.live"><strong>Convert:</strong> convert.inxs.live</a>
+    <div class="featured-tools fade-up">
+      <a class="featured-tool" href="https://pdf.inxs.live">
+        <div class="featured-tool-top">
+          <div class="featured-tool-icon">📄</div>
+          <div class="tool-badge badge-live">Live</div>
+        </div>
+        <div class="featured-tool-domain">pdf.inxs.live</div>
+        <h3>PDF and DOCX Converter</h3>
+        <p>Convert documents both ways from one clean interface with fast PDF to DOCX and DOCX to PDF workflows.</p>
+        <div class="featured-tool-link">Open PDF tool →</div>
+      </a>
+      <a class="featured-tool" href="https://download.inxs.live">
+        <div class="featured-tool-top">
+          <div class="featured-tool-icon">⬇️</div>
+          <div class="tool-badge badge-live">Live</div>
+        </div>
+        <div class="featured-tool-domain">download.inxs.live</div>
+        <h3>Video Downloader</h3>
+        <p>Pull video or audio from supported sources in the format you want, including best quality, MP4, and MP3.</p>
+        <div class="featured-tool-link">Open downloader →</div>
+      </a>
+      <a class="featured-tool" href="https://convert.inxs.live">
+        <div class="featured-tool-top">
+          <div class="featured-tool-icon">🎬</div>
+          <div class="tool-badge badge-live">Live</div>
+        </div>
+        <div class="featured-tool-domain">convert.inxs.live</div>
+        <h3>Video Converter</h3>
+        <p>Upload files, choose a target format, and run browser-driven conversion jobs backed by FFmpeg.</p>
+        <div class="featured-tool-link">Open converter →</div>
+      </a>
     </div>
   </div>
 
