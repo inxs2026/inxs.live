@@ -452,6 +452,16 @@ input[type="file"] {
   transform: translateY(-1px);
 }
 
+.icon-button:disabled,
+.primary-button:disabled,
+.secondary-button:disabled,
+.ghost-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+  transform: none;
+  box-shadow: none;
+}
+
 .icon-button {
   width: 42px;
   height: 42px;
@@ -491,6 +501,34 @@ input[type="file"] {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+}
+
+.template-actions {
+  margin-top: 14px;
+}
+
+.template-hint,
+.template-status {
+  margin: 14px 0 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.template-hint {
+  color: var(--muted);
+}
+
+.template-status {
+  min-height: 1.5em;
+  color: var(--muted);
+}
+
+.template-status.is-success {
+  color: #2d7344;
+}
+
+.template-status.is-error {
+  color: #9d3224;
 }
 
 .preview-pane {

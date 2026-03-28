@@ -77,6 +77,48 @@
             <div class="section-card">
               <div class="section-title-row">
                 <div>
+                  <p class="section-eyebrow">Templates</p>
+                  <h2>Saved company profiles</h2>
+                </div>
+              </div>
+
+              <div class="field-grid">
+                <label class="field">
+                  <span>Profile name</span>
+                  <input
+                    id="company-profile-name"
+                    type="text"
+                    maxlength="48"
+                    placeholder="Northern Ledger Studio"
+                  />
+                </label>
+
+                <label class="field">
+                  <span>Saved profiles</span>
+                  <select id="company-profile-select">
+                    <option value="">Choose a saved profile</option>
+                  </select>
+                </label>
+              </div>
+
+              <p class="template-hint">
+                Saved only in this browser. Profiles include company name,
+                company address, payment details, currency, accent theme, and
+                an optional logo up to 500 KB.
+              </p>
+
+              <div class="actions template-actions">
+                <button id="save-company-profile" class="secondary-button" type="button">Save profile</button>
+                <button id="load-company-profile" class="ghost-button" type="button">Load selected</button>
+                <button id="delete-company-profile" class="ghost-button" type="button">Delete selected</button>
+              </div>
+
+              <p id="company-profile-status" class="template-status" role="status" aria-live="polite"></p>
+            </div>
+
+            <div class="section-card">
+              <div class="section-title-row">
+                <div>
                   <p class="section-eyebrow">Client</p>
                   <h2>Bill-to details</h2>
                 </div>

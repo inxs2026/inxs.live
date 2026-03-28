@@ -8,6 +8,9 @@ const THEMES = {
 };
 
 const LINE_ITEM_DESCRIPTION_MAX_LENGTH = 120;
+const COMPANY_PROFILE_STORAGE_KEY = "inxs.invoice.companyProfiles.v1";
+const COMPANY_PROFILE_NAME_MAX_LENGTH = 48;
+const MAX_COMPANY_PROFILE_LOGO_BYTES = 500 * 1024;
 
 const CURRENCY_META = {
   CAD: { label: "CAD", locale: "en-CA", currency: "CAD", maxFractionDigits: 2 },
@@ -26,6 +29,12 @@ const addLineItemButton = document.querySelector("#add-line-item");
 const downloadPdfButton = document.querySelector("#download-pdf");
 const printInvoiceButton = document.querySelector("#print-invoice");
 const resetInvoiceButton = document.querySelector("#reset-invoice");
+const companyProfileNameInput = document.querySelector("#company-profile-name");
+const companyProfileSelect = document.querySelector("#company-profile-select");
+const saveCompanyProfileButton = document.querySelector("#save-company-profile");
+const loadCompanyProfileButton = document.querySelector("#load-company-profile");
+const deleteCompanyProfileButton = document.querySelector("#delete-company-profile");
+const companyProfileStatus = document.querySelector("#company-profile-status");
 
 const previewRefs = {
   formSubtotal: document.querySelector("#form-subtotal"),
@@ -56,10 +65,13 @@ const previewRefs = {
 
 const fields = Array.from(form.querySelectorAll("[data-field]"));
 let state = createDefaultState();
+let companyProfiles = [];
+let isCompanyProfileStorageAvailable = false;
 
 init();
 
 function init() {
+  initCompanyProfileManager();
   renderThemePicker();
   syncFormFields();
   renderLineItemControls();
@@ -87,6 +99,11 @@ function bindEvents() {
   downloadPdfButton.addEventListener("click", downloadPdf);
   printInvoiceButton.addEventListener("click", () => window.print());
   resetInvoiceButton.addEventListener("click", resetInvoice);
+  companyProfileNameInput.addEventListener("input", handleCompanyProfileNameInput);
+  companyProfileSelect.addEventListener("change", handleCompanyProfileSelectionChange);
+  saveCompanyProfileButton.addEventListener("click", saveCompanyProfile);
+  loadCompanyProfileButton.addEventListener("click", loadSelectedCompanyProfile);
+  deleteCompanyProfileButton.addEventListener("click", deleteSelectedCompanyProfile);
 }
 
 function handleFieldChange(event) {
@@ -180,12 +197,32 @@ function handleLogoUpload(event) {
     return;
   }
 
+  if (file.size > MAX_COMPANY_PROFILE_LOGO_BYTES) {
+    state.logoDataUrl = "";
+    logoUpload.value = "";
+    window.alert(`Logo files must be ${formatBytes(MAX_COMPANY_PROFILE_LOGO_BYTES)} or smaller to support saved company profiles in this browser.`);
+    renderPreview();
+    return;
+  }
+
   const reader = new FileReader();
   reader.onload = () => {
     state.logoDataUrl = typeof reader.result === "string" ? reader.result : "";
     renderPreview();
   };
   reader.readAsDataURL(file);
+}
+
+function handleCompanyProfileNameInput(event) {
+  event.target.value = clampText(event.target.value, COMPANY_PROFILE_NAME_MAX_LENGTH);
+}
+
+function handleCompanyProfileSelectionChange(event) {
+  if (event.target.value) {
+    companyProfileNameInput.value = event.target.value;
+  }
+
+  renderCompanyProfileControls(event.target.value);
 }
 
 function renderThemePicker() {
@@ -582,6 +619,254 @@ function resetInvoice() {
   renderPreview();
 }
 
+function initCompanyProfileManager() {
+  isCompanyProfileStorageAvailable = checkLocalStorageAvailability();
+  companyProfiles = isCompanyProfileStorageAvailable ? loadCompanyProfiles() : [];
+  renderCompanyProfileControls();
+
+  if (!isCompanyProfileStorageAvailable) {
+    setCompanyProfileStatus("Saved company profiles are unavailable in this browser.", "error");
+  } else if (!companyProfiles.length) {
+    setCompanyProfileStatus("No saved company profiles yet.", "neutral");
+  }
+}
+
+function saveCompanyProfile() {
+  if (!isCompanyProfileStorageAvailable) {
+    setCompanyProfileStatus("Saved company profiles are unavailable in this browser.", "error");
+    return;
+  }
+
+  const profileName = getRequestedCompanyProfileName();
+
+  if (!profileName) {
+    setCompanyProfileStatus("Enter a profile name before saving.", "error");
+    companyProfileNameInput.focus();
+    return;
+  }
+
+  if (state.logoDataUrl && estimateDataUrlBytes(state.logoDataUrl) > MAX_COMPANY_PROFILE_LOGO_BYTES) {
+    const message = `The current logo is too large to save in a browser profile. Use a logo ${formatBytes(MAX_COMPANY_PROFILE_LOGO_BYTES)} or smaller.`;
+    setCompanyProfileStatus(message, "error");
+    window.alert(message);
+    return;
+  }
+
+  const nextProfile = {
+    name: profileName,
+    ...createCompanyProfilePayload(),
+  };
+  const existingIndex = companyProfiles.findIndex((profile) => profile.name.toLowerCase() === profileName.toLowerCase());
+  const nextProfiles = existingIndex === -1
+    ? [...companyProfiles, nextProfile]
+    : companyProfiles.map((profile, index) => (index === existingIndex ? nextProfile : profile));
+
+  if (!persistCompanyProfiles(nextProfiles)) {
+    return;
+  }
+
+  companyProfiles = sortCompanyProfiles(nextProfiles);
+  companyProfileNameInput.value = profileName;
+  renderCompanyProfileControls(profileName);
+  setCompanyProfileStatus(`Saved "${profileName}" to this browser.`, "success");
+}
+
+function loadSelectedCompanyProfile() {
+  const profile = companyProfiles.find((entry) => entry.name === companyProfileSelect.value);
+
+  if (!profile) {
+    setCompanyProfileStatus("Choose a saved company profile to load.", "error");
+    return;
+  }
+
+  state.companyName = profile.companyName;
+  state.companyAddress = profile.companyAddress;
+  state.paymentInfo = profile.paymentInfo;
+  state.accentTheme = profile.accentTheme;
+  state.currency = profile.currency;
+  state.logoDataUrl = profile.logoDataUrl;
+
+  syncFormFields();
+  logoUpload.value = "";
+  renderThemePicker();
+  renderLineItemControls();
+  applyTheme();
+  renderPreview();
+
+  companyProfileNameInput.value = profile.name;
+  renderCompanyProfileControls(profile.name);
+  setCompanyProfileStatus(`Loaded "${profile.name}".`, "success");
+}
+
+function deleteSelectedCompanyProfile() {
+  const profile = companyProfiles.find((entry) => entry.name === companyProfileSelect.value);
+
+  if (!profile) {
+    setCompanyProfileStatus("Choose a saved company profile to delete.", "error");
+    return;
+  }
+
+  if (!window.confirm(`Delete saved company profile "${profile.name}" from this browser?`)) {
+    return;
+  }
+
+  const nextProfiles = companyProfiles.filter((entry) => entry.name !== profile.name);
+
+  if (!persistCompanyProfiles(nextProfiles)) {
+    return;
+  }
+
+  companyProfiles = sortCompanyProfiles(nextProfiles);
+  companyProfileSelect.value = "";
+
+  if (companyProfileNameInput.value === profile.name) {
+    companyProfileNameInput.value = "";
+  }
+
+  renderCompanyProfileControls();
+  setCompanyProfileStatus(`Deleted "${profile.name}".`, "success");
+}
+
+function renderCompanyProfileControls(selectedName = "") {
+  const hasProfiles = companyProfiles.length > 0;
+  const normalizedSelectedName = hasProfiles && companyProfiles.some((profile) => profile.name === selectedName)
+    ? selectedName
+    : "";
+
+  companyProfileSelect.innerHTML = [
+    '<option value="">Choose a saved profile</option>',
+    ...companyProfiles.map(
+      (profile) => `<option value="${escapeAttribute(profile.name)}">${escapeHtml(profile.name)}</option>`
+    ),
+  ].join("");
+  companyProfileSelect.value = normalizedSelectedName;
+
+  companyProfileNameInput.disabled = !isCompanyProfileStorageAvailable;
+  companyProfileSelect.disabled = !isCompanyProfileStorageAvailable || !hasProfiles;
+  saveCompanyProfileButton.disabled = !isCompanyProfileStorageAvailable;
+  loadCompanyProfileButton.disabled = !isCompanyProfileStorageAvailable || !normalizedSelectedName;
+  deleteCompanyProfileButton.disabled = !isCompanyProfileStorageAvailable || !normalizedSelectedName;
+}
+
+function createCompanyProfilePayload() {
+  return {
+    companyName: state.companyName,
+    companyAddress: state.companyAddress,
+    paymentInfo: state.paymentInfo,
+    accentTheme: THEMES[state.accentTheme] ? state.accentTheme : "ember",
+    currency: CURRENCY_META[state.currency] ? state.currency : "CAD",
+    logoDataUrl: state.logoDataUrl || "",
+  };
+}
+
+function loadCompanyProfiles() {
+  try {
+    const rawValue = window.localStorage.getItem(COMPANY_PROFILE_STORAGE_KEY);
+
+    if (!rawValue) {
+      return [];
+    }
+
+    const parsedProfiles = JSON.parse(rawValue);
+
+    if (!Array.isArray(parsedProfiles)) {
+      return [];
+    }
+
+    return sortCompanyProfiles(dedupeCompanyProfiles(parsedProfiles.map(normalizeCompanyProfile).filter(Boolean)));
+  } catch (error) {
+    return [];
+  }
+}
+
+function persistCompanyProfiles(nextProfiles) {
+  const normalizedProfiles = sortCompanyProfiles(dedupeCompanyProfiles(nextProfiles));
+
+  try {
+    if (normalizedProfiles.length) {
+      window.localStorage.setItem(COMPANY_PROFILE_STORAGE_KEY, JSON.stringify(normalizedProfiles));
+    } else {
+      window.localStorage.removeItem(COMPANY_PROFILE_STORAGE_KEY);
+    }
+
+    return true;
+  } catch (error) {
+    const message = isQuotaExceededError(error)
+      ? "This browser is out of storage for saved company profiles. Delete an old profile or use a smaller logo."
+      : "Could not save company profiles in this browser.";
+    setCompanyProfileStatus(message, "error");
+    window.alert(message);
+    return false;
+  }
+}
+
+function normalizeCompanyProfile(profile) {
+  if (!profile || typeof profile !== "object") {
+    return null;
+  }
+
+  const name = clampText(String(profile.name || "").trim(), COMPANY_PROFILE_NAME_MAX_LENGTH);
+
+  if (!name) {
+    return null;
+  }
+
+  return {
+    name,
+    companyName: String(profile.companyName || ""),
+    companyAddress: String(profile.companyAddress || ""),
+    paymentInfo: String(profile.paymentInfo || ""),
+    accentTheme: THEMES[profile.accentTheme] ? profile.accentTheme : "ember",
+    currency: CURRENCY_META[profile.currency] ? profile.currency : "CAD",
+    logoDataUrl: typeof profile.logoDataUrl === "string" && profile.logoDataUrl.startsWith("data:image/")
+      ? profile.logoDataUrl
+      : "",
+  };
+}
+
+function sortCompanyProfiles(profiles) {
+  return [...profiles].sort((left, right) => left.name.localeCompare(right.name, undefined, { sensitivity: "base" }));
+}
+
+function dedupeCompanyProfiles(profiles) {
+  const byName = new Map();
+
+  profiles.forEach((profile) => {
+    byName.set(profile.name.toLowerCase(), profile);
+  });
+
+  return Array.from(byName.values());
+}
+
+function getRequestedCompanyProfileName() {
+  return clampText(String(companyProfileNameInput.value || companyProfileSelect.value || "").trim(), COMPANY_PROFILE_NAME_MAX_LENGTH);
+}
+
+function setCompanyProfileStatus(message, tone = "neutral") {
+  companyProfileStatus.textContent = message;
+  companyProfileStatus.className = `template-status is-${tone}`;
+}
+
+function checkLocalStorageAvailability() {
+  try {
+    const testKey = `${COMPANY_PROFILE_STORAGE_KEY}.test`;
+    window.localStorage.setItem(testKey, "1");
+    window.localStorage.removeItem(testKey);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+function isQuotaExceededError(error) {
+  return Boolean(
+    error &&
+    typeof error === "object" &&
+    "name" in error &&
+    (error.name === "QuotaExceededError" || error.name === "NS_ERROR_DOM_QUOTA_REACHED")
+  );
+}
+
 function createDefaultState() {
   return {
     companyName: "",
@@ -695,6 +980,21 @@ function clampNumber(value, min = 0, max = Number.POSITIVE_INFINITY) {
 
 function clampText(value, maxLength) {
   return String(value || "").slice(0, maxLength);
+}
+
+function estimateDataUrlBytes(dataUrl) {
+  const [, base64 = ""] = String(dataUrl).split(",", 2);
+  const padding = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
+  return Math.max(0, Math.floor((base64.length * 3) / 4) - padding);
+}
+
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    return "0 KB";
+  }
+
+  const kilobytes = bytes / 1024;
+  return `${Math.round(kilobytes)} KB`;
 }
 
 function toIsoDate(date) {
