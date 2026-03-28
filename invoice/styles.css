@@ -952,12 +952,13 @@ input[type="file"] {
 @media print {
   @page {
     size: Letter portrait;
-    margin: 0.35in;
+    margin: 0;
   }
 
   html,
   body {
-    width: auto;
+    width: 8.5in;
+    height: 11in;
     min-height: auto;
     margin: 0;
     padding-top: 0;
@@ -989,20 +990,19 @@ input[type="file"] {
   }
 
   .invoice-sheet {
-    width: 100%;
-    max-width: none;
-    min-height: auto;
+    width: 8.5in;
+    min-height: 11in;
     margin: 0;
     box-shadow: none;
     border: 0;
     border-radius: 0;
-    padding: 0 0 0.2in;
+    padding: 0 0.35in 0.35in;
     break-inside: auto;
   }
 
   .sheet-accent {
-    height: 8px;
-    margin: 0 0 0.18in;
+    height: 10px;
+    margin: 0 -0.35in 0.25in;
   }
 
   .invoice-header {
