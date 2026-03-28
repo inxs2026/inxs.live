@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>INXS Invoice Builder</title>
+    <meta
+      name="description"
+      content="Create branded invoices in the browser with no login. Live preview, print, and clean PDF export."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Source+Serif+4:wght@600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-topbar">
+      <a href="/" class="site-logo">INXS</a>
+      <nav class="site-nav">
+        <a href="/">Home</a>
+        <a href="/#tools">Tools</a>
+        <a href="/invoice" class="site-nav-cta">Invoice Builder</a>
+      </nav>
+    </header>
+
+    <div class="app-shell">
+      <header class="page-header">
+        <div>
+          <p class="eyebrow">No login required</p>
+          <h1>INXS invoice builder</h1>
+          <p class="intro">
+            Build invoices directly on <strong>inxs.live/invoice</strong>. Add
+            your branding, line items, notes, and payment details, then export a
+            clean PDF or print it.
+          </p>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="panel controls">
+          <form id="invoice-form" autocomplete="off">
+            <div class="section-card">
+              <div class="section-title-row">
+                <div>
+                  <p class="section-eyebrow">Branding</p>
+                  <h2>Your business</h2>
+                </div>
+              </div>
+
+              <div class="field-grid">
+                <label class="field full">
+                  <span>Company name</span>
+                  <input id="company-name" data-field="companyName" type="text" placeholder="Northern Ledger Studio" />
+                </label>
+
+                <label class="field full">
+                  <span>Company address</span>
+                  <textarea
+                    id="company-address"
+                    data-field="companyAddress"
+                    rows="4"
+                    placeholder="123 Harbour Street&#10;Toronto, ON M5J 2N1&#10;Canada"
+                  ></textarea>
+                </label>
+
+                <label class="field full">
+                  <span>Optional logo</span>
+                  <input id="logo-upload" type="file" accept="image/*" />
+                </label>
+              </div>
+            </div>
+
+            <div class="section-card">
+              <div class="section-title-row">
+                <div>
+                  <p class="section-eyebrow">Client</p>
+                  <h2>Bill-to details</h2>
+                </div>
+              </div>
+
+              <div class="field-grid">
+                <label class="field full">
+                  <span>Client name</span>
+                  <input id="client-name" data-field="clientName" type="text" placeholder="Acme Retail Group" />
+                </label>
+
+                <label class="field full">
+                  <span>Client address</span>
+                  <textarea
+                    id="client-address"
+                    data-field="clientAddress"
+                    rows="4"
+                    placeholder="80 King Street West&#10;Suite 2100&#10;Toronto, ON M5H 1A1"
+                  ></textarea>
+                </label>
+              </div>
+            </div>
+
+            <div class="section-card">
+              <div class="section-title-row">
+                <div>
+                  <p class="section-eyebrow">Invoice meta</p>
+                  <h2>Dates, status, currency</h2>
+                </div>
+              </div>
+
+              <div class="field-grid">
+                <label class="field">
+                  <span>Invoice number</span>
+                  <input id="invoice-number" data-field="invoiceNumber" type="text" />
+                </label>
+
+                <label class="field">
+                  <span>Status</span>
+                  <select id="status" data-field="status">
+                    <option value="Draft">Draft</option>
+                    <option value="Sent">Sent</option>
+                    <option value="Due">Due</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Overdue">Overdue</option>
+                  </select>
+                </label>
+
+                <label class="field">
+                  <span>Invoice date</span>
+                  <input id="invoice-date" data-field="invoiceDate" type="date" />
+                </label>
+
+                <label class="field">
+                  <span>Due date</span>
+                  <input id="due-date" data-field="dueDate" type="date" />
+                </label>
+
+                <label class="field">
+                  <span>Currency</span>
+                  <select id="currency" data-field="currency">
+                    <option value="CAD">CAD</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="GBP">GBP</option>
+                    <option value="AUD">AUD</option>
+                    <option value="BTC">BTC (sats)</option>
+                  </select>
+                </label>
+
+                <label class="field">
+                  <span>Global discount %</span>
+                  <input id="discount" data-field="discount" type="number" min="0" max="100" step="0.01" />
+                </label>
+              </div>
+            </div>
+
+            <div class="section-card">
+              <div class="section-title-row">
+                <div>
+                  <p class="section-eyebrow">Theme</p>
+                  <h2>Accent color</h2>
+                </div>
+              </div>
+
+              <div id="theme-picker" class="theme-grid" aria-label="Accent color themes"></div>
+            </div>
+
+            <div class="section-card">
+              <div class="section-title-row">
+                <div>
+                  <p class="section-eyebrow">Charges</p>
+                  <h2>Line items</h2>
+                </div>
+                <button id="add-line-item" class="secondary-button" type="button">Add row</button>
+              </div>
+
+              <div class="line-items-head" aria-hidden="true">
+                <span>Description</span>
+                <span>Qty</span>
+                <span>Rate</span>
+                <span>Tax %</span>
+                <span>Amount</span>
+                <span></span>
+              </div>
+              <div id="line-items-list" class="line-items-list"></div>
+            </div>
+
+            <div class="section-card">
+              <div class="section-title-row">
+                <div>
+                  <p class="section-eyebrow">Totals</p>
+                  <h2>Calculated summary</h2>
+                </div>
+              </div>
+
+              <div class="totals-snapshot">
+                <div class="snapshot-row">
+                  <span>Subtotal</span>
+                  <strong id="form-subtotal"></strong>
+                </div>
+                <div class="snapshot-row">
+                  <span>Tax</span>
+                  <strong id="form-tax"></strong>
+                </div>
+                <div class="snapshot-row">
+                  <span id="form-discount-label">Discount</span>
+                  <strong id="form-discount"></strong>
+                </div>
+                <div class="snapshot-row snapshot-grand-total">
+                  <span>Total</span>
+                  <strong id="form-total"></strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-card">
+              <div class="section-title-row">
+                <div>
+                  <p class="section-eyebrow">Notes</p>
+                  <h2>Payment info</h2>
+                </div>
+              </div>
+
+              <div class="field-grid">
+                <label class="field full">
+                  <span>Notes</span>
+                  <textarea
+                    id="notes"
+                    data-field="notes"
+                    rows="4"
+                    placeholder="Thanks for your business. Payment is due within 14 days."
+                  ></textarea>
+                </label>
+
+                <label class="field full">
+                  <span>Payment details</span>
+                  <textarea
+                    id="payment-info"
+                    data-field="paymentInfo"
+                    rows="4"
+                    placeholder="e-Transfer: billing@example.com&#10;Bank: Example Credit Union&#10;Transit: 12345"
+                  ></textarea>
+                </label>
+              </div>
+            </div>
+
+            <div class="section-card action-card">
+              <div class="actions">
+                <button id="download-pdf" class="primary-button" type="button">Download PDF</button>
+                <button id="print-invoice" class="secondary-button" type="button">Print</button>
+                <button id="reset-invoice" class="ghost-button" type="button">Reset</button>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel preview-pane">
+          <div class="preview-toolbar">
+            <p>Live preview</p>
+            <span id="preview-toolbar-currency">CAD</span>
+          </div>
+
+          <article class="invoice-sheet" id="invoice-preview">
+            <div class="sheet-accent"></div>
+
+            <header class="invoice-header">
+              <div class="brand-block">
+                <div class="logo-frame" id="preview-logo-frame" hidden>
+                  <img id="preview-logo" alt="Company logo" />
+                </div>
+                <div class="brand-copy">
+                  <p class="sheet-label">From</p>
+                  <h2 id="preview-company-name" class="serif-title"></h2>
+                  <p id="preview-company-address" class="multiline-text"></p>
+                </div>
+              </div>
+
+              <div class="invoice-meta-panel">
+                <div id="preview-status" class="status-pill"></div>
+                <h3>Invoice <span id="preview-invoice-number"></span></h3>
+                <dl class="meta-list">
+                  <div>
+                    <dt>Issued</dt>
+                    <dd id="preview-invoice-date"></dd>
+                  </div>
+                  <div>
+                    <dt>Due</dt>
+                    <dd id="preview-due-date"></dd>
+                  </div>
+                </dl>
+              </div>
+            </header>
+
+            <section class="bill-to-card">
+              <p class="sheet-label">Bill to</p>
+              <h4 id="preview-client-name"></h4>
+              <p id="preview-client-address" class="multiline-text"></p>
+            </section>
+
+            <section class="table-card">
+              <table class="preview-table">
+                <thead>
+                  <tr>
+                    <th>Description</th>
+                    <th>Qty</th>
+                    <th>Rate</th>
+                    <th>Tax</th>
+                    <th>Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="preview-line-items"></tbody>
+              </table>
+            </section>
+
+            <section class="summary-grid">
+              <div class="note-stack">
+                <div class="note-card">
+                  <p class="sheet-label">Notes</p>
+                  <p id="preview-notes" class="multiline-text"></p>
+                </div>
+                <div class="note-card">
+                  <p class="sheet-label">Payment details</p>
+                  <p id="preview-payment-info" class="multiline-text"></p>
+                </div>
+              </div>
+
+              <aside class="totals-card">
+                <div class="total-row">
+                  <span>Subtotal</span>
+                  <strong id="preview-subtotal"></strong>
+                </div>
+                <div class="total-row">
+                  <span>Tax</span>
+                  <strong id="preview-tax"></strong>
+                </div>
+                <div class="total-row">
+                  <span id="preview-discount-label">Discount</span>
+                  <strong id="preview-discount"></strong>
+                </div>
+                <div class="total-row grand-total">
+                  <span>Total</span>
+                  <strong id="preview-total"></strong>
+                </div>
+              </aside>
+            </section>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

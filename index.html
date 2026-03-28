@@ -165,7 +165,7 @@
       width: min(1100px, 100%);
       margin-top: 42px;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 18px;
     }
 
@@ -720,6 +720,7 @@
     <div class="nav-logo">INXS</div>
     <ul class="nav-links">
       <li><a href="#tools">Tools</a></li>
+      <li><a href="/invoice">Invoice</a></li>
       <li><a href="#downloader">Media Tools</a></li>
       <li><a href="#about">About</a></li>
       <li><a href="https://download.inxs.live" class="nav-cta">Launch Downloader →</a></li>
@@ -766,13 +767,23 @@
         <p>Upload files, choose a target format, and run browser-driven conversion jobs backed by FFmpeg.</p>
         <div class="featured-tool-link">Open converter →</div>
       </a>
+      <a class="featured-tool" href="/invoice">
+        <div class="featured-tool-top">
+          <div class="featured-tool-icon">🧾</div>
+          <div class="tool-badge badge-live">Live</div>
+        </div>
+        <div class="featured-tool-domain">inxs.live/invoice</div>
+        <h3>Invoice Builder</h3>
+        <p>Create polished invoices in the browser with live preview, custom branding, print, and PDF export.</p>
+        <div class="featured-tool-link">Open invoice builder →</div>
+      </a>
     </div>
   </div>
 
   <!-- STATS -->
   <div class="stats">
     <div class="stat-item fade-up">
-      <div class="stat-num">3</div>
+      <div class="stat-num">4</div>
       <div class="stat-label">Live tools</div>
     </div>
     <div class="stat-item fade-up">
@@ -793,9 +804,21 @@
   <section id="tools">
     <div class="section-tag fade-up">Tools</div>
     <h2 class="section-title fade-up">Everything in one place</h2>
-    <p class="section-sub fade-up">Three production-ready tools are now part of the INXS stack, with more to follow.</p>
+    <p class="section-sub fade-up">Four production-ready tools are now part of the INXS stack, with more to follow.</p>
 
     <div class="tools-grid">
+
+      <a href="/invoice" class="tool-card fade-up">
+        <div class="tool-icon">🧾</div>
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+            <div class="tool-name">Invoice Builder</div>
+            <span class="tool-badge badge-live">Live</span>
+          </div>
+          <div class="tool-desc">Build invoices directly in the browser with no login, add line items and branding, then export a clean PDF or print.</div>
+        </div>
+        <div class="tool-link">Create invoice <span>→</span></div>
+      </a>
 
       <a href="https://pdf.inxs.live" class="tool-card fade-up">
         <div class="tool-icon">📄</div>
