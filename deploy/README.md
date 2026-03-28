@@ -8,12 +8,14 @@ This stack keeps the three backend tools running 24/7 behind a Cloudflare Tunnel
 - `https://convert.inxs.live` -> video converter
 - `https://download.inxs.live` -> video downloader
 - `https://inxs.live/invoice` -> static invoice builder on Vercel
+- `https://inxs.live/mortgage` -> static mortgage calculator on Vercel
 - `https://inxs.live` remains hosted by Vercel
 
 ## Repo layout
 
 - `index.html` -> public landing page for Vercel
 - `invoice` -> static invoice builder served by Vercel
+- `mortgage` -> static mortgage calculator served by Vercel
 - `apps/pdf-docs` -> PDF/DOCX service
 - `apps/video-converter` -> FFmpeg conversion service
 - `apps/video-downloader` -> yt-dlp download service
@@ -23,7 +25,7 @@ This stack keeps the three backend tools running 24/7 behind a Cloudflare Tunnel
 
 This deployment does not require opening inbound ports on the Umbrel Pi.
 
-The invoice builder does not need a backend container. It runs entirely in the browser and should be deployed with the main Vercel site, not through Portainer.
+The invoice builder and mortgage calculator do not need backend containers. They run entirely in the browser and should be deployed with the main Vercel site, not through Portainer.
 
 1. In Cloudflare Zero Trust, create a remotely-managed tunnel.
 2. Copy the tunnel token.

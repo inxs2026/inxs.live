@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>INXS Mortgage Calculator</title>
+    <meta
+      name="description"
+      content="Canadian mortgage, personal loan, and auto loan calculator with CMHC insurance, stress test, payoff savings, CSV export, and PDF export."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/mortgage/styles.css" />
+  </head>
+  <body>
+    <header class="site-topbar">
+      <a href="/" class="site-logo">INXS</a>
+      <nav class="site-nav">
+        <a href="/">Home</a>
+        <a href="/#tools">Tools</a>
+        <a href="/invoice">Invoice</a>
+        <a href="/mortgage" class="site-nav-cta">Mortgage Calculator</a>
+      </nav>
+    </header>
+
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Canadian mortgage math built in</p>
+          <h1>Mortgage calculator that actually speaks Canadian.</h1>
+          <p class="hero-text">
+            Semi-annual compounding, CMHC insurance, stress test, accelerated
+            bi-weekly, early payoff savings, and exportable amortization data in
+            one browser-only tool at <strong>inxs.live/mortgage</strong>.
+          </p>
+        </div>
+
+        <div class="hero-rules">
+          <article class="rule-card">
+            <strong>Semi-annual</strong>
+            <span>Mortgage compounding matches the Canadian standard.</span>
+          </article>
+          <article class="rule-card">
+            <strong>CMHC aware</strong>
+            <span>Premium rate, insurance warning, and amortization cap built in.</span>
+          </article>
+          <article class="rule-card">
+            <strong>Stress tested</strong>
+            <span>Qualifying payment auto-calculated at the higher rule.</span>
+          </article>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="panel controls">
+          <form id="calculator-form" autocomplete="off">
+            <div class="section-card">
+              <div class="section-head">
+                <div>
+                  <p class="section-eyebrow">Setup</p>
+                  <h2>Loan details</h2>
+                </div>
+              </div>
+
+              <div class="field-grid">
+                <label class="field">
+                  <span>Loan type</span>
+                  <select id="loan-type">
+                    <option value="mortgage">Mortgage</option>
+                    <option value="personal">Personal Loan</option>
+                    <option value="auto">Auto Loan</option>
+                  </select>
+                </label>
+
+                <label class="field">
+                  <span>Payment frequency</span>
+                  <select id="payment-frequency">
+                    <option value="monthly">Monthly</option>
+                    <option value="semiMonthly">Semi-Monthly</option>
+                    <option value="biWeekly">Bi-Weekly</option>
+                    <option value="acceleratedBiWeekly">Accelerated Bi-Weekly</option>
+                    <option value="weekly">Weekly</option>
+                  </select>
+                </label>
+
+                <label class="field">
+                  <span>Interest rate</span>
+                  <div class="input-shell">
+                    <input id="interest-rate" type="number" min="0" step="0.01" />
+                    <em>%</em>
+                  </div>
+                </label>
+
+                <label class="field">
+                  <span>Amortization</span>
+                  <div class="input-shell">
+                    <select id="amortization-years"></select>
+                    <em>yrs</em>
+                  </div>
+                </label>
+              </div>
+
+              <div id="mortgage-fields" class="subsection">
+                <div class="subsection-head">Mortgage inputs</div>
+
+                <div class="field-grid">
+                  <label class="field">
+                    <span>Home price</span>
+                    <div class="input-shell">
+                      <input id="home-price" type="number" min="0" step="1000" />
+                      <em>$</em>
+                    </div>
+                  </label>
+
+                  <label class="field">
+                    <span>Down payment amount</span>
+                    <div class="input-shell">
+                      <input id="down-payment-amount" type="number" min="0" step="1000" />
+                      <em>$</em>
+                    </div>
+                  </label>
+
+                  <label class="field">
+                    <span>Down payment percent</span>
+                    <div class="input-shell">
+                      <input id="down-payment-percent" type="number" min="0" max="100" step="0.01" />
+                      <em>%</em>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="checkbox-grid">
+                  <label class="check-row">
+                    <input id="first-time-buyer" type="checkbox" />
+                    <span>First-time buyer</span>
+                  </label>
+
+                  <label class="check-row">
+                    <input id="new-build" type="checkbox" />
+                    <span>New build</span>
+                  </label>
+                </div>
+              </div>
+
+              <div id="loan-fields" class="subsection is-hidden">
+                <div class="subsection-head">Loan amount</div>
+
+                <div class="field-grid">
+                  <label class="field">
+                    <span id="loan-amount-label">Loan amount</span>
+                    <div class="input-shell">
+                      <input id="loan-amount" type="number" min="0" step="1000" />
+                      <em>$</em>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div class="section-card">
+              <div class="section-head">
+                <div>
+                  <p class="section-eyebrow">Early payoff</p>
+                  <h2>Prepayment plan</h2>
+                </div>
+              </div>
+
+              <div class="field-grid">
+                <label class="field">
+                  <span>Extra payment per period</span>
+                  <div class="input-shell">
+                    <input id="extra-payment" type="number" min="0" step="50" />
+                    <em>$</em>
+                  </div>
+                </label>
+
+                <label class="field">
+                  <span>Annual lump sum</span>
+                  <div class="input-shell">
+                    <input id="annual-lump-sum" type="number" min="0" step="500" />
+                    <em>$</em>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="section-card">
+              <div class="section-head">
+                <div>
+                  <p class="section-eyebrow">Rules</p>
+                  <h2>Canadian rule snapshot</h2>
+                </div>
+              </div>
+
+              <div class="insight-grid">
+                <article class="insight-card">
+                  <p class="insight-label">Compounding</p>
+                  <h3 id="compounding-title"></h3>
+                  <p id="compounding-copy" class="insight-copy"></p>
+                </article>
+
+                <article class="insight-card">
+                  <p class="insight-label">CMHC Insurance</p>
+                  <h3 id="cmhc-title"></h3>
+                  <p id="cmhc-copy" class="insight-copy"></p>
+                </article>
+
+                <article class="insight-card">
+                  <p class="insight-label">Stress Test</p>
+                  <h3 id="stress-title"></h3>
+                  <p id="stress-copy" class="insight-copy"></p>
+                </article>
+
+                <article class="insight-card">
+                  <p class="insight-label">Warnings</p>
+                  <div id="warnings-list" class="warning-list"></div>
+                </article>
+              </div>
+
+              <p class="fine-print">
+                Estimate only. Lenders and insurers can apply additional
+                underwriting rules, taxes, and product-specific conditions.
+              </p>
+            </div>
+
+            <div class="section-card action-card">
+              <div class="actions">
+                <button id="download-csv" class="primary-button" type="button">Download CSV</button>
+                <button id="download-pdf" class="secondary-button" type="button">Download PDF</button>
+                <button id="reset-calculator" class="ghost-button" type="button">Reset</button>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel results">
+          <div id="summary-grid" class="summary-grid"></div>
+
+          <div class="section-card">
+            <div class="section-head">
+              <div>
+                <p class="section-eyebrow">Visual</p>
+                <h2>Principal vs interest by year</h2>
+              </div>
+            </div>
+
+            <div class="chart-legend">
+              <span><i class="legend-swatch principal-swatch"></i> Principal</span>
+              <span><i class="legend-swatch interest-swatch"></i> Interest</span>
+            </div>
+            <div id="yearly-chart" class="yearly-chart"></div>
+          </div>
+
+          <div class="section-card">
+            <div class="section-head">
+              <div>
+                <p class="section-eyebrow">Schedule</p>
+                <h2>Amortization table</h2>
+              </div>
+
+              <div class="toggle-group">
+                <button class="toggle-button is-active" type="button" data-table-view="summary">Yearly Summary</button>
+                <button class="toggle-button" type="button" data-table-view="all">All Periods</button>
+                <button class="toggle-button" type="button" data-table-view="first24">First 24</button>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="schedule-table">
+                <thead id="schedule-head"></thead>
+                <tbody id="schedule-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+    <script src="/mortgage/app.js"></script>
+  </body>
+</html>
