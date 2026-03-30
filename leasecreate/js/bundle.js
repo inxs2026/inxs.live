@@ -556,7 +556,7 @@ document.addEventListener('DOMContentLoaded', function() {
       var restoreBtn = $('#btn-restore-autosave');
       if (restoreBtn) restoreBtn.addEventListener('click', function() { var d = getAutoSave(); if (d) applyFormData(d); banner.remove(); });
       var dismissBtn = $('#btn-dismiss-autosave');
-      if (dismissBtn) dismissBtn.addEventListener('click', function() { banner.remove(); });
+      if (dismissBtn) dismissBtn.addEventListener('click', function() { deleteDraft('__autosave__'); banner.remove(); });
     }
   } catch(e) {}
 });
