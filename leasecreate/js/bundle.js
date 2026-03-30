@@ -522,8 +522,125 @@ var selectedSchedules = [];
 var sigPadLandlord = null;
 var sigPadTenant = null;
 
-// Make generateLease available (loaded from generator.js via separate script)
-// We reference window._generateLease which is set by generator-standalone.js
+// ══════════════════════════════════════════════════════════════════════════════
+// GENERATOR
+// ══════════════════════════════════════════════════════════════════════════════
+
+function escG(str) { if (!str) return ''; return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function formatKey(key) { return key.replace(/([A-Z])/g,' $1').replace(/^./,function(s){return s.toUpperCase();}); }
+function buildUtilityRow(name, utilities) { var included = utilities && utilities[name.toLowerCase().replace(/\s|\//g,'')] === 'included'; return '<tr><td>'+name+'</td><td>'+(included?'Yes':'')+'</td><td>'+(included?'':'Yes')+'</td></tr>'; }
+
+function generateLease(formData, selectedSchedules) {
+  var province = provinces[formData.province];
+  if (!province) return '<p>Please select a province.</p>';
+  var today = new Date().toLocaleDateString('en-CA', {year:'numeric',month:'long',day:'numeric'});
+  var html = '';
+
+  html += '<div class="lease-header"><h1>RESIDENTIAL TENANCY AGREEMENT</h1><p class="lease-subtitle">Province of '+province.name+'</p><p class="lease-legislation">Governed by: '+province.legislation+'</p>'+(province.standardLeaseRequired?'<p class="lease-note">Note: '+province.standardLeaseForm+' is required in '+province.name+'. This document supplements — it does not replace — the official form.</p>':'')+'<p class="lease-date">Date: '+today+'</p></div>';
+
+  html += '<div class="lease-section"><h2>1. PARTIES</h2><div class="lease-field-group"><div class="lease-field"><label>LANDLORD</label><p><strong>'+escG(formData.landlordName)+'</strong></p>'+(formData.landlordAddress?'<p>'+escG(formData.landlordAddress)+'</p>':'')+(formData.landlordPhone?'<p>Phone: '+escG(formData.landlordPhone)+'</p>':'')+(formData.landlordEmail?'<p>Email: '+escG(formData.landlordEmail)+'</p>':'')+'</div><div class="lease-field"><label>TENANT</label><p><strong>'+escG(formData.tenantName)+'</strong></p>'+(formData.tenantPhone?'<p>Phone: '+escG(formData.tenantPhone)+'</p>':'')+(formData.tenantEmail?'<p>Email: '+escG(formData.tenantEmail)+'</p>':'')+'</div>'+(formData.additionalTenants?'<div class="lease-field full-width"><label>Additional Tenant(s)</label><p>'+escG(formData.additionalTenants)+'</p></div>':'')+'</div></div>';
+
+  html += '<div class="lease-section"><h2>2. RENTAL UNIT</h2><p><strong>Address:</strong> '+escG(formData.unitAddress)+'</p>'+(formData.unitNumber?'<p><strong>Unit/Suite:</strong> '+escG(formData.unitNumber)+'</p>':'')+'<p><strong>City:</strong> '+escG(formData.city)+', <strong>Province:</strong> '+province.name+', <strong>Postal Code:</strong> '+escG(formData.postalCode)+'</p>'+(formData.unitType?'<p><strong>Type:</strong> '+escG(formData.unitType)+'</p>':'')+(formData.isFurnished?'<p><strong>Furnished:</strong> Yes</p>':'')+(formData.parkingIncluded?'<p><strong>Parking:</strong> Included'+(formData.parkingDetails?' — '+escG(formData.parkingDetails):'')+'</p>':'')+(formData.storageIncluded?'<p><strong>Storage:</strong> Included</p>':'')+'</div>';
+
+  html += '<div class="lease-section"><h2>3. TERM OF TENANCY</h2><p><strong>Type:</strong> '+(formData.termType==='fixed'?'Fixed Term':'Month-to-Month (Periodic)')+'</p><p><strong>Start Date:</strong> '+escG(formData.startDate)+'</p>'+(formData.termType==='fixed'?'<p><strong>End Date:</strong> '+escG(formData.endDate)+'</p>':'')+'<p class="lease-info">Termination notice requirements per '+province.legislationShort+':</p><ul>'+Object.entries(province.terminationNotice).map(function(e){return '<li>'+formatKey(e[0])+': '+e[1]+'</li>';}).join('')+'</ul></div>';
+
+  html += '<div class="lease-section"><h2>4. RENT</h2><p><strong>Monthly Rent:</strong> $'+escG(formData.rentAmount)+'</p><p><strong>Due Date:</strong> '+escG(formData.rentDueDay)+' of each month</p><p><strong>Payment Method:</strong> '+escG(formData.paymentMethod||'As agreed between parties')+'</p>'+(province.rentRules.rentIncreaseGuideline?'<p class="lease-info">Rent increases: '+province.rentRules.guidelineNote+'</p>':'<p class="lease-info">Note: '+province.rentRules.guidelineNote+'</p>')+'</div>';
+
+  html += '<div class="lease-section"><h2>5. DEPOSITS</h2>';
+  if (!province.rentRules.securityDepositAllowed && province.code !== 'ON') {
+    html += '<p class="lease-warning">Security deposits are <strong>prohibited</strong> in '+province.name+'.</p>'+(province.code==='QC'?'<p>Only the first month\'s rent may be collected in advance.</p>':'');
+  } else if (province.code === 'ON') {
+    html += '<p><strong>Last Month\'s Rent Deposit:</strong> $'+escG(formData.lastMonthDeposit||formData.rentAmount)+'</p><p class="lease-info">Ontario prohibits security deposits. Only a last month\'s rent deposit is allowed (RTA s.106).</p>';
+  } else {
+    html += '<p><strong>Security Deposit:</strong> $'+escG(formData.securityDeposit||'0.00')+'</p><p class="lease-info">Maximum allowed: '+province.rentRules.maxDeposit+'</p>'+(formData.petDeposit?'<p><strong>Pet Damage Deposit:</strong> $'+escG(formData.petDeposit)+'</p>':'');
+  }
+  html += '</div>';
+
+  html += '<div class="lease-section"><h2>6. SERVICES & UTILITIES</h2><table class="lease-table"><thead><tr><th>Service</th><th>Included in Rent</th><th>Tenant Pays Separately</th></tr></thead><tbody>'+buildUtilityRow('Heat',formData.utilities)+buildUtilityRow('Electricity',formData.utilities)+buildUtilityRow('Water',formData.utilities)+buildUtilityRow('Internet',formData.utilities)+buildUtilityRow('Cable/TV',formData.utilities)+buildUtilityRow('Laundry',formData.utilities)+buildUtilityRow('Air Conditioning',formData.utilities)+'</tbody></table></div>';
+
+  html += '<div class="lease-section"><h2>7. RULES & CONDITIONS</h2><p><strong>Smoking:</strong> '+(formData.smokingAllowed?'Permitted in designated areas':'Not permitted on the premises')+'</p><p><strong>Pets:</strong> '+(formData.petsAllowed?'Permitted':'Not permitted')+(province.code==='ON'?' <em>(Note: No-pet clauses are void and unenforceable in Ontario per RTA s.14)</em>':'')+'</p>'+(formData.guestPolicy?'<p><strong>Guest Policy:</strong> '+escG(formData.guestPolicy)+'</p>':'')+(formData.noisePolicy?'<p><strong>Noise/Quiet Hours:</strong> '+escG(formData.noisePolicy)+'</p>':'')+'</div>';
+
+  html += '<div class="lease-section"><h2>8. MAINTENANCE & REPAIRS</h2><p>The <strong>Landlord</strong> is responsible for maintaining the rental unit in a good state of repair and in compliance with the '+province.legislationShort+'.</p><p>The <strong>Tenant</strong> is responsible for:</p><ul><li>Keeping the unit reasonably clean</li><li>Promptly reporting maintenance issues or damage</li><li>Repairing or paying for damage caused by the tenant, guests, or pets</li><li>Not altering the unit without written consent</li></ul>'+(formData.maintenanceNotes?'<p><strong>Additional Notes:</strong> '+escG(formData.maintenanceNotes)+'</p>':'')+'</div>';
+
+  html += '<div class="lease-section"><h2>9. LANDLORD\'S RIGHT OF ENTRY</h2><p>The Landlord may enter only in accordance with the '+province.legislationShort+'. Except in emergencies, the Landlord must provide:</p><ul><li><strong>Written notice</strong> of at least 24 hours</li><li>Entry only between <strong>8:00 AM and 8:00 PM</strong></li><li>A valid reason as permitted by law</li></ul></div>';
+
+  html += '<div class="lease-section"><h2>10. INSURANCE</h2><p><strong>Tenant Insurance:</strong> '+(formData.tenantInsuranceRequired?'Required — Tenant must obtain and maintain renter\'s insurance.':'Recommended but not required.')+'</p><p>The Landlord\'s insurance does not cover the Tenant\'s personal belongings or liability.</p></div>';
+
+  var sectionNum = 11;
+  if (formData.additionalTerms) {
+    html += '<div class="lease-section"><h2>'+sectionNum+'. ADDITIONAL TERMS</h2><div class="lease-additional">'+escG(formData.additionalTerms).replace(/\n/g,'<br>')+'</div><p class="lease-info">Any term that conflicts with the '+province.legislationShort+' is void and unenforceable.</p></div>';
+    sectionNum++;
+  }
+
+  html += '<div class="lease-section"><h2>'+sectionNum+'. IMPORTANT LEGAL INFORMATION</h2><div class="lease-legal"><p>This agreement is governed by the <strong>'+province.legislation+'</strong>.</p><p>Disputes may be resolved through the <strong>'+province.regulator+'</strong>.</p><h3>Prohibited Clauses in '+province.name+':</h3><ul>'+province.prohibitedClauses.map(function(c){return '<li>'+c+'</li>';}).join('')+'</ul>'+province.notes.map(function(n){return '<p class="lease-info">'+n+'</p>';}).join('')+'</div></div>';
+  sectionNum++;
+
+  if (selectedSchedules && selectedSchedules.length > 0) {
+    html += '<div class="lease-section"><h2>'+sectionNum+'. SCHEDULES</h2><p>The following schedules are attached to and form part of this Agreement:</p><ul>'+selectedSchedules.map(function(s,i){return '<li><strong>Schedule '+String.fromCharCode(65+i)+':</strong> '+s.name+'</li>';}).join('')+'</ul></div>';
+    selectedSchedules.forEach(function(schedule, i) { html += generateScheduleContent(schedule, i, formData, province); });
+  }
+
+  html += '<div class="lease-section lease-signatures"><h2>SIGNATURES</h2><p>By signing below, the parties agree to the terms and conditions of this Residential Tenancy Agreement.</p><div class="sig-grid"><div class="sig-block"><div class="sig-line"></div><p>Landlord Signature</p><p class="sig-name">'+escG(formData.landlordName)+'</p><p class="sig-date">Date: _______________________</p></div><div class="sig-block"><div class="sig-line"></div><p>Tenant Signature</p><p class="sig-name">'+escG(formData.tenantName)+'</p><p class="sig-date">Date: _______________________</p></div></div>'+(formData.additionalTenants?'<div class="sig-grid" style="margin-top:30px;"><div class="sig-block"><div class="sig-line"></div><p>Additional Tenant Signature</p><p class="sig-date">Date: _______________________</p></div><div class="sig-block"><div class="sig-line"></div><p>Witness Signature (if applicable)</p><p class="sig-date">Date: _______________________</p></div></div>':'')+'</div>';
+
+  return html;
+}
+
+function generateScheduleContent(schedule, index, formData, province) {
+  var letter = String.fromCharCode(65+index);
+  var html = '<div class="lease-section lease-schedule" style="page-break-before:always;"><h2>SCHEDULE '+letter+': '+schedule.name.toUpperCase()+'</h2><p class="lease-subtitle">'+schedule.description+'</p>';
+  switch(schedule.id) {
+    case 'moveInInspection': case 'conditionReport': html += generateInspectionSchedule(formData); break;
+    case 'petAgreement': html += generatePetSchedule(formData, province); break;
+    case 'parking': html += generateParkingSchedule(formData); break;
+    case 'storage': html += generateStorageSchedule(formData); break;
+    case 'utilities': html += generateUtilitiesSchedule(formData); break;
+    case 'maintenance': html += generateMaintenanceSchedule(formData, province); break;
+    case 'keyReceipt': html += generateKeySchedule(formData); break;
+    case 'smoking': html += generateSmokingSchedule(formData); break;
+    case 'commonAreas': html += generateCommonAreasSchedule(formData); break;
+    case 'renovation': html += generateRenovationSchedule(formData, province); break;
+    case 'bylaw': case 'strata': case 'condominium': html += generateBylawSchedule(formData, province); break;
+    default: html += '<div class="schedule-blank"><p>Additional terms as agreed between the parties:</p><div class="blank-lines">'+'<div class="blank-line"></div>'.repeat(15)+'</div></div>';
+  }
+  html += '<div class="schedule-sig"><div class="sig-grid"><div class="sig-block"><div class="sig-line"></div><p>Landlord Initials / Date</p></div><div class="sig-block"><div class="sig-line"></div><p>Tenant Initials / Date</p></div></div></div></div>';
+  return html;
+}
+
+function generateInspectionSchedule(formData) {
+  var rooms = ['Living Room','Kitchen','Bedroom 1','Bedroom 2','Bathroom','Hallway/Entrance','Balcony/Patio','Other'];
+  var conditions = ['Walls & Ceiling','Flooring','Windows & Blinds','Doors & Locks','Light Fixtures','Outlets/Switches','Appliances','Plumbing/Fixtures','Cleanliness'];
+  return '<p><strong>Unit Address:</strong> '+escG(formData.unitAddress)+'</p><p><strong>Inspection Date:</strong> _______________________</p><p><strong>Inspected By:</strong> Landlord: _________________ Tenant: _________________</p><table class="lease-table inspection-table"><thead><tr><th>Room</th><th>Item</th><th>Condition (Move-In)</th><th>Condition (Move-Out)</th><th>Notes</th></tr></thead><tbody>'+rooms.map(function(room){return conditions.map(function(cond,ci){return '<tr>'+(ci===0?'<td rowspan="'+conditions.length+'" class="room-cell">'+room+'</td>':'')+'<td>'+cond+'</td><td class="condition-cell"></td><td class="condition-cell"></td><td class="notes-cell"></td></tr>';}).join('');}).join('')+'</tbody></table><p><strong>General Notes:</strong></p><div class="blank-lines">'+'<div class="blank-line"></div>'.repeat(5)+'</div>';
+}
+function generatePetSchedule(formData, province) {
+  return '<p>This Pet Agreement forms part of the Residential Tenancy Agreement.</p>'+(province.code==='ON'?'<p class="lease-warning"><strong>Ontario Note:</strong> No-pet clauses are void under RTA s.14.</p>':'')+'<table class="lease-table"><thead><tr><th>Pet Type</th><th>Breed</th><th>Name</th><th>Weight</th></tr></thead><tbody><tr><td></td><td></td><td></td><td></td></tr><tr><td></td><td></td><td></td><td></td></tr></tbody></table><h3>Pet Rules</h3><ul><li>Tenant is responsible for all damage caused by pets</li><li>Pets must be supervised in common areas</li><li>Tenant must clean up after pets immediately</li><li>Excessive noise from pets may constitute a disturbance</li><li>Tenant must comply with all municipal animal bylaws</li></ul><p><strong>Additional pet conditions:</strong></p><div class="blank-lines">'+'<div class="blank-line"></div>'.repeat(4)+'</div>';
+}
+function generateParkingSchedule(formData) {
+  return '<h3>Parking Details</h3><p><strong>Parking Space Number:</strong> _______________________</p><p><strong>Location:</strong> _______________________</p><p><strong>Type:</strong> Indoor / Outdoor / Underground (circle one)</p><p><strong>Included in Rent:</strong> Yes / No</p><p><strong>Additional Monthly Cost:</strong> $ _______________________</p><h3>Parking Rules</h3><ul><li>Only registered vehicles may use the assigned space</li><li>Vehicle must be insured and in operable condition</li><li>No storage of hazardous materials</li></ul><table class="lease-table"><thead><tr><th>Make/Model</th><th>Year</th><th>Colour</th><th>License Plate</th></tr></thead><tbody><tr><td></td><td></td><td></td><td></td></tr></tbody></table>';
+}
+function generateStorageSchedule(formData) {
+  return '<h3>Storage Details</h3><p><strong>Storage Unit/Locker Number:</strong> _______________________</p><p><strong>Location:</strong> _______________________</p><p><strong>Included in Rent:</strong> Yes / No</p><h3>Storage Rules</h3><ul><li>No hazardous, flammable, or perishable items</li><li>Tenant must provide their own lock</li><li>Landlord is not responsible for theft or damage to stored items</li></ul>';
+}
+function generateUtilitiesSchedule(formData) {
+  return '<h3>Utility Responsibilities</h3><table class="lease-table"><thead><tr><th>Utility</th><th>Landlord Pays</th><th>Tenant Pays</th><th>Estimated Monthly Cost</th></tr></thead><tbody><tr><td>Electricity</td><td></td><td></td><td></td></tr><tr><td>Natural Gas / Heat</td><td></td><td></td><td></td></tr><tr><td>Water / Sewer</td><td></td><td></td><td></td></tr><tr><td>Internet</td><td></td><td></td><td></td></tr><tr><td>Cable / TV</td><td></td><td></td><td></td></tr></tbody></table><p><strong>Notes:</strong></p><div class="blank-lines">'+'<div class="blank-line"></div>'.repeat(4)+'</div>';
+}
+function generateMaintenanceSchedule(formData, province) {
+  return '<h3>Maintenance Responsibilities</h3><table class="lease-table"><thead><tr><th>Item</th><th>Landlord</th><th>Tenant</th><th>Notes</th></tr></thead><tbody><tr><td>Lawn Care / Snow Removal</td><td></td><td></td><td></td></tr><tr><td>Appliance Repairs</td><td></td><td></td><td></td></tr><tr><td>Plumbing Issues</td><td></td><td></td><td></td></tr><tr><td>Electrical Issues</td><td></td><td></td><td></td></tr><tr><td>HVAC / Furnace</td><td></td><td></td><td></td></tr><tr><td>Pest Control</td><td></td><td></td><td></td></tr></tbody></table><p class="lease-info">Per '+province.legislationShort+', the landlord must maintain the unit in a good state of repair.</p>';
+}
+function generateKeySchedule(formData) {
+  return '<h3>Keys & Access Devices Issued</h3><table class="lease-table"><thead><tr><th>Item</th><th>Quantity</th><th>Deposit (if any)</th></tr></thead><tbody><tr><td>Unit Key</td><td></td><td></td></tr><tr><td>Mailbox Key</td><td></td><td></td></tr><tr><td>Building Fob/Card</td><td></td><td></td></tr><tr><td>Garage Remote</td><td></td><td></td></tr><tr><td>Storage Key</td><td></td><td></td></tr></tbody></table><p>All keys/devices must be returned at end of tenancy.</p>';
+}
+function generateSmokingSchedule(formData) {
+  return '<h3>Smoking Policy</h3><p><strong>Smoking (tobacco):</strong> '+(formData.smokingAllowed?'Permitted in designated areas only':'Prohibited on premises')+'</p><p><strong>Cannabis smoking/vaping:</strong> _______________________</p><p><strong>Designated smoking area(s):</strong> _______________________</p><h3>Rules</h3><ul><li>No smoking near building entrances, windows, or air intakes</li><li>Tenant is responsible for any damage caused by smoking</li></ul>';
+}
+function generateCommonAreasSchedule(formData) {
+  return '<h3>Common Areas & Amenities</h3><table class="lease-table"><thead><tr><th>Amenity</th><th>Available</th><th>Hours</th><th>Rules/Notes</th></tr></thead><tbody><tr><td>Laundry Room</td><td></td><td></td><td></td></tr><tr><td>Gym/Fitness Room</td><td></td><td></td><td></td></tr><tr><td>Pool</td><td></td><td></td><td></td></tr><tr><td>Party/Meeting Room</td><td></td><td></td><td></td></tr><tr><td>Bike Storage</td><td></td><td></td><td></td></tr></tbody></table><h3>General Rules</h3><ul><li>Common areas must be left clean after use</li><li>Guests must be accompanied by tenant</li></ul>';
+}
+function generateRenovationSchedule(formData, province) {
+  return '<h3>Renovation / Alteration Agreement</h3><p>The Tenant requests permission to make the following alterations:</p><div class="blank-lines">'+'<div class="blank-line"></div>'.repeat(5)+'</div><h3>Conditions</h3><ul><li>All work must be completed professionally</li><li>Landlord must approve all changes in writing before work begins</li><li>Tenant is responsible for all costs</li></ul>';
+}
+function generateBylawSchedule(formData, province) {
+  return '<h3>'+(province.code==='BC'?'Strata':province.code==='AB'?'Condominium':'Building')+' Rules & Bylaws</h3><p>The Tenant acknowledges receipt of and agrees to comply with the following rules and bylaws:</p><div class="blank-lines">'+'<div class="blank-line"></div>'.repeat(10)+'</div><p><strong>Date provided:</strong> _______________________</p>';
+}
 
 document.addEventListener('DOMContentLoaded', function() {
   // Populate provinces
@@ -746,7 +863,7 @@ function generatePreview() {
   });
   var formData = collectFormData();
   // Use the generator from the separate script
-  var leaseHtml = (typeof window._generateLease === 'function') ? window._generateLease(formData, selectedSchedules) : '<p>Generator loading...</p>';
+  var leaseHtml = generateLease(formData, selectedSchedules);
   var timelineHtml = currentProvince ? generateTimeline(formData, currentProvince) : '';
   var sigHtml = createSignatureSection();
   $('#lease-preview').innerHTML = timelineHtml + leaseHtml + sigHtml;
