@@ -1269,60 +1269,51 @@ a:hover { color: var(--primary-dark); }
 
   #lease-preview { padding: 0; margin: 0; }
 
-  /* Each section stays together — no mid-section page cuts */
+  /* Every section starts on a fresh page — guarantees no mid-section cuts */
   .lease-section {
-    break-inside: avoid;
-    page-break-inside: avoid;
-    margin-bottom: 0;
-    padding: 16pt 0;
-    border-bottom: 1px solid #ddd;
-  }
-
-  /* Schedules always start on a fresh page */
-  .lease-schedule {
     break-before: page;
     page-break-before: always;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    padding: 0;
+    margin: 0;
+    border: none;
   }
 
-  /* Signatures on their own page */
+  /* Header sits at the very top — no page break before it */
+  .lease-header {
+    break-before: auto;
+    page-break-before: auto;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    padding-bottom: 16pt;
+    border-bottom: 2px solid #000;
+  }
+
+  /* Schedules and signatures already get a fresh page via .lease-section rule */
+  .lease-schedule,
   .lease-signatures {
     break-before: page;
     page-break-before: always;
   }
 
-  /* Header block stays together */
-  .lease-header {
-    break-inside: avoid;
-    page-break-inside: avoid;
-    padding-bottom: 16pt;
-    border-bottom: 2px solid #000;
-    margin-bottom: 0;
-  }
-
-  /* Tables don't split across pages */
-  table {
+  /* Timeline on its own page */
+  .timeline, .lease-timeline {
+    break-before: page;
+    page-break-before: always;
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
-  /* Keep headings with their content */
+  /* Tables and sig blocks stay intact within their page */
+  table, .sig-grid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
   h2, h3 {
     break-after: avoid;
     page-break-after: avoid;
-  }
-
-  /* Timeline after lease — keep it together */
-  .timeline {
-    break-inside: avoid;
-    page-break-inside: avoid;
-    break-before: page;
-    page-break-before: always;
-  }
-
-  /* Signature blocks */
-  .sig-grid {
-    break-inside: avoid;
-    page-break-inside: avoid;
   }
 
   /* Page margins */
