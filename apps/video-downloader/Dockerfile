@@ -6,7 +6,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     ENABLE_OPEN_DOWNLOADS=0
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ffmpeg \
+    && apt-get install -y --no-install-recommends ffmpeg curl unzip \
+    && curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
