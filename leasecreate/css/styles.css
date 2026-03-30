@@ -990,8 +990,14 @@ a:hover { color: var(--primary-dark); }
 
 .drafts-save {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 12px;
+}
+
+.drafts-save .btn {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .draft-name-input {
@@ -1093,11 +1099,11 @@ a:hover { color: var(--primary-dark); }
 
 .toolbar-section {
   flex: 1;
-  min-width: 200px;
+  min-width: 220px;
   background: var(--white);
   border: 1px solid var(--gray-200);
   border-radius: var(--radius);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .toolbar-section summary {
