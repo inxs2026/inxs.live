@@ -645,7 +645,17 @@ function generateBylawSchedule(formData, province) {
   return '<h3>'+(province.code==='BC'?'Strata':province.code==='AB'?'Condominium':'Building')+' Rules & Bylaws</h3><p>The Tenant acknowledges receipt of and agrees to comply with the following rules and bylaws:</p><div class="blank-lines">'+'<div class="blank-line"></div>'.repeat(10)+'</div><p><strong>Date provided:</strong> _______________________</p>';
 }
 
+function ensureCanonicalLeaseCreatePath() {
+  var pathname = window.location.pathname;
+  var search = window.location.search;
+  var hash = window.location.hash;
+  if (pathname !== '/leasecreate' && pathname !== '/leasecreate/index.html') return;
+  window.history.replaceState({}, '', '/leasecreate/' + search + hash);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+  ensureCanonicalLeaseCreatePath();
+
   // Populate provinces
   var select = $('#province');
   provinceList.forEach(function(p) {
@@ -951,7 +961,37 @@ function composeLeasePreviewHtml(leaseHtml, sigHtml, timelineHtml) {
   return leaseHtml.replace(signaturePattern, timelineHtml + '<div class="agreement-signature-stack print-page-group">' + match[0]) + sigHtml + '</div>';
 }
 
-function exportPDF() {
+var PRINT_BASE_PATH = '/leasecreate/';
+var PRINT_STYLESHEET_PATH = PRINT_BASE_PATH + 'css/styles.css';
+var PRINT_ASSET_TIMEOUT_MS = 2000;
+
+function getPrintBaseHref() {
+  return new URL(PRINT_BASE_PATH, window.location.origin).href;
+}
+
+function getPrintStylesheetHref() {
+  var existingStylesheet = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).find(function(link) {
+    var href = link.getAttribute('href') || '';
+    return href.includes('/leasecreate/css/styles.css') || href.endsWith('css/styles.css');
+  });
+  return (existingStylesheet && existingStylesheet.href) || new URL(PRINT_STYLESHEET_PATH, window.location.origin).href;
+}
+
+async function fetchPrintStylesheetText(stylesheetHref) {
+  try {
+    var response = await fetch(stylesheetHref, {
+      credentials: 'same-origin',
+      cache: 'force-cache'
+    });
+    if (!response.ok) throw new Error('Failed to load print stylesheet: ' + response.status);
+    return await response.text();
+  } catch (error) {
+    console.warn('[LeaseCreate] Failed to inline print stylesheet:', error);
+    return '';
+  }
+}
+
+async function exportPDF() {
   var preview = $('#lease-preview');
   var content = preview.innerHTML;
   if (sigPadLandlord && !sigPadLandlord.isEmpty()) content = content.replace(/<canvas id="sig-landlord"[^>]*><\/canvas>/, '<img src="' + sigPadLandlord.toDataURL() + '" style="width:100%;height:120px;object-fit:contain;">');
@@ -964,15 +1004,18 @@ function exportPDF() {
   content = content.replace(/<input[^>]*class="sig-typed-input"[^>]*>/g, '');
   content = content.replace(/<div class="sig-pad-actions">[\s\S]*?<\/div>/g, '');
   content = content.replace(/<p class="sig-instructions">[\s\S]*?<\/p>/g, '');
-  var stylesheetHref = new URL('./css/styles.css', window.location.href).href;
+  var stylesheetHref = getPrintStylesheetHref();
+  var stylesheetText = await fetchPrintStylesheetText(stylesheetHref);
+  var baseHref = getPrintBaseHref();
   var pw = window.open('', '_blank');
-  pw.document.write('<!DOCTYPE html><html><head><title>Residential Tenancy Agreement</title><link rel="stylesheet" href="' + stylesheetHref + '"><style>' + getPrintCSS() + '</style></head><body><div class="print-document" id="lease-preview">' + content + '</div></body></html>');
+  pw.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Residential Tenancy Agreement</title><base href="' + baseHref + '">' + (stylesheetText ? '<style data-print-inline="leasecreate">' + stylesheetText + '</style>' : '') + '<link rel="stylesheet" href="' + stylesheetHref + '"><style>' + getPrintCSS() + '</style></head><body><div class="print-document" id="lease-preview">' + content + '</div></body></html>');
   pw.document.close();
   pw.onload = async function() {
     try { pw.history.replaceState({}, '', '/leasecreate/print-preview'); } catch (error) {}
     await waitForPrintWindowReady(pw);
     var printRoot = pw.document.querySelector('#lease-preview');
     if (window.preparePrintPagination && printRoot) window.preparePrintPagination(pw.document, printRoot);
+    await waitForNextPaint(pw);
     pw.focus();
     pw.print();
   };
@@ -989,15 +1032,31 @@ function waitForPrintWindowReady(pw) {
       var done = function() { resolve(); };
       link.addEventListener('load', done, { once: true });
       link.addEventListener('error', done, { once: true });
-      pw.setTimeout(done, 1200);
+      pw.setTimeout(done, PRINT_ASSET_TIMEOUT_MS);
+    });
+  });
+  var imageLoads = Array.from(doc.images).map(function(image) {
+    return new Promise(function(resolve) {
+      if (image.complete) {
+        resolve();
+        return;
+      }
+      var done = function() { resolve(); };
+      image.addEventListener('load', done, { once: true });
+      image.addEventListener('error', done, { once: true });
+      pw.setTimeout(done, PRINT_ASSET_TIMEOUT_MS);
     });
   });
   var fontsReady = doc.fonts && doc.fonts.ready ? doc.fonts.ready.catch(function() {}) : Promise.resolve();
-  return Promise.all(stylesheetLoads.concat([fontsReady])).then(function() {
-    return new Promise(function(resolve) {
-      pw.requestAnimationFrame(function() {
-        pw.requestAnimationFrame(resolve);
-      });
+  return Promise.all(stylesheetLoads.concat(imageLoads, [fontsReady])).then(function() {
+    return waitForNextPaint(pw);
+  });
+}
+
+function waitForNextPaint(pw) {
+  return new Promise(function(resolve) {
+    pw.requestAnimationFrame(function() {
+      pw.requestAnimationFrame(resolve);
     });
   });
 }

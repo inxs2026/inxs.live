@@ -20,6 +20,8 @@ let sigPadTenant = null;
 
 // ── Init ──
 document.addEventListener('DOMContentLoaded', () => {
+  ensureCanonicalLeaseCreatePath();
+
   // Core features — must work
   populateProvinceDropdown();
   setupEventListeners();
@@ -68,6 +70,16 @@ function populateProvinceDropdown() {
     opt.textContent = p.name;
     select.appendChild(opt);
   });
+}
+
+function ensureCanonicalLeaseCreatePath() {
+  const { pathname, search, hash } = window.location;
+
+  if (pathname !== '/leasecreate' && pathname !== '/leasecreate/index.html') {
+    return;
+  }
+
+  window.history.replaceState({}, '', `/leasecreate/${search}${hash}`);
 }
 
 
@@ -617,6 +629,41 @@ function composeLeasePreviewHtml(leaseHtml, sigHtml, timelineHtml) {
   ) + sigHtml + '</div>';
 }
 
+const PRINT_BASE_PATH = '/leasecreate/';
+const PRINT_STYLESHEET_PATH = `${PRINT_BASE_PATH}css/styles.css`;
+const PRINT_ASSET_TIMEOUT_MS = 2000;
+
+function getPrintBaseHref() {
+  return new URL(PRINT_BASE_PATH, window.location.origin).href;
+}
+
+function getPrintStylesheetHref() {
+  const existingStylesheet = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).find((link) => {
+    const href = link.getAttribute('href') || '';
+    return href.includes('/leasecreate/css/styles.css') || href.endsWith('css/styles.css');
+  });
+
+  return existingStylesheet?.href || new URL(PRINT_STYLESHEET_PATH, window.location.origin).href;
+}
+
+async function fetchPrintStylesheetText(stylesheetHref) {
+  try {
+    const response = await fetch(stylesheetHref, {
+      credentials: 'same-origin',
+      cache: 'force-cache',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to load print stylesheet: ${response.status}`);
+    }
+
+    return await response.text();
+  } catch (error) {
+    console.warn('[LeaseCreate] Failed to inline print stylesheet:', error);
+    return '';
+  }
+}
+
 
 // ── PDF Export ──
 async function exportPDF() {
@@ -662,13 +709,18 @@ async function exportPDF() {
   printContent = printContent.replace(/<div class="sig-pad-actions">[\s\S]*?<\/div>/g, '');
   printContent = printContent.replace(/<p class="sig-instructions">[\s\S]*?<\/p>/g, '');
 
-  const stylesheetHref = new URL('./css/styles.css', window.location.href).href;
+  const stylesheetHref = getPrintStylesheetHref();
+  const stylesheetText = await fetchPrintStylesheetText(stylesheetHref);
+  const baseHref = getPrintBaseHref();
   const printWindow = window.open('', '_blank');
   printWindow.document.write(`
     <!DOCTYPE html>
     <html>
     <head>
+      <meta charset="UTF-8">
       <title>Residential Tenancy Agreement</title>
+      <base href="${baseHref}">
+      ${stylesheetText ? `<style data-print-inline="leasecreate">${stylesheetText}</style>` : ''}
       <link rel="stylesheet" href="${stylesheetHref}">
       <style>${getPrintStyles()}</style>
     </head>
@@ -692,6 +744,7 @@ async function exportPDF() {
       window.preparePrintPagination(printWindow.document, printRoot);
     }
 
+    await waitForNextPaint(printWindow);
     printWindow.focus();
     printWindow.print();
   };
@@ -709,19 +762,35 @@ function waitForPrintWindowReady(printWindow) {
       const done = () => resolve();
       link.addEventListener('load', done, { once: true });
       link.addEventListener('error', done, { once: true });
-      printWindow.setTimeout(done, 1200);
+      printWindow.setTimeout(done, PRINT_ASSET_TIMEOUT_MS);
+    })
+  ));
+
+  const imageLoads = Array.from(document.images).map((image) => (
+    new Promise((resolve) => {
+      if (image.complete) {
+        resolve();
+        return;
+      }
+
+      const done = () => resolve();
+      image.addEventListener('load', done, { once: true });
+      image.addEventListener('error', done, { once: true });
+      printWindow.setTimeout(done, PRINT_ASSET_TIMEOUT_MS);
     })
   ));
 
   const fontsReady = document.fonts?.ready?.catch(() => undefined) ?? Promise.resolve();
 
-  return Promise.all([...stylesheetLoads, fontsReady]).then(() => (
-    new Promise((resolve) => {
-      printWindow.requestAnimationFrame(() => {
-        printWindow.requestAnimationFrame(resolve);
-      });
-    })
-  ));
+  return Promise.all([...stylesheetLoads, ...imageLoads, fontsReady]).then(() => waitForNextPaint(printWindow));
+}
+
+function waitForNextPaint(printWindow) {
+  return new Promise((resolve) => {
+    printWindow.requestAnimationFrame(() => {
+      printWindow.requestAnimationFrame(resolve);
+    });
+  });
 }
 
 function esc(str) {
