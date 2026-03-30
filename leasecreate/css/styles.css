@@ -1256,3 +1256,78 @@ a:hover { color: var(--primary-dark); }
 
   .lang-prompt { flex-direction: column; text-align: center; }
 }
+
+/* ── Print / PDF ────────────────────────────────────────────────────────────── */
+@media print {
+  /* Hide everything except the lease preview */
+  .site-header, .hero, .step-indicator, .toolbar-bar,
+  .rights-toggle, .rights-sidebar, .form-step,
+  .step-actions, footer, .toast, .autosave-banner,
+  .lang-prompt, #btn-export, #btn-edit, #btn-regenerate { display: none !important; }
+
+  body { background: white; margin: 0; padding: 0; font-size: 11pt; }
+
+  #lease-preview { padding: 0; margin: 0; }
+
+  /* Each section stays together — no mid-section page cuts */
+  .lease-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 0;
+    padding: 16pt 0;
+    border-bottom: 1px solid #ddd;
+  }
+
+  /* Schedules always start on a fresh page */
+  .lease-schedule {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  /* Signatures on their own page */
+  .lease-signatures {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  /* Header block stays together */
+  .lease-header {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    padding-bottom: 16pt;
+    border-bottom: 2px solid #000;
+    margin-bottom: 0;
+  }
+
+  /* Tables don't split across pages */
+  table {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Keep headings with their content */
+  h2, h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* Timeline after lease — keep it together */
+  .timeline {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    break-before: page;
+    page-break-before: always;
+  }
+
+  /* Signature blocks */
+  .sig-grid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Page margins */
+  @page {
+    margin: 20mm 15mm;
+    size: letter;
+  }
+}
