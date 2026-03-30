@@ -40,6 +40,10 @@
   --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
   --shadow:    0 4px 12px rgba(0,0,0,.1);
   --shadow-lg: 0 8px 24px rgba(0,0,0,.12);
+  --print-page-height: 11in;
+  --print-page-margin-block: 20mm;
+  --print-page-margin-inline: 15mm;
+  --print-body-height: calc(var(--print-page-height) - (var(--print-page-margin-block) * 2));
 }
 
 html { scroll-behavior: smooth; }
@@ -1258,7 +1262,18 @@ a:hover { color: var(--primary-dark); }
 }
 
 /* ── Print / PDF ────────────────────────────────────────────────────────────── */
+.print-page-break {
+  display: none !important;
+}
+
 @media print {
+  :root {
+    --print-page-height: 11in;
+    --print-page-margin-block: 20mm;
+    --print-page-margin-inline: 15mm;
+    --print-body-height: calc(var(--print-page-height) - (var(--print-page-margin-block) * 2));
+  }
+
   /* Hide everything except the lease preview */
   .site-header, .hero, .step-indicator, .toolbar-bar,
   .rights-toggle, .rights-sidebar, .form-step,
@@ -1269,57 +1284,69 @@ a:hover { color: var(--primary-dark); }
 
   #lease-preview { padding: 0; margin: 0; }
 
-  /*
-   * Sections are allowed to span pages — do NOT put break-inside: avoid here.
-   * break-inside: avoid on a block taller than one page causes browsers to push
-   * the whole section to the next page, leaving a large blank gap above it.
-   */
   .lease-section {
     padding: 12pt 0;
     margin: 0;
     border-bottom: 1px solid #ccc;
   }
 
-  /* Header stays together at top */
   .lease-header {
-    break-inside: avoid;
-    page-break-inside: avoid;
     padding-bottom: 14pt;
     border-bottom: 2px solid #000;
   }
 
-  /* Section 3 (Term) and Section 8 (Maintenance) always start fresh */
-  .lease-section-term,
-  .lease-section-maintenance {
-    break-before: page;
-    page-break-before: always;
-  }
-
-  /* Schedules on their own page; signatures compact enough to avoid-break */
-  .lease-schedule {
-    break-before: page;
-    page-break-before: always;
-  }
-
-  .lease-signatures {
-    break-before: page;
-    page-break-before: always;
+  .print-page-group,
+  .print-keep-together,
+  .keep-together,
+  .avoid-page-break,
+  .lease-header,
+  .lease-note,
+  .lease-warning,
+  .lease-legal,
+  .signature-section,
+  .sig-grid,
+  .sig-pad-group,
+  .timeline-event {
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
-  /* Timeline: compressed, never splits */
+  .print-can-split {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  .print-break-before-page,
+  .break-before-page,
+  .force-page-break {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  .print-break-after-avoid,
+  .break-after-avoid,
+  h2,
+  h3,
+  thead {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .print-page-break {
+    display: block !important;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    break-before: page;
+    page-break-before: always;
+  }
+
   .timeline {
-    break-before: page;
-    page-break-before: always;
-    break-inside: avoid;
-    page-break-inside: avoid;
     font-size: 8.5pt;
   }
 
   .timeline-event {
-    break-inside: avoid;
-    page-break-inside: avoid;
     padding: 4pt 0;
   }
 
@@ -1328,11 +1355,6 @@ a:hover { color: var(--primary-dark); }
   .timeline-label { font-size: 9pt; }
   .timeline-desc  { font-size: 8pt; }
 
-  /*
-   * Atomic units that must never split mid-element.
-   * Tables are NOT listed here — large tables must be allowed to paginate.
-   * Row integrity is handled by tr below.
-   */
   .lease-section p,
   .lease-section li,
   .lease-section .lease-field,
@@ -1350,27 +1372,31 @@ a:hover { color: var(--primary-dark); }
   }
 
   thead {
+    display: table-header-group;
+  }
+
+  tfoot {
+    display: table-footer-group;
+  }
+
+  .lease-table {
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  thead {
     break-after: avoid;
     page-break-after: avoid;
   }
 
-  /* Signature grid is small enough to keep together */
-  .sig-grid {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-
-  /* Headings must not be stranded at the bottom of a page */
   h2, h3 {
-    break-after: avoid;
-    page-break-after: avoid;
     widows: 3;
     orphans: 3;
   }
 
   /* Page margins */
   @page {
-    margin: 20mm 15mm;
+    margin: var(--print-page-margin-block) var(--print-page-margin-inline);
     size: letter;
   }
 }

@@ -125,11 +125,11 @@ function renderTimeline(events) {
   const fmt = (d) => d.toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' });
 
   return `
-    <div class="timeline">
+    <div class="timeline print-page-group">
       <h3 class="timeline-title">Lease Timeline</h3>
       <div class="timeline-track">
         ${events.map(e => `
-          <div class="timeline-event timeline-${e.type}">
+          <div class="timeline-event timeline-${e.type} print-page-group">
             <div class="timeline-dot"></div>
             <div class="timeline-content">
               <div class="timeline-date">${fmt(e.date)}</div>

@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       $('#btn-restore-autosave')?.addEventListener('click', () => {
         const data = getAutoSave();
-        if (data) applyFormData(data);
+        if (data) restoreDraftProgress(data);
         banner.remove();
       });
       $('#btn-dismiss-autosave')?.addEventListener('click', () => banner.remove());
@@ -82,6 +82,84 @@ function showStep(step) {
   });
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function getActiveStep() {
+  return Number($('.form-step.active')?.dataset.step || 1);
+}
+
+function getSelectedScheduleIds() {
+  return Array.from($$('#schedule-list input[type="checkbox"]:checked')).map(cb => cb.value);
+}
+
+function normalizeSelectedScheduleIds(selectedIds) {
+  return Array.isArray(selectedIds) ? selectedIds.filter(Boolean) : [];
+}
+
+function isStepOneComplete(data) {
+  return !!(data?.province && data?.landlordName && data?.tenantName);
+}
+
+function isStepTwoComplete(data) {
+  return !!(data?.unitAddress && data?.city && data?.postalCode);
+}
+
+function isStepThreeComplete(data) {
+  return !!(data?.startDate && data?.rentAmount && (data?.termType !== 'fixed' || data?.endDate));
+}
+
+function hasStepFourProgress(data) {
+  return !!(
+    data?.guestPolicy ||
+    data?.noisePolicy ||
+    data?.maintenanceNotes ||
+    data?.additionalTerms ||
+    data?.parkingIncluded ||
+    data?.storageIncluded ||
+    data?.smokingAllowed ||
+    data?.petsAllowed ||
+    data?.tenantInsuranceRequired
+  );
+}
+
+function getResumeStep(data) {
+  const explicitStep = Number(data?.currentStep);
+  if (Number.isFinite(explicitStep) && explicitStep >= 1) {
+    return Math.min(6, Math.max(1, explicitStep));
+  }
+
+  if (!isStepOneComplete(data)) return 1;
+  if (!isStepTwoComplete(data)) return 2;
+  if (!isStepThreeComplete(data)) return 3;
+  if (normalizeSelectedScheduleIds(data?.selectedScheduleIds).length) return 5;
+  return hasStepFourProgress(data) ? 5 : 4;
+}
+
+function applySelectedScheduleIds(selectedIds) {
+  const selectedSet = new Set(normalizeSelectedScheduleIds(selectedIds));
+  $$('#schedule-list input[type="checkbox"]').forEach(cb => {
+    cb.checked = selectedSet.has(cb.value);
+  });
+}
+
+function restoreDraftProgress(data) {
+  if (!data) return;
+
+  applyFormData(data);
+
+  const resumeStep = getResumeStep(data);
+  const selectedScheduleIds = normalizeSelectedScheduleIds(data.selectedScheduleIds);
+
+  if (currentProvince && (resumeStep >= 5 || selectedScheduleIds.length)) {
+    buildScheduleSelector();
+    applySelectedScheduleIds(selectedScheduleIds);
+  }
+
+  if (resumeStep >= 6) {
+    generatePreview();
+  }
+
+  showStep(resumeStep);
 }
 
 function nextStep(current) {
@@ -248,7 +326,7 @@ function setupDrafts() {
       const name = e.target.dataset.draft;
       const data = loadDraft(name);
       if (data) {
-        applyFormData(data);
+        restoreDraftProgress(data);
         showToast(`Loaded: ${name}`);
       }
     }
@@ -408,6 +486,8 @@ function collectFormData() {
     tenantInsuranceRequired: $('#tenantInsurance').checked,
     maintenanceNotes: $('#maintenanceNotes').value.trim(),
     additionalTerms: $('#additionalTerms').value.trim(),
+    currentStep: getActiveStep(),
+    selectedScheduleIds: getSelectedScheduleIds(),
   };
 }
 
@@ -502,7 +582,8 @@ function generatePreview() {
   // Feature 3: Signature section
   const sigHtml = createSignatureSection();
 
-  $('#lease-preview').innerHTML = timelineHtml + leaseHtml + sigHtml;
+  window.clearPrintPagination?.(document);
+  $('#lease-preview').innerHTML = composeLeasePreviewHtml(leaseHtml, sigHtml, timelineHtml);
 
   // Init signature pads
   setTimeout(() => {
@@ -520,6 +601,20 @@ function generatePreview() {
       });
     });
   }, 100);
+}
+
+function composeLeasePreviewHtml(leaseHtml, sigHtml, timelineHtml) {
+  const signaturePattern = /<div class="lease-section lease-signatures[^"]*">/;
+  const match = leaseHtml.match(signaturePattern);
+
+  if (!match) {
+    return leaseHtml + timelineHtml + sigHtml;
+  }
+
+  return leaseHtml.replace(
+    signaturePattern,
+    `${timelineHtml}<div class="agreement-signature-stack print-page-group">${match[0]}`
+  ) + sigHtml + '</div>';
 }
 
 
@@ -567,19 +662,66 @@ async function exportPDF() {
   printContent = printContent.replace(/<div class="sig-pad-actions">[\s\S]*?<\/div>/g, '');
   printContent = printContent.replace(/<p class="sig-instructions">[\s\S]*?<\/p>/g, '');
 
+  const stylesheetHref = new URL('./css/styles.css', window.location.href).href;
   const printWindow = window.open('', '_blank');
   printWindow.document.write(`
     <!DOCTYPE html>
     <html>
     <head>
       <title>Residential Tenancy Agreement</title>
+      <link rel="stylesheet" href="${stylesheetHref}">
       <style>${getPrintStyles()}</style>
     </head>
-    <body>${printContent}</body>
+    <body>
+      <div class="print-document" id="lease-preview">${printContent}</div>
+    </body>
     </html>
   `);
   printWindow.document.close();
-  printWindow.onload = () => { printWindow.print(); };
+  printWindow.onload = async () => {
+    try {
+      printWindow.history.replaceState({}, '', '/leasecreate/print-preview');
+    } catch (error) {
+      // Ignore browsers that don't allow history updates in the popup.
+    }
+
+    await waitForPrintWindowReady(printWindow);
+
+    const printRoot = printWindow.document.querySelector('#lease-preview');
+    if (window.preparePrintPagination && printRoot) {
+      window.preparePrintPagination(printWindow.document, printRoot);
+    }
+
+    printWindow.focus();
+    printWindow.print();
+  };
+}
+
+function waitForPrintWindowReady(printWindow) {
+  const { document } = printWindow;
+  const stylesheetLoads = Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map((link) => (
+    new Promise((resolve) => {
+      if (link.sheet) {
+        resolve();
+        return;
+      }
+
+      const done = () => resolve();
+      link.addEventListener('load', done, { once: true });
+      link.addEventListener('error', done, { once: true });
+      printWindow.setTimeout(done, 1200);
+    })
+  ));
+
+  const fontsReady = document.fonts?.ready?.catch(() => undefined) ?? Promise.resolve();
+
+  return Promise.all([...stylesheetLoads, fontsReady]).then(() => (
+    new Promise((resolve) => {
+      printWindow.requestAnimationFrame(() => {
+        printWindow.requestAnimationFrame(resolve);
+      });
+    })
+  ));
 }
 
 function esc(str) {
@@ -589,53 +731,45 @@ function esc(str) {
 
 function getPrintStyles() {
   return `
-    @page { margin: 20mm; size: letter; }
-    body { font-family: 'Georgia', 'Times New Roman', serif; font-size: 11pt; line-height: 1.5; color: #1a1a1a; max-width: 100%; }
-    h1 { font-size: 18pt; text-align: center; margin-bottom: 4px; letter-spacing: 2px; }
-    h2 { font-size: 13pt; border-bottom: 2px solid #1a4fd8; padding-bottom: 4px; margin: 24px 0 12px; color: #1a4fd8; }
-    h3 { font-size: 11pt; margin: 16px 0 8px; }
-    .lease-header { text-align: center; margin-bottom: 30px; border-bottom: 3px double #333; padding-bottom: 20px; }
-    .lease-subtitle { color: #555; font-style: italic; }
-    .lease-legislation { font-size: 9pt; color: #666; }
-    .lease-note { background: #fff3cd; padding: 8px 12px; border-left: 4px solid #ffc107; margin: 10px 0; font-size: 9pt; }
-    .lease-date { margin-top: 10px; }
-    .lease-section { margin-bottom: 20px; }
-    .lease-field-group { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .lease-field label { font-weight: bold; font-size: 9pt; text-transform: uppercase; color: #555; }
-    .full-width { grid-column: 1 / -1; }
-    .lease-info { font-size: 9pt; color: #555; font-style: italic; margin-top: 4px; }
-    .lease-warning { background: #fee; border-left: 4px solid #dc2626; padding: 8px 12px; font-size: 9pt; }
-    .lease-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 10pt; }
-    .lease-table th, .lease-table td { border: 1px solid #ccc; padding: 6px 10px; text-align: left; }
-    .lease-table th { background: #f0f0f0; font-weight: bold; }
-    .inspection-table td { min-height: 24px; }
-    .room-cell { font-weight: bold; background: #f8f8f8; vertical-align: top; }
-    .condition-cell, .notes-cell { min-width: 80px; }
-    .lease-legal { background: #f8f9fa; padding: 16px; border: 1px solid #ddd; border-radius: 4px; }
-    .lease-additional { white-space: pre-wrap; }
-    .sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 40px; }
-    .sig-block { text-align: center; }
-    .sig-line { border-bottom: 1px solid #333; margin-bottom: 8px; height: 50px; }
-    .sig-name { font-weight: bold; }
-    .sig-date { font-size: 9pt; color: #555; }
-    .blank-line { border-bottom: 1px solid #ccc; height: 28px; margin-bottom: 4px; }
-    .lease-schedule { border-top: 3px solid #1a4fd8; padding-top: 20px; }
-    ul { margin: 8px 0; padding-left: 24px; }
-    li { margin-bottom: 4px; }
-    .form-notice { background: #e8f5e9; padding: 10px; border-left: 4px solid #4caf50; }
-    .timeline { margin-bottom: 30px; page-break-after: always; }
-    .timeline-title { font-size: 14pt; margin-bottom: 16px; color: #1a4fd8; }
-    .timeline-event { display: flex; gap: 16px; margin-bottom: 16px; padding-left: 20px; border-left: 3px solid #ddd; }
-    .timeline-primary { border-left-color: #1a4fd8; }
-    .timeline-warning { border-left-color: #d97706; }
-    .timeline-danger { border-left-color: #dc2626; }
-    .timeline-info { border-left-color: #2563eb; }
-    .timeline-date { font-weight: bold; font-size: 10pt; }
-    .timeline-label { font-weight: bold; }
-    .timeline-desc { font-size: 9pt; color: #555; }
-    .signature-section { margin-top: 40px; border-top: 2px solid #1a4fd8; padding-top: 20px; }
-    .sig-pads { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-    .sig-pad-group label { font-weight: bold; display: block; margin-bottom: 8px; }
+    @page {
+      size: Letter;
+      margin: 20mm 15mm;
+    }
+
+    html {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    body {
+      margin: 0;
+      padding: 20mm 15mm;
+      background: #fff;
+      font-family: 'Georgia', 'Times New Roman', serif;
+      font-size: 11pt;
+      line-height: 1.5;
+      color: #1a1a1a;
+    }
+
+    #lease-preview.print-document {
+      max-width: 8in;
+      margin: 0 auto;
+    }
+
+    .print-page-break {
+      display: none;
+    }
+
+    @media print {
+      body {
+        padding: 0;
+      }
+
+      #lease-preview.print-document {
+        max-width: none;
+        margin: 0;
+      }
+    }
   `;
 }
 

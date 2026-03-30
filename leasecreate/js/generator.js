@@ -6,12 +6,15 @@ export function generateLease(formData, selectedSchedules) {
   if (!province) return null;
 
   const today = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' });
+  const keepSectionClass = 'lease-section print-keep-together';
+  const flowSectionClass = 'lease-section';
+  const signatureClass = 'lease-section lease-signatures print-page-group';
 
   let html = '';
 
   // ── Header ──
   html += `
-    <div class="lease-header">
+    <div class="lease-header print-page-group">
       <h1>RESIDENTIAL TENANCY AGREEMENT</h1>
       <p class="lease-subtitle">Province of ${province.name}</p>
       <p class="lease-legislation">Governed by: ${province.legislation}</p>
@@ -22,9 +25,9 @@ export function generateLease(formData, selectedSchedules) {
 
   // ── Section 1: Parties ──
   html += `
-    <div class="lease-section">
+    <div class="${keepSectionClass}">
       <h2>1. PARTIES</h2>
-      <div class="lease-field-group">
+      <div class="lease-field-group print-keep-together">
         <div class="lease-field">
           <label>LANDLORD (the "Landlord")</label>
           <p><strong>${esc(formData.landlordName)}</strong></p>
@@ -49,7 +52,7 @@ export function generateLease(formData, selectedSchedules) {
 
   // ── Section 2: Rental Unit ──
   html += `
-    <div class="lease-section">
+    <div class="${keepSectionClass}">
       <h2>2. RENTAL UNIT</h2>
       <p><strong>Address:</strong> ${esc(formData.unitAddress)}</p>
       ${formData.unitNumber ? `<p><strong>Unit/Suite:</strong> ${esc(formData.unitNumber)}</p>` : ''}
@@ -63,7 +66,7 @@ export function generateLease(formData, selectedSchedules) {
 
   // ── Section 3: Term ──
   html += `
-    <div class="lease-section">
+    <div class="${keepSectionClass}">
       <h2>3. TERM OF TENANCY</h2>
       <p><strong>Type:</strong> ${formData.termType === 'fixed' ? 'Fixed Term' : 'Month-to-Month (Periodic)'}</p>
       <p><strong>Start Date:</strong> ${esc(formData.startDate)}</p>
@@ -77,7 +80,7 @@ export function generateLease(formData, selectedSchedules) {
 
   // ── Section 4: Rent ──
   html += `
-    <div class="lease-section">
+    <div class="${keepSectionClass}">
       <h2>4. RENT</h2>
       <p><strong>Monthly Rent:</strong> $${esc(formData.rentAmount)}</p>
       <p><strong>Due Date:</strong> ${esc(formData.rentDueDay)} of each month</p>
@@ -87,7 +90,7 @@ export function generateLease(formData, selectedSchedules) {
   `;
 
   // ── Section 5: Deposits ──
-  html += `<div class="lease-section"><h2>5. DEPOSITS</h2>`;
+  html += `<div class="${keepSectionClass}"><h2>5. DEPOSITS</h2>`;
   if (!province.rentRules.securityDepositAllowed && province.code !== 'ON') {
     html += `<p class="lease-warning">Security deposits are <strong>prohibited</strong> in ${province.name}.</p>`;
     if (province.code === 'QC') {
@@ -111,7 +114,7 @@ export function generateLease(formData, selectedSchedules) {
 
   // ── Section 6: Services & Utilities ──
   html += `
-    <div class="lease-section">
+    <div class="${keepSectionClass}">
       <h2>6. SERVICES & UTILITIES</h2>
       <table class="lease-table">
         <thead><tr><th>Service</th><th>Included in Rent</th><th>Tenant Pays Separately</th></tr></thead>
@@ -130,7 +133,7 @@ export function generateLease(formData, selectedSchedules) {
 
   // ── Section 7: Rules ──
   html += `
-    <div class="lease-section">
+    <div class="${keepSectionClass}">
       <h2>7. RULES & CONDITIONS</h2>
       <p><strong>Smoking:</strong> ${formData.smokingAllowed ? 'Permitted in designated areas' : 'Not permitted on the premises'}</p>
       <p><strong>Pets:</strong> ${formData.petsAllowed ? 'Permitted' : 'Not permitted'}
@@ -142,7 +145,7 @@ export function generateLease(formData, selectedSchedules) {
 
   // ── Section 8: Maintenance ──
   html += `
-    <div class="lease-section">
+    <div class="${flowSectionClass}">
       <h2>8. MAINTENANCE & REPAIRS</h2>
       <p>The <strong>Landlord</strong> is responsible for maintaining the rental unit in a good state of repair, fit for habitation, and in compliance with all health, safety, and housing standards as required by the ${province.legislationShort}.</p>
       <p>The <strong>Tenant</strong> is responsible for:</p>
@@ -158,7 +161,7 @@ export function generateLease(formData, selectedSchedules) {
 
   // ── Section 9: Entry ──
   html += `
-    <div class="lease-section">
+    <div class="${keepSectionClass}">
       <h2>9. LANDLORD'S RIGHT OF ENTRY</h2>
       <p>The Landlord may enter the rental unit only in accordance with the ${province.legislationShort}. Except in emergencies, the Landlord must provide:</p>
       <ul>
@@ -171,7 +174,7 @@ export function generateLease(formData, selectedSchedules) {
 
   // ── Section 10: Insurance ──
   html += `
-    <div class="lease-section">
+    <div class="${keepSectionClass}">
       <h2>10. INSURANCE</h2>
       <p><strong>Tenant Insurance:</strong> ${formData.tenantInsuranceRequired ? 'Required — Tenant must obtain and maintain renter\'s insurance for the duration of the tenancy.' : 'Recommended but not required.'}</p>
       <p>The Landlord\'s insurance does not cover the Tenant\'s personal belongings or liability.</p>
@@ -181,7 +184,7 @@ export function generateLease(formData, selectedSchedules) {
   // ── Section 11: Additional Terms ──
   if (formData.additionalTerms) {
     html += `
-      <div class="lease-section">
+      <div class="${flowSectionClass}">
         <h2>11. ADDITIONAL TERMS</h2>
         <div class="lease-additional">${esc(formData.additionalTerms).replace(/\n/g, '<br>')}</div>
         <p class="lease-info">Note: Any term that conflicts with the ${province.legislationShort} is void and unenforceable.</p>
@@ -191,7 +194,7 @@ export function generateLease(formData, selectedSchedules) {
 
   // ── Section 12: Provincial Legal Notices ──
   html += `
-    <div class="lease-section">
+    <div class="${flowSectionClass}">
       <h2>${formData.additionalTerms ? '12' : '11'}. IMPORTANT LEGAL INFORMATION</h2>
       <div class="lease-legal">
         <p>This agreement is governed by the <strong>${province.legislation}</strong>.</p>
@@ -209,7 +212,7 @@ export function generateLease(formData, selectedSchedules) {
   if (selectedSchedules && selectedSchedules.length > 0) {
     const scheduleSection = formData.additionalTerms ? '13' : '12';
     html += `
-      <div class="lease-section">
+      <div class="${keepSectionClass}">
         <h2>${scheduleSection}. SCHEDULES</h2>
         <p>The following schedules are attached to and form part of this Agreement:</p>
         <ul>
@@ -225,10 +228,10 @@ export function generateLease(formData, selectedSchedules) {
 
   // ── Signatures ──
   html += `
-    <div class="lease-section lease-signatures">
+    <div class="${signatureClass}">
       <h2>SIGNATURES</h2>
       <p>By signing below, the parties agree to the terms and conditions set out in this Residential Tenancy Agreement and any attached Schedules.</p>
-      <div class="sig-grid">
+      <div class="sig-grid print-page-group">
         <div class="sig-block">
           <div class="sig-line"></div>
           <p>Landlord Signature</p>
@@ -243,7 +246,7 @@ export function generateLease(formData, selectedSchedules) {
         </div>
       </div>
       ${formData.additionalTenants ? `
-      <div class="sig-grid" style="margin-top: 30px;">
+      <div class="sig-grid print-page-group" style="margin-top: 30px;">
         <div class="sig-block">
           <div class="sig-line"></div>
           <p>Additional Tenant Signature</p>
@@ -268,7 +271,7 @@ export function generateLease(formData, selectedSchedules) {
 function generateScheduleContent(schedule, index, formData, province) {
   const letter = String.fromCharCode(65 + index);
   let html = `
-    <div class="lease-section lease-schedule">
+    <div class="lease-section lease-schedule print-page-group">
       <h2>SCHEDULE ${letter}: ${schedule.name.toUpperCase()}</h2>
       <p class="lease-subtitle">${schedule.description}</p>
   `;
@@ -316,7 +319,7 @@ function generateScheduleContent(schedule, index, formData, province) {
 
   html += `
     <div class="schedule-sig">
-      <div class="sig-grid">
+      <div class="sig-grid print-page-group">
         <div class="sig-block"><div class="sig-line"></div><p>Landlord Initials / Date</p></div>
         <div class="sig-block"><div class="sig-line"></div><p>Tenant Initials / Date</p></div>
       </div>

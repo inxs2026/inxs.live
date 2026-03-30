@@ -306,7 +306,7 @@ class SignaturePad {
 }
 
 function createSignatureSection() {
-  return '<div class="signature-section"><h3>Digital Signatures</h3><p class="sig-instructions">Sign below using your mouse or touchscreen. Signatures will be embedded in the exported PDF.</p><div class="sig-pads"><div class="sig-pad-group"><label>Landlord Signature</label><div class="sig-pad-wrapper"><canvas id="sig-landlord" class="sig-canvas"></canvas></div><div class="sig-pad-actions"><button class="btn btn-sm btn-secondary" data-clear="sig-landlord">Clear</button><input type="text" id="sig-landlord-typed" class="sig-typed-input" placeholder="Or type your name to sign"></div></div><div class="sig-pad-group"><label>Tenant Signature</label><div class="sig-pad-wrapper"><canvas id="sig-tenant" class="sig-canvas"></canvas></div><div class="sig-pad-actions"><button class="btn btn-sm btn-secondary" data-clear="sig-tenant">Clear</button><input type="text" id="sig-tenant-typed" class="sig-typed-input" placeholder="Or type your name to sign"></div></div></div></div>';
+  return '<div class="signature-section"><div class="signature-section-body print-page-group"><h3>Digital Signatures</h3><p class="sig-instructions">Sign below using your mouse or touchscreen. Signatures will be embedded in the exported PDF.</p><div class="sig-pads print-page-group"><div class="sig-pad-group"><label>Landlord Signature</label><div class="sig-pad-wrapper"><canvas id="sig-landlord" class="sig-canvas"></canvas></div><div class="sig-pad-actions"><button class="btn btn-sm btn-secondary" data-clear="sig-landlord">Clear</button><input type="text" id="sig-landlord-typed" class="sig-typed-input" placeholder="Or type your name to sign"></div></div><div class="sig-pad-group"><label>Tenant Signature</label><div class="sig-pad-wrapper"><canvas id="sig-tenant" class="sig-canvas"></canvas></div><div class="sig-pad-actions"><button class="btn btn-sm btn-secondary" data-clear="sig-tenant">Clear</button><input type="text" id="sig-tenant-typed" class="sig-typed-input" placeholder="Or type your name to sign"></div></div></div></div></div>';
 }
 
 
@@ -391,8 +391,8 @@ function generateTimeline(formData, province) {
   }
   events.sort(function(a, b) { return a.date - b.date; });
   var fmt = function(d) { return d.toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' }); };
-  return '<div class="timeline"><h3 class="timeline-title">Lease Timeline</h3><div class="timeline-track">' +
-    events.map(function(e) { return '<div class="timeline-event timeline-' + e.type + '"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-date">' + fmt(e.date) + '</div><div class="timeline-label">' + e.label + '</div><div class="timeline-desc">' + e.desc + '</div></div></div>'; }).join('') + '</div></div>';
+  return '<div class="timeline print-page-group"><h3 class="timeline-title">Lease Timeline</h3><div class="timeline-track">' +
+    events.map(function(e) { return '<div class="timeline-event timeline-' + e.type + ' print-page-group"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-date">' + fmt(e.date) + '</div><div class="timeline-label">' + e.label + '</div><div class="timeline-desc">' + e.desc + '</div></div></div>'; }).join('') + '</div></div>';
 }
 
 
@@ -534,19 +534,22 @@ function generateLease(formData, selectedSchedules) {
   var province = provinces[formData.province];
   if (!province) return '<p>Please select a province.</p>';
   var today = new Date().toLocaleDateString('en-CA', {year:'numeric',month:'long',day:'numeric'});
+  var keepSectionClass = 'lease-section print-keep-together';
+  var flowSectionClass = 'lease-section';
+  var signatureClass = 'lease-section lease-signatures print-page-group';
   var html = '';
 
-  html += '<div class="lease-header"><h1>RESIDENTIAL TENANCY AGREEMENT</h1><p class="lease-subtitle">Province of '+province.name+'</p><p class="lease-legislation">Governed by: '+province.legislation+'</p>'+(province.standardLeaseRequired?'<p class="lease-note">Note: '+province.standardLeaseForm+' is required in '+province.name+'. This document supplements — it does not replace — the official form.</p>':'')+'<p class="lease-date">Date: '+today+'</p></div>';
+  html += '<div class="lease-header print-page-group"><h1>RESIDENTIAL TENANCY AGREEMENT</h1><p class="lease-subtitle">Province of '+province.name+'</p><p class="lease-legislation">Governed by: '+province.legislation+'</p>'+(province.standardLeaseRequired?'<p class="lease-note">Note: '+province.standardLeaseForm+' is required in '+province.name+'. This document supplements — it does not replace — the official form.</p>':'')+'<p class="lease-date">Date: '+today+'</p></div>';
 
-  html += '<div class="lease-section"><h2>1. PARTIES</h2><div class="lease-field-group"><div class="lease-field"><label>LANDLORD</label><p><strong>'+escG(formData.landlordName)+'</strong></p>'+(formData.landlordAddress?'<p>'+escG(formData.landlordAddress)+'</p>':'')+(formData.landlordPhone?'<p>Phone: '+escG(formData.landlordPhone)+'</p>':'')+(formData.landlordEmail?'<p>Email: '+escG(formData.landlordEmail)+'</p>':'')+'</div><div class="lease-field"><label>TENANT</label><p><strong>'+escG(formData.tenantName)+'</strong></p>'+(formData.tenantPhone?'<p>Phone: '+escG(formData.tenantPhone)+'</p>':'')+(formData.tenantEmail?'<p>Email: '+escG(formData.tenantEmail)+'</p>':'')+'</div>'+(formData.additionalTenants?'<div class="lease-field full-width"><label>Additional Tenant(s)</label><p>'+escG(formData.additionalTenants)+'</p></div>':'')+'</div></div>';
+  html += '<div class="'+keepSectionClass+'"><h2>1. PARTIES</h2><div class="lease-field-group print-keep-together"><div class="lease-field"><label>LANDLORD</label><p><strong>'+escG(formData.landlordName)+'</strong></p>'+(formData.landlordAddress?'<p>'+escG(formData.landlordAddress)+'</p>':'')+(formData.landlordPhone?'<p>Phone: '+escG(formData.landlordPhone)+'</p>':'')+(formData.landlordEmail?'<p>Email: '+escG(formData.landlordEmail)+'</p>':'')+'</div><div class="lease-field"><label>TENANT</label><p><strong>'+escG(formData.tenantName)+'</strong></p>'+(formData.tenantPhone?'<p>Phone: '+escG(formData.tenantPhone)+'</p>':'')+(formData.tenantEmail?'<p>Email: '+escG(formData.tenantEmail)+'</p>':'')+'</div>'+(formData.additionalTenants?'<div class="lease-field full-width"><label>Additional Tenant(s)</label><p>'+escG(formData.additionalTenants)+'</p></div>':'')+'</div></div>';
 
-  html += '<div class="lease-section"><h2>2. RENTAL UNIT</h2><p><strong>Address:</strong> '+escG(formData.unitAddress)+'</p>'+(formData.unitNumber?'<p><strong>Unit/Suite:</strong> '+escG(formData.unitNumber)+'</p>':'')+'<p><strong>City:</strong> '+escG(formData.city)+', <strong>Province:</strong> '+province.name+', <strong>Postal Code:</strong> '+escG(formData.postalCode)+'</p>'+(formData.unitType?'<p><strong>Type:</strong> '+escG(formData.unitType)+'</p>':'')+(formData.isFurnished?'<p><strong>Furnished:</strong> Yes</p>':'')+(formData.parkingIncluded?'<p><strong>Parking:</strong> Included'+(formData.parkingDetails?' — '+escG(formData.parkingDetails):'')+'</p>':'')+(formData.storageIncluded?'<p><strong>Storage:</strong> Included</p>':'')+'</div>';
+  html += '<div class="'+keepSectionClass+'"><h2>2. RENTAL UNIT</h2><p><strong>Address:</strong> '+escG(formData.unitAddress)+'</p>'+(formData.unitNumber?'<p><strong>Unit/Suite:</strong> '+escG(formData.unitNumber)+'</p>':'')+'<p><strong>City:</strong> '+escG(formData.city)+', <strong>Province:</strong> '+province.name+', <strong>Postal Code:</strong> '+escG(formData.postalCode)+'</p>'+(formData.unitType?'<p><strong>Type:</strong> '+escG(formData.unitType)+'</p>':'')+(formData.isFurnished?'<p><strong>Furnished:</strong> Yes</p>':'')+(formData.parkingIncluded?'<p><strong>Parking:</strong> Included'+(formData.parkingDetails?' — '+escG(formData.parkingDetails):'')+'</p>':'')+(formData.storageIncluded?'<p><strong>Storage:</strong> Included</p>':'')+'</div>';
 
-  html += '<div class="lease-section lease-section-term"><h2>3. TERM OF TENANCY</h2><p><strong>Type:</strong> '+(formData.termType==='fixed'?'Fixed Term':'Month-to-Month (Periodic)')+'</p><p><strong>Start Date:</strong> '+escG(formData.startDate)+'</p>'+(formData.termType==='fixed'?'<p><strong>End Date:</strong> '+escG(formData.endDate)+'</p>':'')+'<p class="lease-info">Termination notice requirements per '+province.legislationShort+':</p><ul>'+Object.entries(province.terminationNotice).map(function(e){return '<li>'+formatKey(e[0])+': '+e[1]+'</li>';}).join('')+'</ul></div>';
+  html += '<div class="'+keepSectionClass+'"><h2>3. TERM OF TENANCY</h2><p><strong>Type:</strong> '+(formData.termType==='fixed'?'Fixed Term':'Month-to-Month (Periodic)')+'</p><p><strong>Start Date:</strong> '+escG(formData.startDate)+'</p>'+(formData.termType==='fixed'?'<p><strong>End Date:</strong> '+escG(formData.endDate)+'</p>':'')+'<p class="lease-info">Termination notice requirements per '+province.legislationShort+':</p><ul>'+Object.entries(province.terminationNotice).map(function(e){return '<li>'+formatKey(e[0])+': '+e[1]+'</li>';}).join('')+'</ul></div>';
 
-  html += '<div class="lease-section"><h2>4. RENT</h2><p><strong>Monthly Rent:</strong> $'+escG(formData.rentAmount)+'</p><p><strong>Due Date:</strong> '+escG(formData.rentDueDay)+' of each month</p><p><strong>Payment Method:</strong> '+escG(formData.paymentMethod||'As agreed between parties')+'</p>'+(province.rentRules.rentIncreaseGuideline?'<p class="lease-info">Rent increases: '+province.rentRules.guidelineNote+'</p>':'<p class="lease-info">Note: '+province.rentRules.guidelineNote+'</p>')+'</div>';
+  html += '<div class="'+keepSectionClass+'"><h2>4. RENT</h2><p><strong>Monthly Rent:</strong> $'+escG(formData.rentAmount)+'</p><p><strong>Due Date:</strong> '+escG(formData.rentDueDay)+' of each month</p><p><strong>Payment Method:</strong> '+escG(formData.paymentMethod||'As agreed between parties')+'</p>'+(province.rentRules.rentIncreaseGuideline?'<p class="lease-info">Rent increases: '+province.rentRules.guidelineNote+'</p>':'<p class="lease-info">Note: '+province.rentRules.guidelineNote+'</p>')+'</div>';
 
-  html += '<div class="lease-section"><h2>5. DEPOSITS</h2>';
+  html += '<div class="'+keepSectionClass+'"><h2>5. DEPOSITS</h2>';
   if (!province.rentRules.securityDepositAllowed && province.code !== 'ON') {
     html += '<p class="lease-warning">Security deposits are <strong>prohibited</strong> in '+province.name+'.</p>'+(province.code==='QC'?'<p>Only the first month\'s rent may be collected in advance.</p>':'');
   } else if (province.code === 'ON') {
@@ -556,38 +559,38 @@ function generateLease(formData, selectedSchedules) {
   }
   html += '</div>';
 
-  html += '<div class="lease-section"><h2>6. SERVICES & UTILITIES</h2><table class="lease-table"><thead><tr><th>Service</th><th>Included in Rent</th><th>Tenant Pays Separately</th></tr></thead><tbody>'+buildUtilityRow('Heat',formData.utilities)+buildUtilityRow('Electricity',formData.utilities)+buildUtilityRow('Water',formData.utilities)+buildUtilityRow('Internet',formData.utilities)+buildUtilityRow('Cable/TV',formData.utilities)+buildUtilityRow('Laundry',formData.utilities)+buildUtilityRow('Air Conditioning',formData.utilities)+'</tbody></table></div>';
+  html += '<div class="'+keepSectionClass+'"><h2>6. SERVICES & UTILITIES</h2><table class="lease-table"><thead><tr><th>Service</th><th>Included in Rent</th><th>Tenant Pays Separately</th></tr></thead><tbody>'+buildUtilityRow('Heat',formData.utilities)+buildUtilityRow('Electricity',formData.utilities)+buildUtilityRow('Water',formData.utilities)+buildUtilityRow('Internet',formData.utilities)+buildUtilityRow('Cable/TV',formData.utilities)+buildUtilityRow('Laundry',formData.utilities)+buildUtilityRow('Air Conditioning',formData.utilities)+'</tbody></table></div>';
 
-  html += '<div class="lease-section"><h2>7. RULES & CONDITIONS</h2><p><strong>Smoking:</strong> '+(formData.smokingAllowed?'Permitted in designated areas':'Not permitted on the premises')+'</p><p><strong>Pets:</strong> '+(formData.petsAllowed?'Permitted':'Not permitted')+(province.code==='ON'?' <em>(Note: No-pet clauses are void and unenforceable in Ontario per RTA s.14)</em>':'')+'</p>'+(formData.guestPolicy?'<p><strong>Guest Policy:</strong> '+escG(formData.guestPolicy)+'</p>':'')+(formData.noisePolicy?'<p><strong>Noise/Quiet Hours:</strong> '+escG(formData.noisePolicy)+'</p>':'')+'</div>';
+  html += '<div class="'+keepSectionClass+'"><h2>7. RULES & CONDITIONS</h2><p><strong>Smoking:</strong> '+(formData.smokingAllowed?'Permitted in designated areas':'Not permitted on the premises')+'</p><p><strong>Pets:</strong> '+(formData.petsAllowed?'Permitted':'Not permitted')+(province.code==='ON'?' <em>(Note: No-pet clauses are void and unenforceable in Ontario per RTA s.14)</em>':'')+'</p>'+(formData.guestPolicy?'<p><strong>Guest Policy:</strong> '+escG(formData.guestPolicy)+'</p>':'')+(formData.noisePolicy?'<p><strong>Noise/Quiet Hours:</strong> '+escG(formData.noisePolicy)+'</p>':'')+'</div>';
 
-  html += '<div class="lease-section lease-section-maintenance"><h2>8. MAINTENANCE & REPAIRS</h2><p>The <strong>Landlord</strong> is responsible for maintaining the rental unit in a good state of repair and in compliance with the '+province.legislationShort+'.</p><p>The <strong>Tenant</strong> is responsible for:</p><ul><li>Keeping the unit reasonably clean</li><li>Promptly reporting maintenance issues or damage</li><li>Repairing or paying for damage caused by the tenant, guests, or pets</li><li>Not altering the unit without written consent</li></ul>'+(formData.maintenanceNotes?'<p><strong>Additional Notes:</strong> '+escG(formData.maintenanceNotes)+'</p>':'')+'</div>';
+  html += '<div class="'+flowSectionClass+'"><h2>8. MAINTENANCE & REPAIRS</h2><p>The <strong>Landlord</strong> is responsible for maintaining the rental unit in a good state of repair and in compliance with the '+province.legislationShort+'.</p><p>The <strong>Tenant</strong> is responsible for:</p><ul><li>Keeping the unit reasonably clean</li><li>Promptly reporting maintenance issues or damage</li><li>Repairing or paying for damage caused by the tenant, guests, or pets</li><li>Not altering the unit without written consent</li></ul>'+(formData.maintenanceNotes?'<p><strong>Additional Notes:</strong> '+escG(formData.maintenanceNotes)+'</p>':'')+'</div>';
 
-  html += '<div class="lease-section"><h2>9. LANDLORD\'S RIGHT OF ENTRY</h2><p>The Landlord may enter only in accordance with the '+province.legislationShort+'. Except in emergencies, the Landlord must provide:</p><ul><li><strong>Written notice</strong> of at least 24 hours</li><li>Entry only between <strong>8:00 AM and 8:00 PM</strong></li><li>A valid reason as permitted by law</li></ul></div>';
+  html += '<div class="'+keepSectionClass+'"><h2>9. LANDLORD\'S RIGHT OF ENTRY</h2><p>The Landlord may enter only in accordance with the '+province.legislationShort+'. Except in emergencies, the Landlord must provide:</p><ul><li><strong>Written notice</strong> of at least 24 hours</li><li>Entry only between <strong>8:00 AM and 8:00 PM</strong></li><li>A valid reason as permitted by law</li></ul></div>';
 
-  html += '<div class="lease-section"><h2>10. INSURANCE</h2><p><strong>Tenant Insurance:</strong> '+(formData.tenantInsuranceRequired?'Required — Tenant must obtain and maintain renter\'s insurance.':'Recommended but not required.')+'</p><p>The Landlord\'s insurance does not cover the Tenant\'s personal belongings or liability.</p></div>';
+  html += '<div class="'+keepSectionClass+'"><h2>10. INSURANCE</h2><p><strong>Tenant Insurance:</strong> '+(formData.tenantInsuranceRequired?'Required — Tenant must obtain and maintain renter\'s insurance.':'Recommended but not required.')+'</p><p>The Landlord\'s insurance does not cover the Tenant\'s personal belongings or liability.</p></div>';
 
   var sectionNum = 11;
   if (formData.additionalTerms) {
-    html += '<div class="lease-section"><h2>'+sectionNum+'. ADDITIONAL TERMS</h2><div class="lease-additional">'+escG(formData.additionalTerms).replace(/\n/g,'<br>')+'</div><p class="lease-info">Any term that conflicts with the '+province.legislationShort+' is void and unenforceable.</p></div>';
+    html += '<div class="'+flowSectionClass+'"><h2>'+sectionNum+'. ADDITIONAL TERMS</h2><div class="lease-additional">'+escG(formData.additionalTerms).replace(/\n/g,'<br>')+'</div><p class="lease-info">Any term that conflicts with the '+province.legislationShort+' is void and unenforceable.</p></div>';
     sectionNum++;
   }
 
-  html += '<div class="lease-section"><h2>'+sectionNum+'. IMPORTANT LEGAL INFORMATION</h2><div class="lease-legal"><p>This agreement is governed by the <strong>'+province.legislation+'</strong>.</p><p>Disputes may be resolved through the <strong>'+province.regulator+'</strong>.</p><h3>Prohibited Clauses in '+province.name+':</h3><ul>'+province.prohibitedClauses.map(function(c){return '<li>'+c+'</li>';}).join('')+'</ul>'+province.notes.map(function(n){return '<p class="lease-info">'+n+'</p>';}).join('')+'</div></div>';
+  html += '<div class="'+flowSectionClass+'"><h2>'+sectionNum+'. IMPORTANT LEGAL INFORMATION</h2><div class="lease-legal"><p>This agreement is governed by the <strong>'+province.legislation+'</strong>.</p><p>Disputes may be resolved through the <strong>'+province.regulator+'</strong>.</p><h3>Prohibited Clauses in '+province.name+':</h3><ul>'+province.prohibitedClauses.map(function(c){return '<li>'+c+'</li>';}).join('')+'</ul>'+province.notes.map(function(n){return '<p class="lease-info">'+n+'</p>';}).join('')+'</div></div>';
   sectionNum++;
 
   if (selectedSchedules && selectedSchedules.length > 0) {
-    html += '<div class="lease-section"><h2>'+sectionNum+'. SCHEDULES</h2><p>The following schedules are attached to and form part of this Agreement:</p><ul>'+selectedSchedules.map(function(s,i){return '<li><strong>Schedule '+String.fromCharCode(65+i)+':</strong> '+s.name+'</li>';}).join('')+'</ul></div>';
+    html += '<div class="'+keepSectionClass+'"><h2>'+sectionNum+'. SCHEDULES</h2><p>The following schedules are attached to and form part of this Agreement:</p><ul>'+selectedSchedules.map(function(s,i){return '<li><strong>Schedule '+String.fromCharCode(65+i)+':</strong> '+s.name+'</li>';}).join('')+'</ul></div>';
     selectedSchedules.forEach(function(schedule, i) { html += generateScheduleContent(schedule, i, formData, province); });
   }
 
-  html += '<div class="lease-section lease-signatures"><h2>SIGNATURES</h2><p>By signing below, the parties agree to the terms and conditions of this Residential Tenancy Agreement.</p><div class="sig-grid"><div class="sig-block"><div class="sig-line"></div><p>Landlord Signature</p><p class="sig-name">'+escG(formData.landlordName)+'</p><p class="sig-date">Date: _______________________</p></div><div class="sig-block"><div class="sig-line"></div><p>Tenant Signature</p><p class="sig-name">'+escG(formData.tenantName)+'</p><p class="sig-date">Date: _______________________</p></div></div>'+(formData.additionalTenants?'<div class="sig-grid" style="margin-top:30px;"><div class="sig-block"><div class="sig-line"></div><p>Additional Tenant Signature</p><p class="sig-date">Date: _______________________</p></div><div class="sig-block"><div class="sig-line"></div><p>Witness Signature (if applicable)</p><p class="sig-date">Date: _______________________</p></div></div>':'')+'</div>';
+  html += '<div class="'+signatureClass+'"><h2>SIGNATURES</h2><p>By signing below, the parties agree to the terms and conditions of this Residential Tenancy Agreement.</p><div class="sig-grid print-page-group"><div class="sig-block"><div class="sig-line"></div><p>Landlord Signature</p><p class="sig-name">'+escG(formData.landlordName)+'</p><p class="sig-date">Date: _______________________</p></div><div class="sig-block"><div class="sig-line"></div><p>Tenant Signature</p><p class="sig-name">'+escG(formData.tenantName)+'</p><p class="sig-date">Date: _______________________</p></div></div>'+(formData.additionalTenants?'<div class="sig-grid print-page-group" style="margin-top:30px;"><div class="sig-block"><div class="sig-line"></div><p>Additional Tenant Signature</p><p class="sig-date">Date: _______________________</p></div><div class="sig-block"><div class="sig-line"></div><p>Witness Signature (if applicable)</p><p class="sig-date">Date: _______________________</p></div></div>':'')+'</div>';
 
   return html;
 }
 
 function generateScheduleContent(schedule, index, formData, province) {
   var letter = String.fromCharCode(65+index);
-  var html = '<div class="lease-section lease-schedule" style="page-break-before:always;"><h2>SCHEDULE '+letter+': '+schedule.name.toUpperCase()+'</h2><p class="lease-subtitle">'+schedule.description+'</p>';
+  var html = '<div class="lease-section lease-schedule print-page-group"><h2>SCHEDULE '+letter+': '+schedule.name.toUpperCase()+'</h2><p class="lease-subtitle">'+schedule.description+'</p>';
   switch(schedule.id) {
     case 'moveInInspection': case 'conditionReport': html += generateInspectionSchedule(formData); break;
     case 'petAgreement': html += generatePetSchedule(formData, province); break;
@@ -602,7 +605,7 @@ function generateScheduleContent(schedule, index, formData, province) {
     case 'bylaw': case 'strata': case 'condominium': html += generateBylawSchedule(formData, province); break;
     default: html += '<div class="schedule-blank"><p>Additional terms as agreed between the parties:</p><div class="blank-lines">'+'<div class="blank-line"></div>'.repeat(15)+'</div></div>';
   }
-  html += '<div class="schedule-sig"><div class="sig-grid"><div class="sig-block"><div class="sig-line"></div><p>Landlord Initials / Date</p></div><div class="sig-block"><div class="sig-line"></div><p>Tenant Initials / Date</p></div></div></div></div>';
+  html += '<div class="schedule-sig"><div class="sig-grid print-page-group"><div class="sig-block"><div class="sig-line"></div><p>Landlord Initials / Date</p></div><div class="sig-block"><div class="sig-line"></div><p>Tenant Initials / Date</p></div></div></div></div>';
   return html;
 }
 
@@ -671,7 +674,7 @@ document.addEventListener('DOMContentLoaded', function() {
       banner.innerHTML = '<span>You have an unsaved draft from a previous session.</span><button class="btn btn-sm btn-primary" id="btn-restore-autosave">Restore</button><button class="btn btn-sm btn-secondary" id="btn-dismiss-autosave">Dismiss</button>';
       $('main .container').prepend(banner);
       var restoreBtn = $('#btn-restore-autosave');
-      if (restoreBtn) restoreBtn.addEventListener('click', function() { var d = getAutoSave(); if (d) applyFormData(d); banner.remove(); });
+      if (restoreBtn) restoreBtn.addEventListener('click', function() { var d = getAutoSave(); if (d) restoreDraftProgress(d); banner.remove(); });
       var dismissBtn = $('#btn-dismiss-autosave');
       if (dismissBtn) dismissBtn.addEventListener('click', function() { deleteDraft('__autosave__'); banner.remove(); });
     }
@@ -688,6 +691,64 @@ function showStep(step) {
     s.classList.toggle('completed', i + 1 < step);
   });
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function getActiveStep() {
+  return Number(($('.form-step.active') || {}).dataset?.step || 1);
+}
+
+function getSelectedScheduleIds() {
+  return Array.from($$('#schedule-list input[type="checkbox"]:checked')).map(function(cb) { return cb.value; });
+}
+
+function normalizeSelectedScheduleIds(selectedIds) {
+  return Array.isArray(selectedIds) ? selectedIds.filter(Boolean) : [];
+}
+
+function isStepOneComplete(data) {
+  return !!(data && data.province && data.landlordName && data.tenantName);
+}
+
+function isStepTwoComplete(data) {
+  return !!(data && data.unitAddress && data.city && data.postalCode);
+}
+
+function isStepThreeComplete(data) {
+  return !!(data && data.startDate && data.rentAmount && (data.termType !== 'fixed' || data.endDate));
+}
+
+function hasStepFourProgress(data) {
+  return !!(data && (data.guestPolicy || data.noisePolicy || data.maintenanceNotes || data.additionalTerms || data.parkingIncluded || data.storageIncluded || data.smokingAllowed || data.petsAllowed || data.tenantInsuranceRequired));
+}
+
+function getResumeStep(data) {
+  var explicitStep = Number(data && data.currentStep);
+  if (Number.isFinite(explicitStep) && explicitStep >= 1) return Math.min(6, Math.max(1, explicitStep));
+  if (!isStepOneComplete(data)) return 1;
+  if (!isStepTwoComplete(data)) return 2;
+  if (!isStepThreeComplete(data)) return 3;
+  if (normalizeSelectedScheduleIds(data && data.selectedScheduleIds).length) return 5;
+  return hasStepFourProgress(data) ? 5 : 4;
+}
+
+function applySelectedScheduleIds(selectedIds) {
+  var selectedSet = new Set(normalizeSelectedScheduleIds(selectedIds));
+  $$('#schedule-list input[type="checkbox"]').forEach(function(cb) {
+    cb.checked = selectedSet.has(cb.value);
+  });
+}
+
+function restoreDraftProgress(data) {
+  if (!data) return;
+  applyFormData(data);
+  var resumeStep = getResumeStep(data);
+  var selectedScheduleIds = normalizeSelectedScheduleIds(data.selectedScheduleIds);
+  if (currentProvince && (resumeStep >= 5 || selectedScheduleIds.length)) {
+    buildScheduleSelector();
+    applySelectedScheduleIds(selectedScheduleIds);
+  }
+  if (resumeStep >= 6) generatePreview();
+  showStep(resumeStep);
 }
 
 function nextStep(current) {
@@ -759,7 +820,7 @@ function setupDraftsUI() {
   var c = $('#drafts-container'); c.innerHTML = renderDraftManager();
   c.addEventListener('click', function(e) {
     if (e.target.id === 'btn-save-draft') { var ni = $('#draftName'); var name = ni.value.trim() || ('Draft ' + new Date().toLocaleDateString()); saveDraft(name, collectFormData()); ni.value = ''; c.innerHTML = renderDraftManager(); showToast('Draft saved!'); }
-    if (e.target.classList.contains('draft-load')) { var d = loadDraft(e.target.dataset.draft); if (d) { applyFormData(d); showToast('Loaded: ' + e.target.dataset.draft); } }
+    if (e.target.classList.contains('draft-load')) { var d = loadDraft(e.target.dataset.draft); if (d) { restoreDraftProgress(d); showToast('Loaded: ' + e.target.dataset.draft); } }
     if (e.target.classList.contains('draft-delete')) { deleteDraft(e.target.dataset.draft); c.innerHTML = renderDraftManager(); showToast('Draft deleted'); }
   });
 }
@@ -836,6 +897,8 @@ function collectFormData() {
     tenantInsuranceRequired: $('#tenantInsurance').checked,
     maintenanceNotes: $('#maintenanceNotes').value.trim(),
     additionalTerms: $('#additionalTerms').value.trim(),
+    currentStep: getActiveStep(),
+    selectedScheduleIds: getSelectedScheduleIds(),
   };
 }
 
@@ -866,7 +929,8 @@ function generatePreview() {
   var leaseHtml = generateLease(formData, selectedSchedules);
   var timelineHtml = currentProvince ? generateTimeline(formData, currentProvince) : '';
   var sigHtml = createSignatureSection();
-  $('#lease-preview').innerHTML = leaseHtml + sigHtml + timelineHtml;
+  if (window.clearPrintPagination) window.clearPrintPagination(document);
+  $('#lease-preview').innerHTML = composeLeasePreviewHtml(leaseHtml, sigHtml, timelineHtml);
   setTimeout(function() {
     var lc = $('#sig-landlord'); var tc = $('#sig-tenant');
     if (lc) sigPadLandlord = new SignaturePad(lc);
@@ -878,6 +942,13 @@ function generatePreview() {
       });
     });
   }, 100);
+}
+
+function composeLeasePreviewHtml(leaseHtml, sigHtml, timelineHtml) {
+  var signaturePattern = /<div class="lease-section lease-signatures[^"]*">/;
+  var match = leaseHtml.match(signaturePattern);
+  if (!match) return leaseHtml + timelineHtml + sigHtml;
+  return leaseHtml.replace(signaturePattern, timelineHtml + '<div class="agreement-signature-stack print-page-group">' + match[0]) + sigHtml + '</div>';
 }
 
 function exportPDF() {
@@ -893,14 +964,46 @@ function exportPDF() {
   content = content.replace(/<input[^>]*class="sig-typed-input"[^>]*>/g, '');
   content = content.replace(/<div class="sig-pad-actions">[\s\S]*?<\/div>/g, '');
   content = content.replace(/<p class="sig-instructions">[\s\S]*?<\/p>/g, '');
+  var stylesheetHref = new URL('./css/styles.css', window.location.href).href;
   var pw = window.open('', '_blank');
-  pw.document.write('<!DOCTYPE html><html><head><title>Residential Tenancy Agreement</title><style>' + getPrintCSS() + '</style></head><body>' + content + '</body></html>');
+  pw.document.write('<!DOCTYPE html><html><head><title>Residential Tenancy Agreement</title><link rel="stylesheet" href="' + stylesheetHref + '"><style>' + getPrintCSS() + '</style></head><body><div class="print-document" id="lease-preview">' + content + '</div></body></html>');
   pw.document.close();
-  pw.onload = function() { pw.print(); };
+  pw.onload = async function() {
+    try { pw.history.replaceState({}, '', '/leasecreate/print-preview'); } catch (error) {}
+    await waitForPrintWindowReady(pw);
+    var printRoot = pw.document.querySelector('#lease-preview');
+    if (window.preparePrintPagination && printRoot) window.preparePrintPagination(pw.document, printRoot);
+    pw.focus();
+    pw.print();
+  };
+}
+
+function waitForPrintWindowReady(pw) {
+  var doc = pw.document;
+  var stylesheetLoads = Array.from(doc.querySelectorAll('link[rel="stylesheet"]')).map(function(link) {
+    return new Promise(function(resolve) {
+      if (link.sheet) {
+        resolve();
+        return;
+      }
+      var done = function() { resolve(); };
+      link.addEventListener('load', done, { once: true });
+      link.addEventListener('error', done, { once: true });
+      pw.setTimeout(done, 1200);
+    });
+  });
+  var fontsReady = doc.fonts && doc.fonts.ready ? doc.fonts.ready.catch(function() {}) : Promise.resolve();
+  return Promise.all(stylesheetLoads.concat([fontsReady])).then(function() {
+    return new Promise(function(resolve) {
+      pw.requestAnimationFrame(function() {
+        pw.requestAnimationFrame(resolve);
+      });
+    });
+  });
 }
 
 function getPrintCSS() {
-  return '@page{margin:20mm;size:letter}body{font-family:Georgia,serif;font-size:11pt;line-height:1.5;color:#1a1a1a}h1{font-size:18pt;text-align:center;margin-bottom:4px;letter-spacing:2px}h2{font-size:13pt;border-bottom:2px solid #1a4fd8;padding-bottom:4px;margin:24px 0 12px;color:#1a4fd8}h3{font-size:11pt;margin:16px 0 8px}.lease-header{text-align:center;margin-bottom:30px;border-bottom:3px double #333;padding-bottom:20px}.lease-subtitle{color:#555;font-style:italic}.lease-legislation{font-size:9pt;color:#666}.lease-note{background:#fff3cd;padding:8px 12px;border-left:4px solid #ffc107;margin:10px 0;font-size:9pt}.lease-section{margin-bottom:20px}.lease-field-group{display:grid;grid-template-columns:1fr 1fr;gap:16px}.lease-field label{font-weight:bold;font-size:9pt;text-transform:uppercase;color:#555}.full-width{grid-column:1/-1}.lease-info{font-size:9pt;color:#555;font-style:italic}.lease-warning{background:#fee;border-left:4px solid #dc2626;padding:8px 12px;font-size:9pt}.lease-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:10pt}.lease-table th,.lease-table td{border:1px solid #ccc;padding:6px 10px;text-align:left}.lease-table th{background:#f0f0f0;font-weight:bold}.lease-legal{background:#f8f9fa;padding:16px;border:1px solid #ddd;border-radius:4px}.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:40px}.sig-block{text-align:center}.sig-line{border-bottom:1px solid #333;height:50px;margin-bottom:8px}.sig-name{font-weight:bold}.sig-date{font-size:9pt;color:#555}.blank-line{border-bottom:1px solid #ccc;height:28px;margin-bottom:4px}.lease-schedule{border-top:3px solid #1a4fd8;padding-top:20px}ul{margin:8px 0;padding-left:24px}li{margin-bottom:4px}.timeline{margin-bottom:30px}.timeline-title{font-size:14pt;margin-bottom:16px;color:#1a4fd8}.timeline-event{display:flex;gap:16px;margin-bottom:16px;padding-left:20px;border-left:3px solid #ddd}.timeline-date{font-weight:bold;font-size:10pt}.timeline-label{font-weight:bold}.timeline-desc{font-size:9pt;color:#555}.signature-section{margin-top:40px;border-top:2px solid #1a4fd8;padding-top:20px}.sig-pads{display:grid;grid-template-columns:1fr 1fr;gap:30px}.sig-pad-group label{font-weight:bold;display:block;margin-bottom:8px}.room-cell{font-weight:bold;background:#f8f8f8;vertical-align:top}';
+  return '@page{size:Letter;margin:20mm 15mm}html{-webkit-print-color-adjust:exact;print-color-adjust:exact}body{margin:0;padding:20mm 15mm;background:#fff;font-family:Georgia,serif;font-size:11pt;line-height:1.5;color:#1a1a1a}#lease-preview.print-document{max-width:8in;margin:0 auto}.print-page-break{display:none}@media print{body{padding:0}#lease-preview.print-document{max-width:none;margin:0}}';
 }
 
 function validateStep(step) {

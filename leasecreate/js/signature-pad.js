@@ -142,27 +142,29 @@ export class SignaturePad {
 export function createSignatureSection() {
   return `
     <div class="signature-section">
-      <h3>Digital Signatures</h3>
-      <p class="sig-instructions">Sign below using your mouse or touchscreen. Signatures will be embedded in the exported PDF.</p>
-      <div class="sig-pads">
-        <div class="sig-pad-group">
-          <label>Landlord Signature</label>
-          <div class="sig-pad-wrapper">
-            <canvas id="sig-landlord" class="sig-canvas"></canvas>
+      <div class="signature-section-body print-page-group">
+        <h3>Digital Signatures</h3>
+        <p class="sig-instructions">Sign below using your mouse or touchscreen. Signatures will be embedded in the exported PDF.</p>
+        <div class="sig-pads print-page-group">
+          <div class="sig-pad-group">
+            <label>Landlord Signature</label>
+            <div class="sig-pad-wrapper">
+              <canvas id="sig-landlord" class="sig-canvas"></canvas>
+            </div>
+            <div class="sig-pad-actions">
+              <button class="btn btn-sm btn-secondary" data-clear="sig-landlord">Clear</button>
+              <input type="text" id="sig-landlord-typed" class="sig-typed-input" placeholder="Or type your name to sign">
+            </div>
           </div>
-          <div class="sig-pad-actions">
-            <button class="btn btn-sm btn-secondary" data-clear="sig-landlord">Clear</button>
-            <input type="text" id="sig-landlord-typed" class="sig-typed-input" placeholder="Or type your name to sign">
-          </div>
-        </div>
-        <div class="sig-pad-group">
-          <label>Tenant Signature</label>
-          <div class="sig-pad-wrapper">
-            <canvas id="sig-tenant" class="sig-canvas"></canvas>
-          </div>
-          <div class="sig-pad-actions">
-            <button class="btn btn-sm btn-secondary" data-clear="sig-tenant">Clear</button>
-            <input type="text" id="sig-tenant-typed" class="sig-typed-input" placeholder="Or type your name to sign">
+          <div class="sig-pad-group">
+            <label>Tenant Signature</label>
+            <div class="sig-pad-wrapper">
+              <canvas id="sig-tenant" class="sig-canvas"></canvas>
+            </div>
+            <div class="sig-pad-actions">
+              <button class="btn btn-sm btn-secondary" data-clear="sig-tenant">Clear</button>
+              <input type="text" id="sig-tenant-typed" class="sig-typed-input" placeholder="Or type your name to sign">
+            </div>
           </div>
         </div>
       </div>
