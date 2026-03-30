@@ -268,7 +268,7 @@ export function generateLease(formData, selectedSchedules) {
 function generateScheduleContent(schedule, index, formData, province) {
   const letter = String.fromCharCode(65 + index);
   let html = `
-    <div class="lease-section lease-schedule" style="page-break-before: always;">
+    <div class="lease-section lease-schedule">
       <h2>SCHEDULE ${letter}: ${schedule.name.toUpperCase()}</h2>
       <p class="lease-subtitle">${schedule.description}</p>
   `;

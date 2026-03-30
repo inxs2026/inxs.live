@@ -1269,10 +1269,12 @@ a:hover { color: var(--primary-dark); }
 
   #lease-preview { padding: 0; margin: 0; }
 
-  /* Sections flow naturally — no mid-section cuts where possible */
+  /*
+   * Sections are allowed to span pages — do NOT put break-inside: avoid here.
+   * break-inside: avoid on a block taller than one page causes browsers to push
+   * the whole section to the next page, leaving a large blank gap above it.
+   */
   .lease-section {
-    break-inside: avoid;
-    page-break-inside: avoid;
     padding: 12pt 0;
     margin: 0;
     border-bottom: 1px solid #ccc;
@@ -1286,20 +1288,27 @@ a:hover { color: var(--primary-dark); }
     border-bottom: 2px solid #000;
   }
 
-  /* Schedules on their own page */
+  /* Section 3 (Term) and Section 8 (Maintenance) always start fresh */
+  .lease-section-term,
+  .lease-section-maintenance {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  /* Schedules on their own page; signatures compact enough to avoid-break */
   .lease-schedule {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  .lease-signatures {
     break-before: page;
     page-break-before: always;
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
-  .lease-signatures {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-
-  /* Timeline: compressed to fit on one page, never splits */
+  /* Timeline: compressed, never splits */
   .timeline {
     break-before: page;
     page-break-before: always;
@@ -1319,25 +1328,44 @@ a:hover { color: var(--primary-dark); }
   .timeline-label { font-size: 9pt; }
   .timeline-desc  { font-size: 8pt; }
 
-  /* Every individual point/item stays whole on its page */
+  /*
+   * Atomic units that must never split mid-element.
+   * Tables are NOT listed here — large tables must be allowed to paginate.
+   * Row integrity is handled by tr below.
+   */
   .lease-section p,
   .lease-section li,
-  .lease-section tr,
   .lease-section .lease-field,
   .lease-section .sig-block {
     break-inside: avoid;
     page-break-inside: avoid;
+    widows: 3;
+    orphans: 3;
   }
 
-  /* Tables and signature blocks stay intact */
-  table, .sig-grid {
+  /* Keep each table row whole; keep header rows with the first data row */
+  tr {
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
+  thead {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* Signature grid is small enough to keep together */
+  .sig-grid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Headings must not be stranded at the bottom of a page */
   h2, h3 {
     break-after: avoid;
     page-break-after: avoid;
+    widows: 3;
+    orphans: 3;
   }
 
   /* Page margins */
