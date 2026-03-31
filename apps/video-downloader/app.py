@@ -22,7 +22,6 @@ DOWNLOAD_DIR = Path(os.environ.get("DOWNLOAD_DIR", str(Path.home() / "Downloads"
 DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
 OPEN_DOWNLOADS_ENABLED = os.environ.get("ENABLE_OPEN_DOWNLOADS", "").lower() in {"1", "true", "yes"}
 COOKIES_FILE = os.environ.get("COOKIES_FILE", "").strip() or None
-BGUTIL_SERVER_URL = os.environ.get("BGUTIL_SERVER_URL", "").strip() or None
 
 app = Flask(__name__)
 
@@ -91,10 +90,6 @@ def _download_worker(job_id: str, url: str, format_choice: str):
         "quiet": True,
         "no_warnings": True,
         "restrictfilenames": False,
-        "extractor_args": {
-            "youtube": {"player_client": ["ios", "mweb"]},
-            **({"youtubepot-bgutilhttp": {"base_url": [BGUTIL_SERVER_URL]}} if BGUTIL_SERVER_URL else {}),
-        },
     }
 
     if COOKIES_FILE and Path(COOKIES_FILE).is_file():
