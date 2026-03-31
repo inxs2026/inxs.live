@@ -211,12 +211,26 @@ def debug_env():
         except Exception as e:
             return f"ERROR: {e}"
 
-    # Check yt-dlp plugins
+    # Check bgutil plugin by trying to import it directly
+    bgutil_plugin_status = {}
+    for mod in [
+        "yt_dlp_plugins",
+        "yt_dlp_plugins.extractor",
+        "yt_dlp_plugins.extractor.getpot_bgutil",
+    ]:
+        try:
+            __import__(mod)
+            bgutil_plugin_status[mod] = "OK"
+        except ImportError as e:
+            bgutil_plugin_status[mod] = f"ImportError: {e}"
+
+    # Check bgutil HTTP reachability
     try:
-        import yt_dlp.plugins as _plugins
-        plugins = [str(p) for p in getattr(_plugins, "_plugins", {}).keys()]
+        import urllib.request
+        urllib.request.urlopen("http://127.0.0.1:4416", timeout=2)
+        bgutil_http = "reachable"
     except Exception as e:
-        plugins = [f"ERROR: {e}"]
+        bgutil_http = f"ERROR: {e}"
 
     # Check curl_cffi
     try:
@@ -225,17 +239,36 @@ def debug_env():
     except ImportError:
         curl_cffi_version = "NOT INSTALLED"
 
+    # List yt-dlp plugin dirs
+    try:
+        import yt_dlp.plugins
+        plugin_dirs = [str(d) for d in getattr(yt_dlp.plugins, "PACKAGE_NAME", [])]
+    except Exception:
+        plugin_dirs = []
+
     return jsonify({
         "yt_dlp_version": yt_dlp.version.__version__ if yt_dlp else "NOT INSTALLED",
         "deno": run(["deno", "--version"]).splitlines()[0] if shutil.which("deno") else "NOT FOUND",
         "bgutil_pot": run(["bgutil-pot", "--version"]) if shutil.which("bgutil-pot") else "NOT FOUND",
-        "bgutil_running": run(["pgrep", "-x", "bgutil-pot"]) != "ERROR: Command '['pgrep', '-x', 'bgutil-pot']' returned non-zero exit status 1.",
+        "bgutil_running": run(["pgrep", "-a", "bgutil-pot"]),
+        "bgutil_http": bgutil_http,
+        "bgutil_plugin": bgutil_plugin_status,
         "ffmpeg": run(["ffmpeg", "-version"]).splitlines()[0] if shutil.which("ffmpeg") else "NOT FOUND",
         "curl_cffi": curl_cffi_version,
-        "yt_dlp_plugins": plugins,
+        "yt_dlp_plugin_dirs": plugin_dirs,
         "cookies_file": COOKIES_FILE or "not set",
         "download_dir": str(DOWNLOAD_DIR),
     })
+
+
+@app.get("/api/last-error")
+def last_error():
+    with jobs_lock:
+        failed = [j for j in jobs.values() if j.get("status") == "error"]
+    if not failed:
+        return jsonify({"message": "No failed jobs found"}), 404
+    latest = max(failed, key=lambda j: j.get("created_at", 0))
+    return jsonify(latest)
 
 
 @app.post("/api/download")

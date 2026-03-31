@@ -467,8 +467,8 @@
             stopPolling();
             downloadBtn.disabled = false;
             metaText.textContent = data.error || "Unknown error";
-            pathText.textContent = "";
-            fileLinkWrap.textContent = "";
+            pathText.textContent = `Job ID: ${jobId}`;
+            fileLinkWrap.innerHTML = `<a class="download-link" href="/api/status/${jobId}" target="_blank">View full debug log</a>`;
           }
         } catch (err) {
           stopPolling();
