@@ -63,6 +63,10 @@ jobs_lock = threading.Lock()
 jobs: Dict[str, Dict[str, str]] = {}
 job_processes: Dict[str, subprocess.Popen] = {}
 
+MP4_FAMILY_FORMATS = {"mp4", "mov", "m4v"}
+MP4_COPY_VIDEO_CODECS = {"h264", "hevc", "mpeg4", "av1"}
+MP4_COPY_AUDIO_CODECS = {"aac", "mp3", "ac3", "eac3", "alac"}
+
 
 def is_valid_upload_id(upload_id: str) -> bool:
     sanitized = upload_id.replace("-", "")
@@ -146,6 +150,51 @@ def probe_duration_seconds(input_path: Path) -> float:
         return max(float(result.stdout.strip()), 0.0)
     except ValueError as exc:
         raise RuntimeError("Could not parse video duration") from exc
+
+
+def probe_media_streams(input_path: Path) -> list[dict]:
+    cmd = [
+        "ffprobe",
+        "-v",
+        "error",
+        "-show_streams",
+        "-of",
+        "json",
+        str(input_path),
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr.strip() or "Failed to probe media streams")
+
+    try:
+        payload = json.loads(result.stdout or "{}")
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("Could not parse media stream metadata") from exc
+
+    streams = payload.get("streams")
+    if not isinstance(streams, list):
+        raise RuntimeError("Media stream metadata is invalid")
+
+    return [stream for stream in streams if isinstance(stream, dict)]
+
+
+def can_fast_remux(streams: list[dict], output_format: str, platform_preset: str) -> bool:
+    if platform_preset != "none" or output_format not in MP4_FAMILY_FORMATS:
+        return False
+
+    video_streams = [s for s in streams if s.get("codec_type") == "video"]
+    audio_streams = [s for s in streams if s.get("codec_type") == "audio"]
+
+    if not video_streams:
+        return False
+
+    if any((stream.get("codec_name") or "").lower() not in MP4_COPY_VIDEO_CODECS for stream in video_streams):
+        return False
+
+    if any((stream.get("codec_name") or "").lower() not in MP4_COPY_AUDIO_CODECS for stream in audio_streams):
+        return False
+
+    return True
 
 
 def parse_progress_timestamp(raw_value: str) -> int | None:
@@ -355,6 +404,49 @@ def get_unique_output_path(base_name: str, output_format: str) -> Path:
         idx += 1
 
 
+def run_ffmpeg_job(
+    job_id: str,
+    cmd: list[str],
+    temp_path: Path,
+    duration_seconds: float,
+    progress_message: str,
+) -> None:
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        universal_newlines=True,
+        bufsize=1,
+    )
+    set_job_process(job_id, process)
+
+    assert process.stdout is not None
+    for line in process.stdout:
+        if get_job_status(job_id) == "cancelling":
+            process.terminate()
+            break
+
+        line = line.strip()
+        if line.startswith("out_time_ms=") and duration_seconds > 0:
+            out_time_ms = parse_progress_timestamp(line.split("=", 1)[1])
+            if out_time_ms is None:
+                continue
+            percent = min((out_time_ms / (duration_seconds * 1_000_000)) * 100, 100)
+            set_job(job_id, progress=f"{percent:.2f}", status="running", message=progress_message)
+        elif line.startswith("progress=end"):
+            set_job(job_id, progress="100", status="running", message="Finalizing output")
+
+    process.wait()
+
+    if get_job_status(job_id) == "cancelling":
+        set_job(job_id, status="cancelled", message="Conversion cancelled by user")
+        return
+
+    if process.returncode != 0 or not temp_path.exists():
+        raise RuntimeError("ffmpeg failed during conversion")
+
+
 def convert_job(
     job_id: str,
     input_path: Path,
@@ -366,7 +458,6 @@ def convert_job(
     output_path = get_unique_output_path(original_stem, output_format)
     output_name = output_path.name
     temp_path = output_path.with_name(f".{job_id}_partial.{output_format}")
-    process: subprocess.Popen | None = None
 
     try:
         if get_job_status(job_id) == "cancelling":
@@ -375,53 +466,45 @@ def convert_job(
 
         set_job(job_id, status="probing", message="Analyzing input video")
         duration_seconds = probe_duration_seconds(input_path)
-        video_args = build_video_args(output_format, quality_preset, platform_preset)
-        cmd = [
-            "ffmpeg",
-            "-y",
-            "-i",
-            str(input_path),
-            *video_args,
-            "-progress",
-            "pipe:1",
-            "-nostats",
-            str(temp_path),
-        ]
+        streams = probe_media_streams(input_path)
 
-        process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            universal_newlines=True,
-            bufsize=1,
-        )
-        set_job_process(job_id, process)
-
-        assert process.stdout is not None
-        for line in process.stdout:
-            if get_job_status(job_id) == "cancelling":
-                process.terminate()
-                break
-
-            line = line.strip()
-            if line.startswith("out_time_ms=") and duration_seconds > 0:
-                out_time_ms = parse_progress_timestamp(line.split("=", 1)[1])
-                if out_time_ms is None:
-                    continue
-                percent = min((out_time_ms / (duration_seconds * 1_000_000)) * 100, 100)
-                set_job(job_id, progress=f"{percent:.2f}", status="running", message="Converting video")
-            elif line.startswith("progress=end"):
-                set_job(job_id, progress="100", status="running", message="Finalizing output")
-
-        process.wait()
-        status_now = get_job_status(job_id)
-        if status_now == "cancelling":
-            set_job(job_id, status="cancelled", message="Conversion cancelled by user")
-            return
-
-        if process.returncode != 0 or not temp_path.exists():
-            raise RuntimeError("ffmpeg failed during conversion")
+        if can_fast_remux(streams, output_format, platform_preset):
+            set_job(job_id, status="queued", message="Container is compatible, remuxing without re-encoding", progress="0")
+            cmd = [
+                "ffmpeg",
+                "-y",
+                "-i",
+                str(input_path),
+                "-map",
+                "0:v",
+                "-map",
+                "0:a?",
+                "-c",
+                "copy",
+                "-sn",
+                "-dn",
+                "-movflags",
+                "+faststart",
+                "-progress",
+                "pipe:1",
+                "-nostats",
+                str(temp_path),
+            ]
+            run_ffmpeg_job(job_id, cmd, temp_path, duration_seconds, "Remuxing without re-encoding")
+        else:
+            video_args = build_video_args(output_format, quality_preset, platform_preset)
+            cmd = [
+                "ffmpeg",
+                "-y",
+                "-i",
+                str(input_path),
+                *video_args,
+                "-progress",
+                "pipe:1",
+                "-nostats",
+                str(temp_path),
+            ]
+            run_ffmpeg_job(job_id, cmd, temp_path, duration_seconds, "Converting video")
 
         temp_path.replace(output_path)
         set_job(
