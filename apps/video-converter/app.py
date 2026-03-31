@@ -20,9 +20,9 @@ def favicon():
 
 SUPPORTED_FORMATS = ["mp4", "mkv", "avi", "mov", "webm", "flv", "wmv", "m4v"]
 QUALITY_PRESETS = {
-    "fast": {"x264_preset": "veryfast", "x264_crf": "30", "vp9_crf": "40"},
-    "balanced": {"x264_preset": "medium", "x264_crf": "24", "vp9_crf": "32"},
-    "high": {"x264_preset": "slow", "x264_crf": "18", "vp9_crf": "24"},
+    "fast": {"x264_preset": "superfast", "x264_crf": "31", "vp9_crf": "41"},
+    "balanced": {"x264_preset": "veryfast", "x264_crf": "25", "vp9_crf": "34"},
+    "high": {"x264_preset": "faster", "x264_crf": "21", "vp9_crf": "28"},
 }
 PLATFORM_PRESETS = {
     "none": {"label": "Custom"},
@@ -179,6 +179,44 @@ def set_job_process(job_id: str, process: subprocess.Popen | None) -> None:
             job_processes[job_id] = process
 
 
+def get_job(job_id: str) -> Dict[str, str] | None:
+    with jobs_lock:
+        job = jobs.get(job_id)
+        return dict(job) if job else None
+
+
+def normalize_options(form) -> tuple[str, str, str]:
+    output_format = (form.get("output_format") or "").lower().strip()
+    quality_preset = (form.get("quality_preset") or "balanced").lower().strip()
+    platform_preset = (form.get("platform_preset") or "none").lower().strip()
+
+    if output_format not in SUPPORTED_FORMATS:
+        raise ValueError("Invalid output format")
+
+    if quality_preset not in QUALITY_PRESETS:
+        raise ValueError("Invalid quality preset")
+
+    if platform_preset not in PLATFORM_PRESETS:
+        raise ValueError("Invalid platform preset")
+
+    if platform_preset != "none":
+        output_format = "mp4"
+
+    return output_format, quality_preset, platform_preset
+
+
+def validate_filename(filename: str) -> tuple[str, str]:
+    safe_filename = secure_filename(filename)
+    if not safe_filename:
+        raise ValueError("Invalid filename")
+
+    input_ext = Path(safe_filename).suffix.lower().lstrip(".")
+    if input_ext and input_ext not in SUPPORTED_FORMATS:
+        raise ValueError(f"Unsupported input format: {input_ext}")
+
+    return safe_filename, Path(safe_filename).stem
+
+
 def build_video_args(output_format: str, quality_preset: str, platform_preset: str) -> list[str]:
     if platform_preset == "youtube_1080p":
         return [
@@ -262,7 +300,7 @@ def build_video_args(output_format: str, quality_preset: str, platform_preset: s
     preset_cfg = QUALITY_PRESETS.get(quality_preset, QUALITY_PRESETS["balanced"])
 
     if output_format in {"mp4", "mkv", "mov", "m4v"}:
-        return [
+        args = [
             "-c:v",
             "libx264",
             "-preset",
@@ -274,6 +312,9 @@ def build_video_args(output_format: str, quality_preset: str, platform_preset: s
             "-b:a",
             "192k",
         ]
+        if output_format in {"mp4", "mov", "m4v"}:
+            args.extend(["-movflags", "+faststart"])
+        return args
 
     if output_format == "webm":
         return [
@@ -283,6 +324,14 @@ def build_video_args(output_format: str, quality_preset: str, platform_preset: s
             preset_cfg["vp9_crf"],
             "-b:v",
             "0",
+            "-deadline",
+            "good",
+            "-cpu-used",
+            "4",
+            "-row-mt",
+            "1",
+            "-tile-columns",
+            "2",
             "-c:a",
             "libopus",
             "-b:a",
@@ -316,10 +365,15 @@ def convert_job(
 ) -> None:
     output_path = get_unique_output_path(original_stem, output_format)
     output_name = output_path.name
-    temp_path = UPLOADS_DIR / f"{job_id}_output.{output_format}"
+    temp_path = output_path.with_name(f".{job_id}_partial.{output_format}")
     process: subprocess.Popen | None = None
 
     try:
+        if get_job_status(job_id) == "cancelling":
+            set_job(job_id, status="cancelled", message="Conversion cancelled by user")
+            return
+
+        set_job(job_id, status="probing", message="Analyzing input video")
         duration_seconds = probe_duration_seconds(input_path)
         video_args = build_video_args(output_format, quality_preset, platform_preset)
         cmd = [
@@ -356,9 +410,9 @@ def convert_job(
                 if out_time_ms is None:
                     continue
                 percent = min((out_time_ms / (duration_seconds * 1_000_000)) * 100, 100)
-                set_job(job_id, progress=f"{percent:.2f}", status="running")
+                set_job(job_id, progress=f"{percent:.2f}", status="running", message="Converting video")
             elif line.startswith("progress=end"):
-                set_job(job_id, progress="100", status="running")
+                set_job(job_id, progress="100", status="running", message="Finalizing output")
 
         process.wait()
         status_now = get_job_status(job_id)
@@ -369,7 +423,7 @@ def convert_job(
         if process.returncode != 0 or not temp_path.exists():
             raise RuntimeError("ffmpeg failed during conversion")
 
-        shutil.move(str(temp_path), str(output_path))
+        temp_path.replace(output_path)
         set_job(
             job_id,
             progress="100",
@@ -497,54 +551,55 @@ def healthcheck():
 
 @app.post("/api/convert")
 def start_convert():
+    job_id = uuid.uuid4().hex
+    with jobs_lock:
+        jobs[job_id] = {
+            "status": "awaiting_upload",
+            "progress": "0",
+            "message": "Waiting for upload",
+            "output_path": "",
+            "output_name": "",
+        }
+
+    return jsonify({"job_id": job_id})
+
+
+@app.post("/api/upload/<job_id>")
+def upload_and_convert(job_id: str):
     missing = missing_dependencies()
     if missing:
         return jsonify({"error": f"Missing required dependencies: {', '.join(missing)}"}), 503
+
+    job = get_job(job_id)
+    if not job:
+        return jsonify({"error": "Job not found"}), 404
+
+    if job.get("status") != "awaiting_upload":
+        return jsonify({"error": "Job has already started"}), 409
 
     if "file" not in request.files:
         return jsonify({"error": "No file provided"}), 400
 
     file = request.files["file"]
-    output_format = (request.form.get("output_format") or "").lower().strip()
-    quality_preset = (request.form.get("quality_preset") or "balanced").lower().strip()
-    platform_preset = (request.form.get("platform_preset") or "none").lower().strip()
-
     if not file.filename:
         return jsonify({"error": "Please choose a file"}), 400
 
-    if output_format not in SUPPORTED_FORMATS:
-        return jsonify({"error": "Invalid output format"}), 400
+    try:
+        output_format, quality_preset, platform_preset = normalize_options(request.form)
+        filename, stem = validate_filename(file.filename)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
 
-    if quality_preset not in QUALITY_PRESETS:
-        return jsonify({"error": "Invalid quality preset"}), 400
-
-    if platform_preset not in PLATFORM_PRESETS:
-        return jsonify({"error": "Invalid platform preset"}), 400
-
-    if platform_preset != "none":
-        output_format = "mp4"
-
-    filename = secure_filename(file.filename)
-    if not filename:
-        return jsonify({"error": "Invalid filename"}), 400
-
-    input_ext = Path(filename).suffix.lower().lstrip(".")
-    if input_ext and input_ext not in SUPPORTED_FORMATS:
-        return jsonify({"error": f"Unsupported input format: {input_ext}"}), 400
-
-    job_id = uuid.uuid4().hex
-    stem = Path(filename).stem
     input_path = UPLOADS_DIR / f"{job_id}_{filename}"
+    set_job(job_id, status="uploading", message=f"Uploading {filename}")
     file.save(input_path)
 
-    with jobs_lock:
-        jobs[job_id] = {
-            "status": "queued",
-            "progress": "0",
-            "message": "Queued",
-            "output_path": "",
-            "output_name": "",
-        }
+    if get_job_status(job_id) == "cancelling":
+        input_path.unlink(missing_ok=True)
+        set_job(job_id, status="cancelled", message="Upload cancelled")
+        return jsonify({"status": "cancelled", "job_id": job_id})
+
+    set_job(job_id, status="queued", message="Queued for conversion", progress="0")
 
     thread = threading.Thread(
         target=convert_job,
@@ -618,9 +673,7 @@ def complete_upload():
 
 @app.get("/api/progress/<job_id>")
 def get_progress(job_id: str):
-    with jobs_lock:
-        job = jobs.get(job_id)
-
+    job = get_job(job_id)
     if not job:
         return jsonify({"error": "Job not found"}), 404
 
@@ -638,6 +691,10 @@ def cancel_job(job_id: str):
 
     if job.get("status") in {"done", "error", "cancelled"}:
         return jsonify({"status": job.get("status"), "message": "Job already finished"}), 200
+
+    if job.get("status") == "awaiting_upload":
+        set_job(job_id, status="cancelled", message="Upload cancelled")
+        return jsonify({"status": "cancelled"}), 200
 
     set_job(job_id, status="cancelling", message="Cancelling conversion...")
 
