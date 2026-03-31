@@ -6,10 +6,15 @@ import uuid
 from pathlib import Path
 from typing import Dict
 
-from flask import Flask, jsonify, render_template, request, send_file
+from flask import Flask, jsonify, render_template, request, send_file, send_from_directory
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+
+
+@app.route("/favicon.ico")
+def favicon():
+    return send_from_directory(app.static_folder, "favicon.ico", mimetype="image/vnd.microsoft.icon")
 
 SUPPORTED_FORMATS = ["mp4", "mkv", "avi", "mov", "webm", "flv", "wmv", "m4v"]
 QUALITY_PRESETS = {

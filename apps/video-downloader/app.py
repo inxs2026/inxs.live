@@ -10,7 +10,7 @@ from pathlib import Path
 
 JOB_TTL_SECONDS = 3600  # remove completed/errored jobs after 1 hour
 
-from flask import Flask, abort, jsonify, render_template, request, send_file
+from flask import Flask, abort, jsonify, render_template, request, send_file, send_from_directory
 
 try:
     import yt_dlp
@@ -35,6 +35,11 @@ jobs_lock = threading.Lock()
 
 
 URL_PATTERN = re.compile(r"^https?://", re.IGNORECASE)
+
+
+@app.route("/favicon.ico")
+def favicon():
+    return send_from_directory(app.static_folder, "favicon.ico", mimetype="image/vnd.microsoft.icon")
 
 
 def is_youtube_url(url: str) -> bool:
