@@ -609,7 +609,7 @@
         if (!completeResp.ok) throw new Error(completeData.error || 'Could not finalize upload');
 
         activeJobId = completeData.job_id;
-        return pollJob(completeData.job_id, idx, idx, totalFiles);
+        return pollJob(completeData.job_id, idx, idx, totalFiles).then((result) => ({ ...result, jobId: completeData.job_id }));
       } finally {
         activeUploadId = null;
       }
