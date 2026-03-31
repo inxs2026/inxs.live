@@ -178,23 +178,79 @@ def probe_media_streams(input_path: Path) -> list[dict]:
     return [stream for stream in streams if isinstance(stream, dict)]
 
 
-def can_fast_remux(streams: list[dict], output_format: str, platform_preset: str) -> bool:
-    if platform_preset != "none" or output_format not in MP4_FAMILY_FORMATS:
-        return False
+def stream_codec_names(streams: list[dict], codec_type: str) -> list[str]:
+    codecs: list[str] = []
+    for stream in streams:
+        if stream.get("codec_type") != codec_type:
+            continue
+        codec_name = (stream.get("codec_name") or "").lower().strip()
+        if codec_name:
+            codecs.append(codec_name)
+    return codecs
 
-    video_streams = [s for s in streams if s.get("codec_type") == "video"]
-    audio_streams = [s for s in streams if s.get("codec_type") == "audio"]
 
-    if not video_streams:
-        return False
+def build_conversion_plan(streams: list[dict], output_format: str, platform_preset: str) -> dict[str, str]:
+    if platform_preset != "none":
+        return {
+            "mode": "full_transcode",
+            "message": f"Applying {PLATFORM_PRESETS[platform_preset]['label']} preset",
+            "reason": "Platform presets require full transcoding",
+        }
 
-    if any((stream.get("codec_name") or "").lower() not in MP4_COPY_VIDEO_CODECS for stream in video_streams):
-        return False
+    if output_format not in MP4_FAMILY_FORMATS:
+        return {
+            "mode": "full_transcode",
+            "message": "Transcoding for target container",
+            "reason": f"{output_format.upper()} output requires standard transcode path",
+        }
 
-    if any((stream.get("codec_name") or "").lower() not in MP4_COPY_AUDIO_CODECS for stream in audio_streams):
-        return False
+    video_codecs = stream_codec_names(streams, "video")
+    audio_codecs = stream_codec_names(streams, "audio")
 
-    return True
+    if not video_codecs:
+        return {
+            "mode": "full_transcode",
+            "message": "Transcoding video",
+            "reason": "No supported video stream detected for copy path",
+        }
+
+    video_copy_ok = all(codec in MP4_COPY_VIDEO_CODECS for codec in video_codecs)
+    audio_copy_ok = all(codec in MP4_COPY_AUDIO_CODECS for codec in audio_codecs)
+
+    incompatible_reasons: list[str] = []
+    if not video_copy_ok:
+        bad_video = ", ".join(sorted({codec for codec in video_codecs if codec not in MP4_COPY_VIDEO_CODECS}))
+        incompatible_reasons.append(f"incompatible video codec: {bad_video}")
+    if not audio_copy_ok:
+        bad_audio = ", ".join(sorted({codec for codec in audio_codecs if codec not in MP4_COPY_AUDIO_CODECS}))
+        incompatible_reasons.append(f"incompatible audio codec: {bad_audio}")
+
+    if video_copy_ok and audio_copy_ok:
+        return {
+            "mode": "remux",
+            "message": "Container is compatible, remuxing without re-encoding",
+            "reason": "All primary streams are MP4-compatible",
+        }
+
+    if video_copy_ok:
+        return {
+            "mode": "copy_video_transcode_audio",
+            "message": "Video is compatible, transcoding audio only",
+            "reason": "; ".join(incompatible_reasons) or "Audio requires MP4-compatible codec",
+        }
+
+    if audio_copy_ok:
+        return {
+            "mode": "transcode_video_copy_audio",
+            "message": "Audio is compatible, transcoding video only",
+            "reason": "; ".join(incompatible_reasons) or "Video requires MP4-compatible codec",
+        }
+
+    return {
+        "mode": "full_transcode",
+        "message": "Transcoding video and audio",
+        "reason": "; ".join(incompatible_reasons) or "Both video and audio require transcoding",
+    }
 
 
 def parse_progress_timestamp(raw_value: str) -> int | None:
@@ -391,6 +447,59 @@ def build_video_args(output_format: str, quality_preset: str, platform_preset: s
     return []
 
 
+def build_audio_args(output_format: str, platform_preset: str) -> list[str]:
+    if platform_preset == "youtube_1080p":
+        return ["-c:a", "aac", "-b:a", "192k", "-ar", "48000"]
+
+    if platform_preset == "instagram":
+        return ["-c:a", "aac", "-b:a", "128k", "-ar", "44100"]
+
+    if platform_preset == "whatsapp":
+        return ["-c:a", "aac", "-b:a", "96k", "-ar", "32000"]
+
+    if output_format in {"mp4", "mkv", "mov", "m4v"}:
+        return ["-c:a", "aac", "-b:a", "192k"]
+
+    if output_format == "webm":
+        return ["-c:a", "libopus", "-b:a", "128k"]
+
+    return []
+
+
+def build_video_only_args(output_format: str, quality_preset: str) -> list[str]:
+    preset_cfg = QUALITY_PRESETS.get(quality_preset, QUALITY_PRESETS["balanced"])
+
+    if output_format in {"mp4", "mkv", "mov", "m4v"}:
+        return [
+            "-c:v",
+            "libx264",
+            "-preset",
+            preset_cfg["x264_preset"],
+            "-crf",
+            preset_cfg["x264_crf"],
+        ]
+
+    if output_format == "webm":
+        return [
+            "-c:v",
+            "libvpx-vp9",
+            "-crf",
+            preset_cfg["vp9_crf"],
+            "-b:v",
+            "0",
+            "-deadline",
+            "good",
+            "-cpu-used",
+            "4",
+            "-row-mt",
+            "1",
+            "-tile-columns",
+            "2",
+        ]
+
+    return []
+
+
 def get_unique_output_path(base_name: str, output_format: str) -> Path:
     candidate = DOWNLOADS_DIR / f"{base_name}_converted.{output_format}"
     if not candidate.exists():
@@ -467,9 +576,11 @@ def convert_job(
         set_job(job_id, status="probing", message="Analyzing input video")
         duration_seconds = probe_duration_seconds(input_path)
         streams = probe_media_streams(input_path)
+        plan = build_conversion_plan(streams, output_format, platform_preset)
+        set_job(job_id, mode=plan["mode"], reason=plan["reason"])
 
-        if can_fast_remux(streams, output_format, platform_preset):
-            set_job(job_id, status="queued", message="Container is compatible, remuxing without re-encoding", progress="0")
+        if plan["mode"] == "remux":
+            set_job(job_id, status="queued", message=plan["message"], progress="0")
             cmd = [
                 "ffmpeg",
                 "-y",
@@ -491,7 +602,56 @@ def convert_job(
                 str(temp_path),
             ]
             run_ffmpeg_job(job_id, cmd, temp_path, duration_seconds, "Remuxing without re-encoding")
+        elif plan["mode"] == "copy_video_transcode_audio":
+            set_job(job_id, status="queued", message=plan["message"], progress="0")
+            cmd = [
+                "ffmpeg",
+                "-y",
+                "-i",
+                str(input_path),
+                "-map",
+                "0:v",
+                "-map",
+                "0:a?",
+                "-c:v",
+                "copy",
+                *build_audio_args(output_format, platform_preset),
+                "-sn",
+                "-dn",
+                "-movflags",
+                "+faststart",
+                "-progress",
+                "pipe:1",
+                "-nostats",
+                str(temp_path),
+            ]
+            run_ffmpeg_job(job_id, cmd, temp_path, duration_seconds, "Copying video and transcoding audio")
+        elif plan["mode"] == "transcode_video_copy_audio":
+            set_job(job_id, status="queued", message=plan["message"], progress="0")
+            cmd = [
+                "ffmpeg",
+                "-y",
+                "-i",
+                str(input_path),
+                "-map",
+                "0:v",
+                "-map",
+                "0:a?",
+                *build_video_only_args(output_format, quality_preset),
+                "-c:a",
+                "copy",
+                "-sn",
+                "-dn",
+                "-movflags",
+                "+faststart",
+                "-progress",
+                "pipe:1",
+                "-nostats",
+                str(temp_path),
+            ]
+            run_ffmpeg_job(job_id, cmd, temp_path, duration_seconds, "Transcoding video and copying audio")
         else:
+            set_job(job_id, status="queued", message=plan["message"], progress="0")
             video_args = build_video_args(output_format, quality_preset, platform_preset)
             cmd = [
                 "ffmpeg",
