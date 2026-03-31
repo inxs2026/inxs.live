@@ -92,7 +92,7 @@ def _download_worker(job_id: str, url: str, format_choice: str):
         "no_warnings": True,
         "restrictfilenames": False,
         "extractor_args": {
-            "youtube": {"player_client": ["ios", "web_embedded", "mweb"]},
+            "youtube": {"player_client": ["ios", "mweb"]},
             **({"youtubepot-bgutilhttp": {"base_url": [BGUTIL_SERVER_URL]}} if BGUTIL_SERVER_URL else {}),
         },
     }
