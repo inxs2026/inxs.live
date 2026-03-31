@@ -332,7 +332,7 @@
       <aside class="card">
         <div class="card-kicker">Presets</div>
         <h2>Built for common outputs</h2>
-        <p class="panel-text">Leave everything custom, or switch to a delivery preset that forces MP4 and targets a destination profile.</p>
+        <p class="panel-text">Leave everything custom, or switch to a delivery preset that forces MP4 and targets a destination profile. Browser uploads are limited to {{ max_upload_mb }} MB per file.</p>
         <ul class="feature-list">
           <li><strong>YouTube 1080p:</strong> padded 1080p output with H.264 and AAC.</li>
           <li><strong>Instagram:</strong> social-friendly dimensions and bitrate.</li>
@@ -360,6 +360,8 @@
     const dropzone = document.getElementById('dropzone');
     const jobsWrap = document.getElementById('jobsWrap');
     const jobsBody = document.getElementById('jobsBody');
+    const MAX_UPLOAD_MB = {{ max_upload_mb|tojson }};
+    const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
 
     let selectedFiles = [];
     let activeJobId = null;
@@ -438,13 +440,27 @@
       statusEl.className = 'meta';
     };
 
+    const readApiResponse = async (resp) => {
+      const text = await resp.text();
+      if (!text) return {};
+
+      try {
+        return JSON.parse(text);
+      } catch (_err) {
+        if (!resp.ok) {
+          return { error: `Request failed with HTTP ${resp.status}` };
+        }
+        return {};
+      }
+    };
+
     const pollJob = async (jobId, idx, batchIndex, totalFiles) => {
       const started = Date.now();
       return new Promise((resolve) => {
         const timer = setInterval(async () => {
           try {
             const resp = await fetch(`/api/progress/${jobId}`);
-            const data = await resp.json();
+            const data = await readApiResponse(resp);
             if (!resp.ok) throw new Error(data.error || 'Job failed');
 
             const progress = Number(data.progress || 0);
@@ -484,7 +500,7 @@
 
       setJobRow(idx, 'uploading', 0, '-');
       const resp = await fetch('/api/convert', { method: 'POST', body: fd });
-      const data = await resp.json();
+      const data = await readApiResponse(resp);
       if (!resp.ok) throw new Error(data.error || 'Could not start conversion');
 
       activeJobId = data.job_id;
@@ -495,6 +511,13 @@
       e.preventDefault();
       if (!selectedFiles.length) {
         statusEl.textContent = 'Select at least one video file.';
+        return;
+      }
+
+      const oversizedFiles = selectedFiles.filter((file) => file.size > MAX_UPLOAD_BYTES);
+      if (oversizedFiles.length) {
+        statusEl.textContent = `These files exceed the ${MAX_UPLOAD_MB} MB upload limit: ${oversizedFiles.map((file) => file.name).join(', ')}`;
+        statusEl.className = 'meta err';
         return;
       }
 
@@ -562,7 +585,9 @@
       selectedFiles = Array.from(files || []).filter((file) => file.type.startsWith('video/') || file.name.includes('.'));
       renderPickedFiles();
       renderJobsTable();
-      statusEl.textContent = selectedFiles.length ? 'Ready to convert.' : 'Select or drop video files to begin.';
+      statusEl.textContent = selectedFiles.length
+        ? `Ready to convert. Max upload size: ${MAX_UPLOAD_MB} MB per file.`
+        : 'Select or drop video files to begin.';
       statusEl.className = 'meta';
     };
 

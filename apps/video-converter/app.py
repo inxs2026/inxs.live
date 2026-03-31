@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Dict
 
 from flask import Flask, jsonify, render_template, request, send_file, send_from_directory
+from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -29,6 +30,8 @@ PLATFORM_PRESETS = {
     "whatsapp": {"label": "WhatsApp"},
 }
 BASE_DIR = Path(__file__).resolve().parent
+MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "100"))
+app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_MB * 1024 * 1024
 
 
 def resolve_storage_dir(env_name: str, default_path: Path) -> Path:
@@ -322,7 +325,13 @@ def index():
         formats=SUPPORTED_FORMATS,
         quality_presets=list(QUALITY_PRESETS.keys()),
         platform_presets=PLATFORM_PRESETS,
+        max_upload_mb=MAX_UPLOAD_MB,
     )
+
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_request_too_large(_exc: RequestEntityTooLarge):
+    return jsonify({"error": f"File exceeds the {MAX_UPLOAD_MB} MB upload limit"}), 413
 
 
 @app.get("/healthz")
