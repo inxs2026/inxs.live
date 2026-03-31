@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import subprocess
@@ -31,6 +32,11 @@ PLATFORM_PRESETS = {
 }
 BASE_DIR = Path(__file__).resolve().parent
 MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "100"))
+DIRECT_UPLOAD_MB = min(
+    int(os.environ.get("DIRECT_UPLOAD_MB", str(max(MAX_UPLOAD_MB - 5, 1)))),
+    MAX_UPLOAD_MB,
+)
+CHUNK_UPLOAD_MB = max(1, min(int(os.environ.get("CHUNK_UPLOAD_MB", "24")), MAX_UPLOAD_MB))
 app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_MB * 1024 * 1024
 
 
@@ -51,10 +57,74 @@ def missing_dependencies() -> list[str]:
 
 DOWNLOADS_DIR = resolve_storage_dir("DOWNLOAD_DIR", BASE_DIR / "downloads")
 UPLOADS_DIR = resolve_storage_dir("UPLOADS_DIR", BASE_DIR / "uploads")
+CHUNK_UPLOADS_DIR = resolve_storage_dir("CHUNK_UPLOADS_DIR", UPLOADS_DIR / "chunks")
 
 jobs_lock = threading.Lock()
 jobs: Dict[str, Dict[str, str]] = {}
 job_processes: Dict[str, subprocess.Popen] = {}
+
+
+def is_valid_upload_id(upload_id: str) -> bool:
+    sanitized = upload_id.replace("-", "")
+    return bool(sanitized) and sanitized.isalnum()
+
+
+def get_upload_dir(upload_id: str) -> Path:
+    return CHUNK_UPLOADS_DIR / upload_id
+
+
+def get_upload_manifest_path(upload_id: str) -> Path:
+    return get_upload_dir(upload_id) / "manifest.json"
+
+
+def cleanup_upload(upload_id: str) -> None:
+    shutil.rmtree(get_upload_dir(upload_id), ignore_errors=True)
+
+
+def load_upload_manifest(upload_id: str) -> dict:
+    manifest_path = get_upload_manifest_path(upload_id)
+    if not manifest_path.exists():
+        raise RuntimeError("Upload session not found")
+
+    try:
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError("Upload session is corrupt") from exc
+
+    if not isinstance(payload, dict):
+        raise RuntimeError("Upload session is invalid")
+
+    return payload
+
+
+def save_upload_manifest(upload_id: str, filename: str, total_chunks: int) -> None:
+    upload_dir = get_upload_dir(upload_id)
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    manifest_path = get_upload_manifest_path(upload_id)
+    manifest = {"filename": filename, "total_chunks": total_chunks}
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+
+def assemble_upload(upload_id: str, destination: Path) -> str:
+    manifest = load_upload_manifest(upload_id)
+    filename = manifest.get("filename", "")
+    total_chunks = int(manifest.get("total_chunks") or 0)
+    upload_dir = get_upload_dir(upload_id)
+
+    if total_chunks <= 0:
+        raise RuntimeError("Upload session is incomplete")
+
+    with destination.open("wb") as output_handle:
+        for chunk_index in range(total_chunks):
+            chunk_path = upload_dir / f"{chunk_index:06d}.part"
+            if not chunk_path.exists():
+                raise RuntimeError(f"Missing upload chunk {chunk_index + 1} of {total_chunks}")
+
+            with chunk_path.open("rb") as input_handle:
+                shutil.copyfileobj(input_handle, output_handle)
+
+    cleanup_upload(upload_id)
+    return filename
 
 
 def probe_duration_seconds(input_path: Path) -> float:
@@ -318,6 +388,29 @@ def convert_job(
             temp_path.unlink(missing_ok=True)
 
 
+def prepare_uploaded_job(
+    job_id: str,
+    upload_id: str,
+    filename: str,
+    output_format: str,
+    quality_preset: str,
+    platform_preset: str,
+    original_stem: str,
+) -> None:
+    input_path = UPLOADS_DIR / f"{job_id}_{filename}"
+
+    try:
+        set_job(job_id, status="preparing", message="Assembling upload", progress="0")
+        assemble_upload(upload_id, input_path)
+    except Exception as exc:
+        cleanup_upload(upload_id)
+        input_path.unlink(missing_ok=True)
+        set_job(job_id, status="error", message=str(exc))
+        return
+
+    convert_job(job_id, input_path, output_format, quality_preset, platform_preset, original_stem)
+
+
 @app.get("/")
 def index():
     return render_template(
@@ -326,12 +419,71 @@ def index():
         quality_presets=list(QUALITY_PRESETS.keys()),
         platform_presets=PLATFORM_PRESETS,
         max_upload_mb=MAX_UPLOAD_MB,
+        direct_upload_mb=DIRECT_UPLOAD_MB,
+        chunk_upload_mb=CHUNK_UPLOAD_MB,
     )
 
 
 @app.errorhandler(RequestEntityTooLarge)
 def handle_request_too_large(_exc: RequestEntityTooLarge):
     return jsonify({"error": f"File exceeds the {MAX_UPLOAD_MB} MB upload limit"}), 413
+
+
+@app.post("/api/upload-chunk")
+def upload_chunk():
+    if "chunk" not in request.files:
+        return jsonify({"error": "No chunk provided"}), 400
+
+    upload_id = (request.form.get("upload_id") or "").strip()
+    filename = secure_filename(request.form.get("filename") or "")
+
+    try:
+        chunk_index = int(request.form.get("chunk_index") or "-1")
+        total_chunks = int(request.form.get("total_chunks") or "0")
+    except ValueError:
+        return jsonify({"error": "Invalid chunk metadata"}), 400
+
+    if not is_valid_upload_id(upload_id):
+        return jsonify({"error": "Invalid upload id"}), 400
+
+    if not filename:
+        return jsonify({"error": "Invalid filename"}), 400
+
+    if total_chunks <= 0 or chunk_index < 0 or chunk_index >= total_chunks:
+        return jsonify({"error": "Invalid chunk numbering"}), 400
+
+    input_ext = Path(filename).suffix.lower().lstrip(".")
+    if input_ext and input_ext not in SUPPORTED_FORMATS:
+        return jsonify({"error": f"Unsupported input format: {input_ext}"}), 400
+
+    upload_dir = get_upload_dir(upload_id)
+    upload_dir.mkdir(parents=True, exist_ok=True)
+
+    manifest_path = get_upload_manifest_path(upload_id)
+    if manifest_path.exists():
+        try:
+            manifest = load_upload_manifest(upload_id)
+        except RuntimeError as exc:
+            return jsonify({"error": str(exc)}), 400
+        if manifest.get("filename") != filename or int(manifest.get("total_chunks") or 0) != total_chunks:
+            return jsonify({"error": "Upload session does not match file metadata"}), 400
+    else:
+        save_upload_manifest(upload_id, filename, total_chunks)
+
+    chunk = request.files["chunk"]
+    chunk_path = upload_dir / f"{chunk_index:06d}.part"
+    chunk.save(chunk_path)
+
+    return jsonify({"ok": True, "chunk_index": chunk_index, "total_chunks": total_chunks})
+
+
+@app.post("/api/cancel-upload/<upload_id>")
+def cancel_upload(upload_id: str):
+    if not is_valid_upload_id(upload_id):
+        return jsonify({"error": "Invalid upload id"}), 400
+
+    cleanup_upload(upload_id)
+    return jsonify({"status": "cancelled"}), 200
 
 
 @app.get("/healthz")
@@ -397,6 +549,66 @@ def start_convert():
     thread = threading.Thread(
         target=convert_job,
         args=(job_id, input_path, output_format, quality_preset, platform_preset, stem),
+        daemon=True,
+    )
+    thread.start()
+
+    return jsonify({"job_id": job_id})
+
+
+@app.post("/api/complete-upload")
+def complete_upload():
+    missing = missing_dependencies()
+    if missing:
+        return jsonify({"error": f"Missing required dependencies: {', '.join(missing)}"}), 503
+
+    upload_id = (request.form.get("upload_id") or "").strip()
+    filename = secure_filename(request.form.get("filename") or "")
+    output_format = (request.form.get("output_format") or "").lower().strip()
+    quality_preset = (request.form.get("quality_preset") or "balanced").lower().strip()
+    platform_preset = (request.form.get("platform_preset") or "none").lower().strip()
+
+    if not is_valid_upload_id(upload_id):
+        return jsonify({"error": "Invalid upload id"}), 400
+
+    if not filename:
+        return jsonify({"error": "Invalid filename"}), 400
+
+    if output_format not in SUPPORTED_FORMATS:
+        return jsonify({"error": "Invalid output format"}), 400
+
+    if quality_preset not in QUALITY_PRESETS:
+        return jsonify({"error": "Invalid quality preset"}), 400
+
+    if platform_preset not in PLATFORM_PRESETS:
+        return jsonify({"error": "Invalid platform preset"}), 400
+
+    if platform_preset != "none":
+        output_format = "mp4"
+
+    try:
+        manifest = load_upload_manifest(upload_id)
+    except RuntimeError as exc:
+        return jsonify({"error": str(exc)}), 400
+
+    if manifest.get("filename") != filename:
+        return jsonify({"error": "Upload metadata mismatch"}), 400
+
+    job_id = uuid.uuid4().hex
+    stem = Path(filename).stem
+
+    with jobs_lock:
+        jobs[job_id] = {
+            "status": "queued",
+            "progress": "0",
+            "message": "Queued",
+            "output_path": "",
+            "output_name": "",
+        }
+
+    thread = threading.Thread(
+        target=prepare_uploaded_job,
+        args=(job_id, upload_id, filename, output_format, quality_preset, platform_preset, stem),
         daemon=True,
     )
     thread.start()

@@ -332,7 +332,7 @@
       <aside class="card">
         <div class="card-kicker">Presets</div>
         <h2>Built for common outputs</h2>
-        <p class="panel-text">Leave everything custom, or switch to a delivery preset that forces MP4 and targets a destination profile. Browser uploads are limited to {{ max_upload_mb }} MB per file.</p>
+        <p class="panel-text">Leave everything custom, or switch to a delivery preset that forces MP4 and targets a destination profile. Files over {{ direct_upload_mb }} MB upload in {{ chunk_upload_mb }} MB chunks so they can pass through Cloudflare.</p>
         <ul class="feature-list">
           <li><strong>YouTube 1080p:</strong> padded 1080p output with H.264 and AAC.</li>
           <li><strong>Instagram:</strong> social-friendly dimensions and bitrate.</li>
@@ -361,10 +361,14 @@
     const jobsWrap = document.getElementById('jobsWrap');
     const jobsBody = document.getElementById('jobsBody');
     const MAX_UPLOAD_MB = {{ max_upload_mb|tojson }};
-    const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
+    const DIRECT_UPLOAD_MB = {{ direct_upload_mb|tojson }};
+    const CHUNK_UPLOAD_MB = {{ chunk_upload_mb|tojson }};
+    const DIRECT_UPLOAD_BYTES = DIRECT_UPLOAD_MB * 1024 * 1024;
+    const CHUNK_UPLOAD_BYTES = CHUNK_UPLOAD_MB * 1024 * 1024;
 
     let selectedFiles = [];
     let activeJobId = null;
+    let activeUploadId = null;
     let batchCancelled = false;
     let batchStartedAt = 0;
 
@@ -492,6 +496,10 @@
     };
 
     const uploadAndConvert = async (file, idx, totalFiles) => {
+      if (file.size > DIRECT_UPLOAD_BYTES) {
+        return uploadLargeFile(file, idx, totalFiles);
+      }
+
       const fd = new FormData();
       fd.append('file', file);
       fd.append('output_format', outputFormat.value);
@@ -507,17 +515,60 @@
       return pollJob(data.job_id, idx, idx, totalFiles);
     };
 
+    const uploadLargeFile = async (file, idx, totalFiles) => {
+      const uploadId = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      const totalChunks = Math.ceil(file.size / CHUNK_UPLOAD_BYTES);
+      activeUploadId = uploadId;
+
+      try {
+        for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex += 1) {
+          if (batchCancelled) {
+            await fetch(`/api/cancel-upload/${uploadId}`, { method: 'POST' }).catch(() => {});
+            throw new Error('Upload cancelled');
+          }
+
+          const start = chunkIndex * CHUNK_UPLOAD_BYTES;
+          const end = Math.min(file.size, start + CHUNK_UPLOAD_BYTES);
+          const chunk = file.slice(start, end);
+          const fd = new FormData();
+          fd.append('upload_id', uploadId);
+          fd.append('filename', file.name);
+          fd.append('chunk_index', String(chunkIndex));
+          fd.append('total_chunks', String(totalChunks));
+          fd.append('chunk', chunk, file.name);
+
+          const resp = await fetch('/api/upload-chunk', { method: 'POST', body: fd });
+          const data = await readApiResponse(resp);
+          if (!resp.ok) throw new Error(data.error || 'Could not upload chunk');
+
+          const uploadPct = ((chunkIndex + 1) / totalChunks) * 100;
+          setJobRow(idx, 'uploading', uploadPct, '-');
+          statusEl.textContent = `Uploading ${file.name} in ${CHUNK_UPLOAD_MB} MB chunks (${chunkIndex + 1}/${totalChunks})`;
+          setProgress(((idx + (uploadPct / 100) * 0.15) / totalFiles) * 100);
+        }
+
+        const completeFd = new FormData();
+        completeFd.append('upload_id', uploadId);
+        completeFd.append('filename', file.name);
+        completeFd.append('output_format', outputFormat.value);
+        completeFd.append('quality_preset', qualityPreset.value);
+        completeFd.append('platform_preset', platformPreset.value);
+
+        const completeResp = await fetch('/api/complete-upload', { method: 'POST', body: completeFd });
+        const completeData = await readApiResponse(completeResp);
+        if (!completeResp.ok) throw new Error(completeData.error || 'Could not finalize upload');
+
+        activeJobId = completeData.job_id;
+        return pollJob(completeData.job_id, idx, idx, totalFiles);
+      } finally {
+        activeUploadId = null;
+      }
+    };
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!selectedFiles.length) {
         statusEl.textContent = 'Select at least one video file.';
-        return;
-      }
-
-      const oversizedFiles = selectedFiles.filter((file) => file.size > MAX_UPLOAD_BYTES);
-      if (oversizedFiles.length) {
-        statusEl.textContent = `These files exceed the ${MAX_UPLOAD_MB} MB upload limit: ${oversizedFiles.map((file) => file.name).join(', ')}`;
-        statusEl.className = 'meta err';
         return;
       }
 
@@ -564,6 +615,7 @@
       }
 
       activeJobId = null;
+      activeUploadId = null;
       convertBtn.disabled = false;
       cancelBtn.disabled = true;
       updateBatchEta(100);
@@ -572,9 +624,13 @@
     cancelBtn.addEventListener('click', async () => {
       batchCancelled = true;
       cancelBtn.disabled = true;
-      if (!activeJobId) return;
       try {
-        await fetch(`/api/cancel/${activeJobId}`, { method: 'POST' });
+        if (activeUploadId) {
+          await fetch(`/api/cancel-upload/${activeUploadId}`, { method: 'POST' });
+          activeUploadId = null;
+        } else if (activeJobId) {
+          await fetch(`/api/cancel/${activeJobId}`, { method: 'POST' });
+        }
       } catch (err) {
         statusEl.textContent = err.message;
         statusEl.className = 'meta err';
@@ -586,7 +642,7 @@
       renderPickedFiles();
       renderJobsTable();
       statusEl.textContent = selectedFiles.length
-        ? `Ready to convert. Max upload size: ${MAX_UPLOAD_MB} MB per file.`
+        ? `Ready to convert. Files over ${DIRECT_UPLOAD_MB} MB upload in ${CHUNK_UPLOAD_MB} MB chunks.`
         : 'Select or drop video files to begin.';
       statusEl.className = 'meta';
     };
