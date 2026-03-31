@@ -28,12 +28,26 @@ PLATFORM_PRESETS = {
     "instagram": {"label": "Instagram"},
     "whatsapp": {"label": "WhatsApp"},
 }
-DOWNLOADS_DIR = Path(os.environ.get("DOWNLOAD_DIR", str(Path.home() / "Downloads"))).expanduser()
-UPLOADS_DIR = Path(
-    os.environ.get("UPLOADS_DIR", str(Path(__file__).resolve().parent / "uploads"))
-).expanduser()
-DOWNLOADS_DIR.mkdir(parents=True, exist_ok=True)
-UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+BASE_DIR = Path(__file__).resolve().parent
+
+
+def resolve_storage_dir(env_name: str, default_path: Path) -> Path:
+    configured_path = os.environ.get(env_name)
+    directory = Path(configured_path).expanduser() if configured_path else default_path
+    directory.mkdir(parents=True, exist_ok=True)
+
+    if not os.access(directory, os.W_OK):
+        raise RuntimeError(f"{env_name} is not writable: {directory}")
+
+    return directory
+
+
+def missing_dependencies() -> list[str]:
+    return [name for name in ("ffmpeg", "ffprobe") if shutil.which(name) is None]
+
+
+DOWNLOADS_DIR = resolve_storage_dir("DOWNLOAD_DIR", BASE_DIR / "downloads")
+UPLOADS_DIR = resolve_storage_dir("UPLOADS_DIR", BASE_DIR / "uploads")
 
 jobs_lock = threading.Lock()
 jobs: Dict[str, Dict[str, str]] = {}
@@ -313,11 +327,19 @@ def index():
 
 @app.get("/healthz")
 def healthcheck():
+    missing = missing_dependencies()
+    if missing:
+        return jsonify({"status": "error", "missing": missing}), 503
+
     return jsonify({"status": "ok"})
 
 
 @app.post("/api/convert")
 def start_convert():
+    missing = missing_dependencies()
+    if missing:
+        return jsonify({"error": f"Missing required dependencies: {', '.join(missing)}"}), 503
+
     if "file" not in request.files:
         return jsonify({"error": "No file provided"}), 400
 

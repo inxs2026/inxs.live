@@ -1,5 +1,5 @@
 import os
-import shlex
+import shutil
 import subprocess
 import threading
 import tkinter as tk
@@ -8,6 +8,7 @@ from tkinter import filedialog, messagebox, ttk
 
 
 SUPPORTED_FORMATS = ["mp4", "mkv", "avi", "mov", "webm", "flv", "wmv", "m4v"]
+BASE_DIR = Path(__file__).resolve().parent
 
 
 def parse_progress_timestamp(raw_value: str) -> int | None:
@@ -19,6 +20,39 @@ def parse_progress_timestamp(raw_value: str) -> int | None:
         return int(value)
     except ValueError:
         return None
+
+
+def resolve_download_dir() -> Path:
+    preferred = Path.home() / "Downloads"
+    fallback = BASE_DIR / "downloads"
+
+    for candidate in (preferred, fallback):
+        try:
+            candidate.mkdir(parents=True, exist_ok=True)
+        except OSError:
+            continue
+
+        if os.access(candidate, os.W_OK):
+            return candidate
+
+    raise RuntimeError("No writable output directory is available.")
+
+
+def get_unique_output_path(downloads_dir: Path, base_name: str, output_format: str) -> Path:
+    candidate = downloads_dir / f"{base_name}_converted.{output_format}"
+    if not candidate.exists():
+        return candidate
+
+    idx = 1
+    while True:
+        candidate = downloads_dir / f"{base_name}_converted_{idx}.{output_format}"
+        if not candidate.exists():
+            return candidate
+        idx += 1
+
+
+def missing_dependencies() -> list[str]:
+    return [name for name in ("ffmpeg", "ffprobe") if shutil.which(name) is None]
 
 
 class VideoConverterApp:
@@ -36,8 +70,7 @@ class VideoConverterApp:
         self.progress_var = tk.DoubleVar(value=0.0)
         self.is_converting = False
 
-        self.downloads_dir = Path.home() / "Downloads"
-        self.downloads_dir.mkdir(parents=True, exist_ok=True)
+        self.downloads_dir = resolve_download_dir()
 
         self._build_ui()
 
@@ -136,6 +169,7 @@ class VideoConverterApp:
 
         input_path = Path(self.input_path_var.get().strip()).expanduser()
         output_fmt = self.output_format_var.get().strip().lower()
+        missing = missing_dependencies()
 
         if not input_path.exists() or not input_path.is_file():
             messagebox.showerror("Error", "Please select a valid input file.")
@@ -145,7 +179,14 @@ class VideoConverterApp:
             messagebox.showerror("Error", "Please select a valid output format.")
             return
 
-        output_path = self.downloads_dir / f"{input_path.stem}_converted.{output_fmt}"
+        if missing:
+            messagebox.showerror(
+                "Error",
+                f"Missing required dependencies: {', '.join(missing)}",
+            )
+            return
+
+        output_path = get_unique_output_path(self.downloads_dir, input_path.stem, output_fmt)
 
         if input_path.suffix.lower().lstrip(".") == output_fmt:
             should_continue = messagebox.askyesno(
