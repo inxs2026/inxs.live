@@ -33,76 +33,76 @@
 
 ```
 ~/.openclaw/workspace/
-├── memory/
-│   ├── YYYY-MM-DD.md
-│   ├── [[memory/active-tasks.md]]
-│   ├── [[memory/lessons.md]]
-│   ├── [[memory/projects.md]]
-│   ├── [[memory/reminders.md]]
-│   └── [[memory/self-review.md]]
+├── memory/                        — Daily logs + structured memory
+│   ├── YYYY-MM-DD.md              — Daily conversation logs
+│   ├── [[memory/active-tasks.md]]     — Current work in progress
+│   ├── [[memory/lessons.md]]          — Mistakes and learnings
+│   ├── [[memory/projects.md]]          — Long-term initiatives
+│   ├── [[memory/reminders.md]]         — Carlo's reminders
+│   └── [[memory/self-review.md]]       — Periodic self-assessment
 │
-├── [[scripts/]]
-│   ├── [[scripts/morning_briefing_with_reminders.py]]
-│   ├── [[scripts/stock_watchlist.py]]
-│   ├── [[scripts/heartbeat_check.sh]]
-│   ├── [[scripts/send_email_pdf.py]]
-│   ├── [[scripts/parse_drf.py]]
-│   ├── [[scripts/verify_picks.py]]
-│   ├── [[scripts/pp_colors.py]]
-│   ├── [[scripts/picks_pdf_template.py]]
-│   ├── [[scripts/pdf_to_docx.py]]
-│   ├── [[scripts/track_results.py]]
-│   ├── [[scripts/auto_cleanup.sh]]
-│   └── [[scripts/backup_charlie.sh]]
+├── [[scripts/]]                      — All executable scripts (33 files)
+│   ├── [[scripts/morning_briefing_with_reminders.py]] — 7AM daily briefing
+│   ├── [[scripts/stock_watchlist.py]]               — 10AM + 3PM stock reports
+│   ├── [[scripts/heartbeat_check.sh]]               — Hourly health checks
+│   ├── [[scripts/send_email_pdf.py]]               — Email PDF attachments
+│   ├── [[scripts/parse_drf.py]]                   — Parse DRF PDFs
+│   ├── [[scripts/verify_picks.py]]                — Verify picks before email
+│   ├── [[scripts/pp_colors.py]]                   — Post position badge colors
+│   ├── [[scripts/picks_pdf_template.py]]           — Picks PDF template
+│   ├── [[scripts/pdf_to_docx.py]]                 — PDF to Word converter
+│   ├── [[scripts/track_results.py]]                — Track racing results
+│   ├── [[scripts/auto_cleanup.sh]]                 — Daily cleanup
+│   └── [[scripts/backup_charlie.sh]]              — Workspace backup
 │
-├── [[docs/]]
-│   ├── [[docs/CRON-JOBS.md]]
-│   ├── [[docs/HEARTBEAT-GUIDE.md]]
-│   ├── [[docs/VERIFICATION.md]]
-│   ├── [[docs/WORKFLOWS.md]]
-│   ├── [[docs/SKILLS-GUIDE.md]]
-│   ├── [[docs/AUTONOMY-FRAMEWORK.md]]
-│   ├── [[docs/REMINDERS-GUIDE.md]]
-│   ├── [[docs/WORKSPACE-SITEMAP.md]]
-│   └── [[docs/drf_guide/]]
+├── [[docs/]]                        — Documentation
+│   ├── [[docs/CRON-JOBS.md]]              — Cron job schedules
+│   ├── [[docs/HEARTBEAT-GUIDE.md]]      — Heartbeat documentation
+│   ├── [[docs/VERIFICATION.md]]          — Pre-delivery checks
+│   ├── [[docs/WORKFLOWS.md]]            — Standard operating procedures
+│   ├── [[docs/SKILLS-GUIDE.md]]         — Skill development
+│   ├── [[docs/AUTONOMY-FRAMEWORK.md]]  — Autonomy implementation
+│   ├── [[docs/REMINDERS-GUIDE.md]]       — How to set reminders
+│   ├── [[docs/WORKSPACE-SITEMAP.md]]   — This document
+│   └── [[docs/drf_guide/]]             — DRF reference images
 │
-├── [[racing/]]
+├── [[racing/]]                      — Horse racing analysis
 │   ├── [[racing/methodology/]]
-│   │   ├── [[TOP-3-PICKS-METHODOLOGY.md]]
-│   │   ├── [[racing/methodology/CLAIMING-PROSPECTS-CRITERIA.md]]
-│   │   ├── [[racing/methodology/TOP-3-PICKS-CRITERIA.md]]
-│   │   ├── [[racing/methodology/rockyta_breeding_analysis.md]]
-│   │   └── [[racing/methodology/truenicks_checklist.md]]
-│   └── [[racing/data/]]
+│   │   ├── [[TOP-3-PICKS-METHODOLOGY.md]]                     — Official picks process
+│   │   ├── [[racing/methodology/CLAIMING-PROSPECTS-CRITERIA.md]] — Horses to claim (buy)
+│   │   ├── [[racing/methodology/TOP-3-PICKS-CRITERIA.md]]      — Legacy criteria
+│   │   ├── [[racing/methodology/rockyta_breeding_analysis.md]]  — Breeding analysis
+│   │   └── [[racing/methodology/truenicks_checklist.md]]      — Nickings checklist
+│   └── [[racing/data/]]              — Historical race data (Feb-Apr 2026)
 │
-├── [[skills/]]
-│   ├── [[skills/gcalcli-calendar/]]
-│   ├── [[skills/mcporter/]]
-│   ├── [[skills/porteden-email/]]
-│   ├── [[skills/ralph-loops/]]
-│   └── [[skills/regex-patterns/]]
+├── [[skills/]]                     — Workspace-local skills
+│   ├── [[skills/gcalcli-calendar/]]  — Google Calendar
+│   ├── [[skills/mcporter/]]         — TrackData MCP server
+│   ├── [[skills/porteden-email/]]    — Email
+│   ├── [[skills/ralph-loops/]]       — Ralph loops
+│   └── [[skills/regex-patterns/]]   — Regex patterns
 │
-├── [[tools/]]
-│   ├── [[tools/inxs-live/]]
-│   ├── [[tools/pdf2docx-web/]]
-│   └── [[tools/holographic-memory/]]
+├── [[tools/]]                      — Web projects + tools
+│   ├── [[tools/inxs-live/]]        — inxs.live landing page (Vercel)
+│   ├── [[tools/pdf2docx-web/]]     — PDF to Word web app (port 5050)
+│   └── [[tools/holographic-memory/]] — Experimental (not yet used)
 │
-├── [[config/]]
-│   ├── [[config/github_token.txt]]
-│   ├── [[config/mcporter.json]]
-│   └── [[config/pi_ssh.env]]
+├── [[config/]]                     — Credentials + keys
+│   ├── [[config/github_token.txt]]  — GitHub PAT
+│   ├── [[config/mcporter.json]]    — TrackData MCP config
+│   └── [[config/pi_ssh.env]]       — Umbrel Pi SSH credentials
 │
-├── [[archive/]]
-│   └── [[archive/racing-scripts/]]
+├── [[archive/]]                    — Old/superseded files
+│   └── [[archive/racing-scripts/]]  — 50 old racing scripts + data
 │
-├── [[AGENTS.md]]
-├── [[SOUL.md]]
-├── [[USER.md]]
-├── [[MEMORY.md]]
-├── [[IDENTITY.md]]
-├── [[HEARTBEAT.md]]
-├── [[TOOLS.md]]
-└── [[TOP-3-PICKS-METHODOLOGY.md]]
+├── [[AGENTS.md]]                   — How I work, startup, rules
+├── [[SOUL.md]]                     — My personality, communication style
+├── [[USER.md]]                     — Carlo's info, location, preferences
+├── [[MEMORY.md]]                   — Long-term curated memory
+├── [[IDENTITY.md]]                  — My name, avatar, persona
+├── [[HEARTBEAT.md]]                — Quick health checks
+├── [[TOOLS.md]]                   — Tool configs, SSH hosts, APIs
+└── [[TOP-3-PICKS-METHODOLOGY.md]] — Racing picks process
 ```
 
 ### memory/
