@@ -31,6 +31,80 @@
 
 ## Folder Structure
 
+```
+~/.openclaw/workspace/
+├── memory/
+│   ├── YYYY-MM-DD.md
+│   ├── [[memory/active-tasks.md]]
+│   ├── [[memory/lessons.md]]
+│   ├── [[memory/projects.md]]
+│   ├── [[memory/reminders.md]]
+│   └── [[memory/self-review.md]]
+│
+├── [[scripts/]]
+│   ├── [[scripts/morning_briefing_with_reminders.py]]
+│   ├── [[scripts/stock_watchlist.py]]
+│   ├── [[scripts/heartbeat_check.sh]]
+│   ├── [[scripts/send_email_pdf.py]]
+│   ├── [[scripts/parse_drf.py]]
+│   ├── [[scripts/verify_picks.py]]
+│   ├── [[scripts/pp_colors.py]]
+│   ├── [[scripts/picks_pdf_template.py]]
+│   ├── [[scripts/pdf_to_docx.py]]
+│   ├── [[scripts/track_results.py]]
+│   ├── [[scripts/auto_cleanup.sh]]
+│   └── [[scripts/backup_charlie.sh]]
+│
+├── [[docs/]]
+│   ├── [[docs/CRON-JOBS.md]]
+│   ├── [[docs/HEARTBEAT-GUIDE.md]]
+│   ├── [[docs/VERIFICATION.md]]
+│   ├── [[docs/WORKFLOWS.md]]
+│   ├── [[docs/SKILLS-GUIDE.md]]
+│   ├── [[docs/AUTONOMY-FRAMEWORK.md]]
+│   ├── [[docs/REMINDERS-GUIDE.md]]
+│   ├── [[docs/WORKSPACE-SITEMAP.md]]
+│   └── [[docs/drf_guide/]]
+│
+├── [[racing/]]
+│   ├── [[racing/methodology/]]
+│   │   ├── [[TOP-3-PICKS-METHODOLOGY.md]]
+│   │   ├── [[racing/methodology/CLAIMING-PROSPECTS-CRITERIA.md]]
+│   │   ├── [[racing/methodology/TOP-3-PICKS-CRITERIA.md]]
+│   │   ├── [[racing/methodology/rockyta_breeding_analysis.md]]
+│   │   └── [[racing/methodology/truenicks_checklist.md]]
+│   └── [[racing/data/]]
+│
+├── [[skills/]]
+│   ├── [[skills/gcalcli-calendar/]]
+│   ├── [[skills/mcporter/]]
+│   ├── [[skills/porteden-email/]]
+│   ├── [[skills/ralph-loops/]]
+│   └── [[skills/regex-patterns/]]
+│
+├── [[tools/]]
+│   ├── [[tools/inxs-live/]]
+│   ├── [[tools/pdf2docx-web/]]
+│   └── [[tools/holographic-memory/]]
+│
+├── [[config/]]
+│   ├── [[config/github_token.txt]]
+│   ├── [[config/mcporter.json]]
+│   └── [[config/pi_ssh.env]]
+│
+├── [[archive/]]
+│   └── [[archive/racing-scripts/]]
+│
+├── [[AGENTS.md]]
+├── [[SOUL.md]]
+├── [[USER.md]]
+├── [[MEMORY.md]]
+├── [[IDENTITY.md]]
+├── [[HEARTBEAT.md]]
+├── [[TOOLS.md]]
+└── [[TOP-3-PICKS-METHODOLOGY.md]]
+```
+
 ### memory/
 
 Daily logs and structured memory
