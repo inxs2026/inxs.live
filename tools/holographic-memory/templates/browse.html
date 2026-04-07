@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Browse — Holographic Memory</title>
+    <link rel="stylesheet" href="/static/hm.css">
+</head>
+<body>
+<nav>
+    <span class="logo">🧠 <a href="/">Holographic Memory</a></span>
+    <a href="/">Home</a>
+    <a href="/browse">Browse</a>
+    <a href="/graph">Graph</a>
+</nav>
+
+<div class="container">
+    <div class="filter-bar">
+        <form method="get" action="/browse">
+            <label>Topic:
+                <select name="topic" onchange="this.form.submit()">
+                    <option value="">All</option>
+                    {% for t, _ in topics|sort %}
+                    <option value="{{ t }}" {{ 'selected' if topic==t }}>{{ t.replace("_"," ")|title }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>Date: <input type="text" name="date" value="{{ date }}" placeholder="YYYY-MM-DD"></label>
+            <button type="submit">Filter</button>
+            {% if topic or date %}
+            <a href="/browse" class="clear-btn">Clear</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <p class="result-count">{{ entries|length }} files</p>
+
+    <div class="entries-list">
+        {% for entry in entries %}
+        <div class="entry-card">
+            <div class="entry-header">
+                <a href="/file/{{ entry.path|urlencode }}" class="entry-title">{{ entry.title }}</a>
+                <span class="entry-date">{{ entry.date or "—" }}</span>
+            </div>
+            <div class="entry-topics">
+                {% for t in entry.topics %}
+                <a href="/browse?topic={{ t }}" class="topic-chip">{{ t.replace("_"," ")|title }}</a>
+                {% endfor %}
+            </div>
+            <p class="entry-summary">{{ entry.summary }}</p>
+            <div class="entry-entities">
+                {% for e in entry.entities[:8] %}
+                <span class="entity-tag">{{ e[:40] }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+</body>
+</html>

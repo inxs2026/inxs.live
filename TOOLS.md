@@ -24,6 +24,9 @@ Things like:
 ### SSH
 
 - home-server → 192.168.1.100, user: admin
+- umbrel-pi → 10.0.0.45, user: umbrel (credentials in config/pi_ssh.env)
+  - Connects via: `sshpass -p 'damatopi' ssh -o StrictHostKeyChecking=no umbrel@10.0.0.45`
+  - Full sudo access (passwordless sudo enabled Apr 7, 2026)
 
 ### TTS
 
@@ -42,7 +45,7 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 When Carlo asks for race analysis, ALWAYS reference these files FIRST:
 
 ### **TOP 3 PICKS** (Betting Analysis)
-- **File:** `TOP-3-PICKS-METHODOLOGY.md` ⭐ **OFFICIAL PROCESS**
+- **File:** [[TOP-3-PICKS-METHODOLOGY.md]] ⭐ **OFFICIAL PROCESS**
 - **When:** Analyzing races for betting picks
 - **Process:**
   1. Calculate Beyer averages (last 3) for ALL contenders
@@ -53,7 +56,7 @@ When Carlo asks for race analysis, ALWAYS reference these files FIRST:
 - **System working well - follow it exactly!**
 
 ### **CLAIMING PROSPECTS** (Horses to Buy)
-- **File:** `CLAIMING-PROSPECTS-CRITERIA.md`  
+- **File:** [[racing/methodology/CLAIMING-PROSPECTS-CRITERIA.md]]  
 - **When:** Identifying horses worth claiming (buying out of race)
 - **Key:** Soundness FIRST (workout/race patterns), NOT purchase price!
 - **Critical:** Claiming prospects ≠ betting picks
@@ -121,6 +124,30 @@ When Carlo asks for race analysis, ALWAYS reference these files FIRST:
 - **Auto mode:** off (text by default, voice on request only)
 - **Note:** Matches Charlie's warm, empathetic female personality
 - **Changed:** Feb 15, 2026 - installed edge-tts, fixed voice (SaraNeural didn't exist)
+
+---
+
+## PDF Parsing
+
+### Post Position Colors — ALWAYS IMPORT, NEVER HARDCODE
+- **File:** `scripts/pp_colors.py`
+- **Usage:** `from scripts.pp_colors import PP_COLORS, PP_TEXT, pp_badge_style, pp_text_hex, pp_border_color`
+- **All picks PDF scripts MUST import from here** — never hardcode PP colours again
+- Covers PP #1–12 with correct bg + text colours (e.g. #6=black/yellow, #7=orange/black, #12=lime/black)
+
+### LiteParse ⭐ Primary DRF Parser (installed March 20, 2026)
+- **CLI:** `lit parse <file.pdf> --format text`
+- **Better than pdftotext:** Preserves spatial column layout — PP#, ML odds, horse names stay separated
+- **Fixes:** The "27-5 HorseName" PP/ML ambiguity bug (March 1, 2026 incident)
+- **Use for:** All DRF PDFs before handicapping
+
+### PP COLOURS — ALWAYS USE THIS FILE (updated April 3, 2026)
+- **File:** `/home/damato/.hermes/skills/racing/saddlecloth.md` — SINGLE SOURCE OF TRUTH
+- **Template:** `scripts/picks_pdf_template.py` — copy this for every new race day
+- **NEVER hardcode PP colours** — always import from the saddlecloth file
+- Key colours: #6=black bg/YELLOW text. #7=orange bg/black text. #12=lime green bg/black text
+- **IMPORTANT:** This is the SADDLESOTH chart — different from old pp_colors.py!
+- **ALWAYS visually verify the PDF** before sending — open it, check the badges look right
 
 ---
 

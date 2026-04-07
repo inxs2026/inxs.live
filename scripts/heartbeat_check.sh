@@ -129,6 +129,67 @@ if [ "$HOUR" -ge 19 ]; then
 fi
 
 #############################################
+# 7. Calendar Reminders (every heartbeat)
+#############################################
+# Check for events in the next 2 hours and flag them
+NOW_EPOCH=$(date +%s)
+TWO_HOURS=$((NOW_EPOCH + 7200))
+REMINDER_FLAG_DIR=".calendar-reminders"
+mkdir -p "$REMINDER_FLAG_DIR"
+
+# Get agenda for today and tomorrow
+CAL_OUTPUT=$(gcalcli --nocolor agenda today tomorrow 2>/dev/null)
+
+if [ -n "$CAL_OUTPUT" ] && [ "$CAL_OUTPUT" != "No Events Found..." ]; then
+    # Parse each event and check if it's within 2 hours
+    while IFS= read -r line; do
+        # Match lines with time like "8:30am" or "2:00pm"
+        if echo "$line" | grep -qE '[0-9]+:[0-9]+(am|pm)'; then
+            # Extract date and time
+            EVENT_DATE=$(echo "$line" | grep -oE '^[A-Z][a-z]+ [A-Z][a-z]+ [0-9]+' || echo "")
+            EVENT_TIME=$(echo "$line" | grep -oE '[0-9]+:[0-9]+(am|pm)')
+            EVENT_TITLE=$(echo "$line" | sed 's/.*[0-9]\+:[0-9]\+[apm]\+[[:space:]]*//')
+
+            if [ -n "$EVENT_TIME" ] && [ -n "$EVENT_TITLE" ]; then
+                # Build datetime string for conversion
+                YEAR=$(date +%Y)
+                EVENT_EPOCH=$(date -d "$EVENT_DATE $YEAR $EVENT_TIME" +%s 2>/dev/null)
+
+                if [ -n "$EVENT_EPOCH" ]; then
+                    TIME_UNTIL=$((EVENT_EPOCH - NOW_EPOCH))
+                    FLAG_KEY=$(echo "${EVENT_DATE}_${EVENT_TIME}_${EVENT_TITLE}" | tr ' /' '__')
+                    FLAG_FILE="$REMINDER_FLAG_DIR/$FLAG_KEY"
+
+                    # Within 2 hours, not in the past, not already reminded
+                    if [ "$TIME_UNTIL" -gt 0 ] && [ "$TIME_UNTIL" -le 7200 ] && [ ! -f "$FLAG_FILE" ]; then
+                        MINS_UNTIL=$((TIME_UNTIL / 60))
+                        echo "📅 Reminder: \"$EVENT_TITLE\" in ${MINS_UNTIL} minutes ($EVENT_TIME)"
+                        echo ""
+                        touch "$FLAG_FILE"
+                        ISSUES_FOUND=1
+                    fi
+                fi
+            fi
+        fi
+    done <<< "$CAL_OUTPUT"
+fi
+
+# Also do a morning summary (7am-9am, once per day)
+MORNING_FLAG=".heartbeat-morning-cal-$TODAY"
+# Clean up old calendar flag files (keep only today + yesterday)
+find . -maxdepth 1 -name ".heartbeat-morning-cal-*" -mtime +2 -delete 2>/dev/null
+if [ "$HOUR" -ge 7 ] && [ "$HOUR" -lt 9 ] && [ ! -f "$MORNING_FLAG" ]; then
+    TODAYS_EVENTS=$(gcalcli --nocolor agenda today tomorrow 2>/dev/null | grep -v "No Events Found")
+    if [ -n "$TODAYS_EVENTS" ]; then
+        echo "📅 Today's calendar:"
+        echo "$TODAYS_EVENTS"
+        echo ""
+        ISSUES_FOUND=1
+    fi
+    touch "$MORNING_FLAG"
+fi
+
+#############################################
 # Report
 #############################################
 if [ "$ISSUES_FOUND" -eq 0 ]; then

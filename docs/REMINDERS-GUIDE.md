@@ -6,7 +6,9 @@ Reminders automatically appear in your morning briefing at 7 AM.
 
 ### Where to Add Reminders
 
-**File:** `memory/reminders.md`
+**File:** [[memory/reminders.md]]
+
+**Related:** [[scripts/morning_briefing_with_reminders.py]] | [[docs/CRON-JOBS.md]]
 
 ### Formats
 

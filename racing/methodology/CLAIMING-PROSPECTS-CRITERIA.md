@@ -1,6 +1,8 @@
 # CLAIMING PROSPECTS - MANDATORY CRITERIA
 **Last updated:** February 14, 2026
 
+**Related:** See [[TOP-3-PICKS-METHODOLOGY.md]] for betting picks (win TODAY), not claiming prospects.
+
 ## ⚠️ RULE: READ THIS FILE BEFORE ANY CLAIMING ANALYSIS
 
 **Source:** drf_analysis_2026-02-08.md (lessons from Carlo)

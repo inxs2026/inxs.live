@@ -2,6 +2,8 @@
 
 **Purpose:** Guidelines for creating and maintaining high-quality AgentSkills
 
+**Related:** [[AGENTS.md]] | [[docs/AUTONOMY-FRAMEWORK.md]]
+
 ---
 
 ## Required Components

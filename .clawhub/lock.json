@@ -12,6 +12,14 @@
     "mcporter": {
       "version": "1.0.0",
       "installedAt": 1771705206692
+    },
+    "porteden-email": {
+      "version": "1.0.4",
+      "installedAt": 1774352387065
+    },
+    "gcalcli-calendar": {
+      "version": "3.0.0",
+      "installedAt": 1774352392936
     }
   }
 }

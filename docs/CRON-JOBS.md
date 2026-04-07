@@ -2,6 +2,8 @@
 
 **Purpose:** Scheduled autonomous work in isolated sessions
 
+**Related:** [[HEARTBEAT.md]] for quick health checks | [[memory/lessons.md]] for lessons learned
+
 ---
 
 ## Active Jobs (3)

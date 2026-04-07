@@ -4,6 +4,8 @@ Add your reminders below. They'll appear in your 7 AM briefing.
 
 **Format:** `[2026-02-16]` for dates, `[urgent]` or `[today]` for immediate
 
+**Related:** [[scripts/morning_briefing_with_reminders.py]] | [[docs/CRON-JOBS.md]]
+
 ---
 
 ## Your Reminders:

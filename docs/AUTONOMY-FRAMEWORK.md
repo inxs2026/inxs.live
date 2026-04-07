@@ -2,6 +2,7 @@
 
 **Implemented:** February 14, 2026  
 **Based on:** "10 things that turned OpenClaw from chatbot into autonomous operator"
+**Related:** [[AGENTS.md]] | [[MEMORY.md]] | [[memory/lessons.md]]
 
 ---
 

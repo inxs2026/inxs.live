@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holographic Memory — Charlie</title>
+    <link rel="stylesheet" href="/static/hm.css">
+</head>
+<body>
+<nav>
+    <span class="logo">🧠 Holographic Memory</span>
+    <a href="/">Home</a>
+    <a href="/browse">Browse</a>
+    <a href="/graph">Graph</a>
+</nav>
+
+<div class="container">
+    <div class="hero">
+        <h1>Charlie's Memory</h1>
+        <p>{{ file_count }} files indexed across {{ topic_counts|length }} topics</p>
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search memory... (e.g. racing picks, github, openclaw)" autofocus>
+        <div id="searchResults" class="results"></div>
+    </div>
+
+    <div class="two-col">
+        <div class="card">
+            <h2>📚 Topics</h2>
+            <div class="topic-grid">
+                {% for topic, count in topic_counts[:15] %}
+                <a href="/browse?topic={{ topic }}" class="topic-tag">{{ topic.replace("_"," ")|title }} <span class="count">{{ count }}</span></a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📅 Recent Files</h2>
+            <ul class="file-list">
+                {% for f in recent_files %}
+                <li>
+                    <a href="/file/{{ f.path|urlencode }}">{{ f.title[:50] }}</a>
+                    <span class="meta">{{ f.date or "—" }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+const searchInput = document.getElementById('searchInput');
+const resultsBox = document.getElementById('searchResults');
+let debounceTimer;
+
+searchInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(doSearch, 300);
+});
+
+function doSearch() {
+    const q = searchInput.value.trim();
+    if (!q) { resultsBox.innerHTML = ''; return; }
+    fetch(`/search?q=${encodeURIComponent(q)}`)
+        .then(r => r.json())
+        .then(results => {
+            if (!results.length) {
+                resultsBox.innerHTML = '<div class="no-results">No results found</div>';
+                return;
+            }
+            resultsBox.innerHTML = results.map(r => `
+                <div class="result-item">
+                    <a href="/file/${r.path}" class="result-title">${r.title}</a>
+                    <div class="result-meta">
+                        <span class="topics">${r.topics.map(t => `<span class="topic-chip">${t}</span>`).join('')}</span>
+                        <span class="date">${r.date || ''}</span>
+                    </div>
+                    <p class="result-summary">${r.summary}</p>
+                </div>
+            `).join('');
+        });
+}
+</script>
+</body>
+</html>

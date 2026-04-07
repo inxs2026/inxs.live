@@ -2,6 +2,8 @@
 
 **Purpose:** Periodic self-assessment - am I doing good work? What needs improvement?
 
+**Related:** [[MEMORY.md]] | [[memory/lessons.md]] | [[memory/projects.md]]
+
 ---
 
 ## Review Schedule

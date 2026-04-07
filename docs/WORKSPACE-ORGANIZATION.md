@@ -2,6 +2,8 @@
 
 Clean, organized workspace for Charlie (Chi)
 
+**Related:** [[AGENTS.md]] | [[MEMORY.md]] | [[HEARTBEAT.md]]
+
 ---
 
 ## 📁 FOLDER STRUCTURE

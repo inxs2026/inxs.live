@@ -2,6 +2,8 @@
 
 **Purpose:** Fast health monitoring without wasting tokens or time
 
+**Related:** [[HEARTBEAT.md]] for the heartbeat check script | [[scripts/heartbeat_check.sh]] for the implementation
+
 ---
 
 ## Philosophy

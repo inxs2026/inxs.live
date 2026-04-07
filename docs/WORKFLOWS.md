@@ -4,6 +4,8 @@
 
 **Last updated:** February 19, 2026
 
+**Related:** [[TOP-3-PICKS-METHODOLOGY.md]] | [[HEARTBEAT.md]] | [[docs/CRON-JOBS.md]]
+
 ---
 
 ## 🏇 RACING PICKS WORKFLOW

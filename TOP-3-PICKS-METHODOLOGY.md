@@ -4,6 +4,8 @@
 **Purpose:** Objective, repeatable system for picking top 3 contenders in any race.  
 **Last Updated:** February 19, 2026
 
+**Related:** See [[racing/methodology/CLAIMING-PROSPECTS-CRITERIA.md]] for horses to claim (buy), not bet.
+
 ---
 
 ## THE METHODOLOGY (What I Follow)

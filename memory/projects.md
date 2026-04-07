@@ -12,15 +12,15 @@
 **Goal:** Build custom tools for tracking picks performance, trainer patterns, and ROI
 
 **Components:**
-- ✅ `racing-tools/` folder structure
-- ✅ `track_results.py` - compare picks vs actual results
+- ✅ `racing/` folder structure
+- ✅ [[scripts/verify_picks.py]] - compare picks vs actual results
 - ⏳ Daily report generator (planned)
 - ⏳ Trainer database (planned)
 - ⏳ Data extractor for DRF results (planned)
 
 **Files:**
-- `/home/damato/.openclaw/workspace/racing-tools/`
-- `/home/damato/.openclaw/workspace/racing-tools/README.md`
+- `/home/damato/.openclaw/workspace/racing/`
+- [[TOP-3-PICKS-METHODOLOGY.md]]
 
 **Next Steps:**
 1. Track today's Gulfstream results (after races complete)
@@ -34,27 +34,27 @@
 ### Session Hygiene Monitoring
 **Completed:** February 14, 2026  
 **Goal:** Monitor session size and prevent performance issues  
-**Result:** `check_session_hygiene.sh` script created (2MB warn, 5MB alert)
+**Result:** [[scripts/check_session_hygiene.sh]] script created (2MB warn, 5MB alert)
 
 ### Structured Memory System
 **Completed:** February 14, 2026  
-**Goal:** Split memory into organized files instead of dumping everything into MEMORY.md  
-**Result:** Created active-tasks.md, lessons.md, self-review.md, projects.md
+**Goal:** Split memory into organized files instead of dumping everything into [[MEMORY.md]]  
+**Result:** Created [[memory/active-tasks.md]], [[memory/lessons.md]], [[memory/self-review.md]], [[memory/projects.md]]
 
 ### Crash Recovery Protocol
 **Completed:** February 14, 2026  
 **Goal:** Resume work autonomously after crashes/restarts  
-**Result:** Updated AGENTS.md to read active-tasks.md first on startup
+**Result:** Updated [[AGENTS.md]] to read [[memory/active-tasks.md]] first on startup
 
 ### Skills Enhancement Framework
 **Completed:** February 14, 2026  
 **Goal:** Add "Use when / Don't use when" to skills to prevent wrong selection  
-**Result:** Created SKILLS-GUIDE.md, updated regex-patterns skill
+**Result:** Created [[docs/SKILLS-GUIDE.md]], updated regex-patterns skill
 
 ### Self-Verification System
 **Completed:** February 14, 2026  
 **Goal:** Catch errors before delivery - "build ≠ review"  
-**Result:** Created VERIFICATION.md with quick & deep checks, RACING-WORKFLOW.md with verification steps
+**Result:** Created [[docs/VERIFICATION.md]] with quick & deep checks
 
 ### Cron Jobs for Autonomous Operation
 **Completed:** February 14, 2026  
@@ -64,24 +64,35 @@
 - Weekly Self-Review (Sunday 8 PM) - analyzes my week, delivers summary
 - Daily Storage Cleanup (midnight) - maintenance, alerts only if issues
 
+See [[docs/CRON-JOBS.md]] for full cron job documentation.
+
 ### Heartbeat Optimization
 **Completed:** February 14, 2026  
 **Goal:** Fast health checks (<30 sec), no heavy work  
 **Result:** 
-- Rewrote HEARTBEAT.md with 5 quick checks
-- Created heartbeat_check.sh script (session, tasks, workspace, cron health, racing)
-- Created HEARTBEAT-GUIDE.md documentation
+- Rewrote [[HEARTBEAT.md]] with 5 quick checks
+- Created [[scripts/heartbeat_check.sh]] script (session, tasks, workspace, cron health, racing)
+- Created [[docs/HEARTBEAT-GUIDE.md]] documentation
 - Heavy work moved to cron jobs
 
 ### TrackData.live Integration
 **Completed:** February 9, 2026  
 **Goal:** Access horse racing data tool  
-**Result:** Credentials stored, can access via browser
+**Result:** Credentials stored in [[TOOLS.md]], can access via [[mcporter]] skill
 
 ### Backup & Storage Cleanup
 **Completed:** February 14, 2026  
 **Goal:** Free up workspace storage, add pCloud capacity  
 **Result:** 138 MB freed, auto-cleanup scripts created, 4GB pCloud added
+
+### SSH Access to Umbrel Pi
+**Completed:** April 7, 2026  
+**Goal:** SSH into Carlo's Umbrel Pi without needing Carlo to run commands  
+**Result:** 
+- SSH connection established: `umbrel@10.0.0.45`
+- Credentials stored in [[config/pi_ssh.env]]
+- Full sudo access granted
+- Can now diagnose and fix OpenClaw on the Pi directly
 
 ---
 

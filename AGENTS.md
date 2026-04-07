@@ -425,3 +425,15 @@ After completing significant work:
 ## Make It Yours
 
 This is a starting point. Add your own conventions, style, and rules as you figure out what works.
+
+---
+
+## 📎 Wikilinks
+
+When referencing other files in my memory or workspace, use [[wikilinks]] instead of plain text. This creates clickable links if opened in Obsidian and helps me track relationships between files.
+
+**Format:** `[[filename.md]]` or `[[folder/filename]]`
+
+**Example:**
+- Instead of: "See TOOLS.md for SSH notes"
+- Write: "See [[TOOLS.md]] for SSH notes"

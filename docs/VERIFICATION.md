@@ -2,6 +2,8 @@
 
 **Purpose:** Catch errors before delivery. The agent that builds ≠ the agent that reviews.
 
+**Related:** [[memory/lessons.md]] | [[TOP-3-PICKS-METHODOLOGY.md]] | [[docs/WORKFLOWS.md]]
+
 ---
 
 ## Quick Self-Check (Use for Everything)

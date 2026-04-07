@@ -2,6 +2,8 @@
 
 **Last updated:** February 20, 2026 4:30 AM
 
+**Related:** [[MEMORY.md]] | [[memory/lessons.md]] | [[memory/projects.md]]
+
 ## Current Focus
 
 _No active tasks._

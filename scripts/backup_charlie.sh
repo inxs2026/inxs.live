@@ -35,6 +35,14 @@ echo "Creating archive..."
 cd "${TEMP_DIR}"
 tar -czf "/tmp/${BACKUP_NAME}" .openclaw $([ -d .config ] && echo .config) $([ -d .local ] && echo .local)
 
+# Generate holographic memory graphs
+HM_DIR="/home/damato/.openclaw/workspace/tools/holographic-memory"
+echo "🧠 Generating holographic memory graphs..."
+python3 "${HM_DIR}/graph.py" --type graph    -o "${HM_DIR}/data/graph.png"
+python3 "${HM_DIR}/graph.py" --type sunburst  -o "${HM_DIR}/data/sunburst.png"
+python3 "${HM_DIR}/graph.py" --type timeline   -o "${HM_DIR}/data/timeline.png"
+echo "✅ Memory graphs refreshed"
+
 # Upload to pCloud
 echo "Uploading to pCloud..."
 ~/.local/bin/rclone mkdir pcloud:/clawd/backups/

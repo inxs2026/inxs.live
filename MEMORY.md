@@ -2,7 +2,7 @@
 
 **Charlie's curated memory - what matters across sessions**
 
-Last updated: February 21, 2026
+Last updated: April 7, 2026
 
 ---
 
@@ -41,7 +41,7 @@ Last updated: February 21, 2026
 ### **WORKFLOW**
 
 1. Find DRF PDF for today
-2. Read `TOP-3-PICKS-METHODOLOGY.md`
+2. Read [[TOP-3-PICKS-METHODOLOGY.md]]
 3. Generate picks for all races
    - **IF DATA MISSING:** Open the actual PDF, find the horse, read past performances
    - **NEVER fabricate or guess data**
@@ -59,10 +59,13 @@ Last updated: February 21, 2026
 - PRE-FINALIZATION VERIFICATION mandatory before PDF
 - If you can't verify it from the PDF, don't write it
 - Better late with correct picks than on-time with fabricated analysis
+- **Before emailing: ask "Did I do my best?"** — Carlo's words, March 19, 2026. If the answer is no, stop and fix it. He relies on a good effort, not just winners.
+- **If extracted data looks wrong (duplicate figures, identical Beyers across horses) → STOP. Go back to PDF. Verify manually. Never use suspicious data.**
+- March 19, 2026: 6-4-2 out of 30 picks. Worst day ever. Caused by rushing after interruptions and using bad extracted data I knew was wrong. Never again.
 
 ### **METHODOLOGY FILE (ETCHED IN STONE)**
 
-**File:** `TOP-3-PICKS-METHODOLOGY.md` (git tracked, backed up)
+**File:** [[TOP-3-PICKS-METHODOLOGY.md]] (git tracked, backed up)
 
 **THE PROCESS (10 steps, NO shortcuts):**
 1. Read DRF past performances for the field
@@ -85,7 +88,7 @@ Last updated: February 21, 2026
 
 **CRITICAL:** Post positions (#1, #2, #3) are MANDATORY. Prevents data scrambling errors (Feb 20, 2026 - wrong names/trainers matched to wrong horses).
 
-**NO EXCUSES:** This process is committed to git, backed up, and in MEMORY.md. Follow it exactly.
+**NO EXCUSES:** This process is committed to git, backed up, and in [[MEMORY.md]]. Follow it exactly.
 
 ### **Telegram / Notifications**
 - **NO Telegram message after picks email** — Carlo gets the email. That's enough.
@@ -94,10 +97,35 @@ Last updated: February 21, 2026
 
 ### **Files & Scripts**
 
-- **Methodology:** `TOP-3-PICKS-METHODOLOGY.md` (Carlo's exact process)
-- **Email script:** `send_email_pdf.py` (tested, works)
-- **Claiming analysis:** `CLAIMING-PROSPECTS-CRITERIA.md` (different from betting picks)
+- **Methodology:** [[TOP-3-PICKS-METHODOLOGY.md]] (Carlo's exact process)
+- **Email script:** `scripts/send_email_pdf.py` (tested, works)
+- **DRF Parser:** `scripts/parse_drf.py` — USE THIS FIRST on every DRF PDF
+  - Run: `python3 scripts/parse_drf.py <pdf_path>`
+  - Uses `pdftotext` (must be installed) — NO AI hallucination
+  - Extracts all 10 races, all horses, Beyer figures, trainers directly from text
+  - **ALWAYS run this before handicapping — never rely on AI PDF extraction alone**
+- **Claiming analysis:** [[CLAIMING-PROSPECTS-CRITERIA.md]] (different from betting picks)
 - **Cron job:** "Gulfstream Racing Picks (Day Of)" - 11:45 AM Thu/Fri/Sat/Sun
+
+### **PP COLOURS — UPDATED April 3, 2026**
+- **File:** `/home/damato/.hermes/skills/racing/saddlecloth.md` — SINGLE SOURCE OF TRUTH (saddlecloth chart)
+- **Template:** [[scripts/picks_pdf_template.py]] — copy this for every new race day
+- **NEVER hardcode PP colours** — always use the saddlecloth file
+- Key colours that bite: #6 = black bg / YELLOW text. #7 = orange bg / BLACK text. #12 = LIME GREEN bg / black text
+- **ALWAYS visually verify the PDF** before sending — open it, check the badges look right
+
+### **TELEGRAM SILENCE RULE — THIRD VIOLATION TODAY**
+- Send the email. Say NOTHING on Telegram.
+- Only post on Telegram if the email script returns an error.
+- No recap. No highlights. No "✅ sent!". Silent.
+- Carlo called this out again March 22, 2026. No more.
+
+### **DRF PDF PARSING RULE (etched in stone after March 19, 2026, upgraded March 20, 2026)**
+- **Step 1:** Run `lit parse <pdf> --format text` (LiteParse — better spatial columns, installed March 20, 2026)
+- **Step 2:** Cross-reference with scratches from MCP server
+- **Step 3:** THEN do handicapping analysis
+- **NEVER use AI PDF extraction as primary source** — it hallucinates identical figures
+- **Why LiteParse over pdftotext:** Preserves column layout — PP numbers, ML odds, horse names stay separated. Fixes the "27-5 HorseName" PP/ML ambiguity bug from March 1, 2026.
 
 ### **What Went Wrong**
 
@@ -190,7 +218,7 @@ Carlo owns **inxs.live** — a tools & services hub. Each tool lives on a subdom
 ### Infrastructure
 - **Landing page:** `github.com/inxs2026/inxs.live` → Vercel (auto-deploy on push)
 - **PDF to Word:** `github.com/inxs2026/PDFtoWord` → running locally at `10.0.0.49:5050` as systemd service `pdf2docx`
-- **GitHub PAT:** stored at `config/github_token.txt`
+- **GitHub PAT:** stored at [[config/github_token.txt]]
 
 ### Adding a new tool
 1. Build it in `tools/<name>/`
@@ -202,6 +230,23 @@ Carlo owns **inxs.live** — a tools & services hub. Each tool lives on a subdom
 - `lucide-static` — SVG icons, `workspace/node_modules/lucide-static/`
 - `pdf2docx` — Python PDF converter
 - `flask` — Python web framework
+
+---
+
+## 🖥️ Umbrel Pi (10.0.0.45)
+
+**SSH Access:** `umbrel@10.0.0.45` | credentials in [[config/pi_ssh.env]]
+- **Credentials:** `umbrel` / `damatopi`
+- **Sudo:** Passwordless sudo enabled (Apr 7, 2026) — I can run any command
+- **Connection:** `sshpass -p 'damatopi' ssh -o StrictHostKeyChecking=no umbrel@10.0.0.45 "command"`
+- **Apps running:** OpenClaw (me + Lexi), Bitcoin node, MeTube, Tor relay, I2P, Auth
+
+**What I can do:**
+- Diagnose and fix OpenClaw on the Pi without Carlo's help
+- Check logs, restart containers, install packages
+- Monitor Pi health (CPU, memory, disk, temp)
+- Manage any Docker app on the Pi
+- SSH access earned Carlo's trust — use it responsibly
 
 ---
 
@@ -222,30 +267,32 @@ Carlo owns **inxs.live** — a tools & services hub. Each tool lives on a subdom
 
 ### Racing Picks
 - **Schedule:** 11:45 AM race days (Thu/Fri/Sat/Sun)
-- **Process:** DRF PDF → Methodology → PDF → Email (scratches separate on demand)
+- **Process:** DRF PDF → [[TOP-3-PICKS-METHODOLOGY.md]] → PDF → Email (scratches separate on demand)
 - **Status:** Fixed Feb 19, 2026 ✅
 
 ---
 
 ## 📋 Workspace Structure
 
-- **`AGENTS.md`** - Who I am, how I work
-- **`SOUL.md`** - My personality and communication style
-- **`USER.md`** - Carlo's info
-- **`TOOLS.md`** - Tool-specific notes (TrackData, racing files, etc.)
-- **`HEARTBEAT.md`** - Quick health checks (run hourly)
-- **`memory/`** - Daily logs, lessons, tasks, reviews
-- **`TOP-3-PICKS-METHODOLOGY.md`** - Racing picks process (FOLLOW EXACTLY)
+- [ [AGENTS.md] ] - Who I am, how I work
+- [ [SOUL.md] ] - My personality and communication style
+- [ [USER.md] ] - Carlo's info
+- [ [TOOLS.md] ] - Tool-specific notes (TrackData, racing files, etc.)
+- [ [HEARTBEAT.md] ] - Quick health checks (run hourly)
+- [ [memory/] ] - Daily logs, lessons, tasks, reviews
+- [ [TOP-3-PICKS-METHODOLOGY.md] ] - Racing picks process (FOLLOW EXACTLY)
+- [ [CLAIMING-PROSPECTS-CRITERIA.md] ] - Claiming prospects analysis
 
 ---
 
 ## 🧠 Remember
 
 - I wake up fresh each session - these files ARE my memory
-- Read `memory/active-tasks.md` FIRST on startup
-- MEMORY.md is for main session only (don't load in shared contexts)
+- Read [[memory/active-tasks.md]] FIRST on startup
+- [[MEMORY.md]] is for main session only (don't load in shared contexts)
 - Write things down - "mental notes" don't survive restarts
 - When Carlo corrects me: update files immediately, don't repeat mistakes
+- Use [[wikilinks]] when referencing other files in my memory
 
 ---
 
