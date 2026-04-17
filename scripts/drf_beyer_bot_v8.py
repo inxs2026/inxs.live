@@ -1,7 +1,7 @@
+#!/usr/bin/env python3
 """
 drf_beyer_bot_v8.py
-Full-featured DRF parser + handicapping scorer for Gulfstream Park.
-Architecture: race sections → horse blocks → PP lines → Beyers → scoring.
+Gulfstream Park DRF parser — pdfplumber-based.
 """
 
 import re
@@ -16,9 +16,12 @@ try:
 except Exception:
     pdfplumber = None
 
-# ─── REGEX PATTERNS ──────────────────────────────────────────────────────────
+# ─── REGEXES ────────────────────────────────────────────────────────────────
 
-RACE_HEADER_RE = re.compile(r'(?ms)^\s*(\d+)\s+Gulfstream Park\b(.*?)(?:Beyer par\s+(\d+|NA))')
+RACE_HEADER_RE = re.compile(
+    r'(?ms)^\s*(\d+)\s+Gulfstream Park\b(.*?)(?:Beyer\s*par\s+(\d+|NA))',
+    re.I
+)
 HORSE_HEADER_RE = re.compile(r'(?m)^\s*(\d+)\s+([0-9]+-[0-9]+(?:\/[0-9]+)?|[0-9]+)\s+(.+)$')
 SUMMARY_LINE_RE = re.compile(r'^(Life|20\d{2}|GP|D\.Fst|Wet\d*|Synth\d*|Turf\d*|Dst\d*)\b')
 WORKS_OR_TRAINER_RE = re.compile(r'^(WORKS|TRAINER|Daily Racing Form|Copyright)')
@@ -28,12 +31,15 @@ NUM_TOKEN_RE = re.compile(r'(?<!\d)(\d{1,3})(?!\d)')
 CLAIMING_PRICE_RE = re.compile(r'(?<!\d)(\d{4,6})(?!\d)')
 DATE_OPEN_RE = re.compile(r'^\d{1,4}[A-Za-z-]*\s+[A-Z]{2,4}\b')
 JOCKEY_RE = re.compile(r'\b[A-Z][A-Za-z\'\-]+\s+[A-Z](?:\s+[A-Z])?\s+L?\d{2,3}[a-z]*\b')
-CLASS_RE = re.compile(r'\b(?:\d?Md(?:\s+Sp\s+Wt)?|Md|Moc|Clm|OC|Alw|Hcp|Stk|Stake|Claiming|Allowance)\b', re.I)
-JOCKEY_LINE_RE = re.compile(r'\b([A-Z][A-Za-z\'\-]+\s+[A-Z](?:\s+[A-Z])?)\s+(\d+)\s+\d+\s+\d+\s+\d+\s+\.\d+')
+CLASS_RE = re.compile(
+    r'\b(?:\d?Md(?:\s+Sp\s+Wt)?|Md|Moc|Clm|OC|Alw|Hcp|Stk|Stake|Claiming|Allowance)\b',
+    re.I
+)
+JOCKEY_LINE_RE = re.compile(
+    r'\b([A-Z][A-Za-z\'\-]+\s+[A-Z](?:\s+[A-Z])?)\s+(\d+)\s+\d+\s+\d+\s+\d+\s+\.\d+'
+)
 TRAINER_RE = re.compile(r'\bTr\s+([^\d]+?)(?=\d{1,4}\s+\d|\bL\b|\bLife\b|\bBlinkers\b|$)')
 OWNER_SPLIT_RE = re.compile(r'\bOwn:?\b', re.I)
-
-# ─── LOOKUP TABLES ───────────────────────────────────────────────────────────
 
 SURFACE_GROUPS = {
     'dirt': {'fst', 'fast', 'my', 'muddy', 'sly', 'sloppy', 'gd', 'good'},
@@ -42,16 +48,9 @@ SURFACE_GROUPS = {
 }
 
 CLASS_WEIGHTS = {
-    'MDSPW': 10,
-    'MOC': 9,
-    'MAIDEN': 7,
-    'CLM': 4,
-    'AOC': 12,
-    'OC': 11,
-    'ALW': 9,
-    'STK': 16,
-    'GRADED': 20,
-    'UNKNOWN': 0,
+    'MDSPW': 10, 'MOC': 9, 'MAIDEN': 7, 'CLM': 4,
+    'AOC': 12, 'OC': 11, 'ALW': 9, 'STK': 16,
+    'GRADED': 20, 'UNKNOWN': 0,
 }
 
 SCORING = {
@@ -85,16 +84,11 @@ SCORING = {
 }
 
 
-# ─── SCORING CONFIG ─────────────────────────────────────────────────────────
-
 @dataclass
 class ScoringConfig:
     values: Dict[str, float]
 
     def __getitem__(self, key: str) -> float:
-        return self.values[key]
-
-    def getitem(self, key: str) -> float:
         return self.values[key]
 
     def get(self, key: str, default: float = 0.0) -> float:
@@ -104,7 +98,7 @@ class ScoringConfig:
 CONFIG = ScoringConfig(values=SCORING)
 
 
-# ─── PDF TEXT EXTRACTION ────────────────────────────────────────────────────
+# ─── PDF / TEXT EXTRACTION ─────────────────────────────────────────────────
 
 def extract_text_from_pdf(pdf_path: str) -> str:
     if pdfplumber is None:
@@ -124,11 +118,11 @@ def normalize_text(text: str) -> str:
     return text
 
 
-# ─── RACE-LEVEL EXTRACTION ──────────────────────────────────────────────────
+# ─── RACE / HORSE BLOCK PARSING ─────────────────────────────────────────
 
 def infer_race_surface(race_text: str) -> str:
     head = ' '.join(race_text.splitlines()[:12]).lower()
-    if ' turf' in head or 'turf.' in head or ' fm ' in f' {head} ':
+    if ' turf' in head or 'turf.' in head or ' fm ' in head:
         return 'turf'
     if 'tapeta' in head or 'synth' in head or 'synthetic' in head:
         return 'synthetic'
@@ -185,14 +179,12 @@ def find_race_sections(text: str) -> List[Dict]:
     return sections
 
 
-# ─── HORSE-BLOCK EXTRACTION ─────────────────────────────────────────────────
-
 def _looks_like_horse_header(line: str) -> Optional[re.Match]:
     m = HORSE_HEADER_RE.match(line.strip())
     if not m:
         return None
     rest = m.group(3)
-    if 'Own' in rest or 'Own:' in rest or 'TimeformUS Pace' in rest:
+    if 'Own' in rest or 'TimeformUS Pace' in rest:
         return m
     return None
 
@@ -213,7 +205,6 @@ def split_horse_blocks(race_text: str) -> List[Dict]:
         rest = m.group(3).strip()
         owner_split = OWNER_SPLIT_RE.split(rest, maxsplit=1)
         horse_name = owner_split[0].strip()
-
         horses.append({
             'program_number': m.group(1).strip(),
             'morning_line': m.group(2).strip(),
@@ -224,17 +215,17 @@ def split_horse_blocks(race_text: str) -> List[Dict]:
     return horses
 
 
-# ─── HORSE-LEVEL EXTRACTION ─────────────────────────────────────────────────
+# ─── PP LINE PARSING ────────────────────────────────────────────────────
 
-def extract_timeform_pace(horse_text: str) -> Dict[str, Optional[object]]:
+def extract_timeform_pace(horse_text: str) -> Dict[str, Optional[int]]:
     early = late = None
     style = None
     m = TIMEFORM_HEADER_RE.search(horse_text)
     if m:
         early, late = int(m.group(1)), int(m.group(2))
-    style_match = PACE_STYLE_RE.search(horse_text)
-    if style_match:
-        style = style_match.group(1).upper()
+    style_m = PACE_STYLE_RE.search(horse_text)
+    if style_m:
+        style = style_m.group(1).upper()
     return {'early': early, 'late': late, 'style': style}
 
 
@@ -252,38 +243,35 @@ def extract_connections(horse_text: str, header_line: str) -> Dict[str, Optional
 
 def extract_profile_beyers(horse_text: str, pps: Optional[List[Dict]] = None) -> Dict:
     out = {
-        'life_best': None,
-        'dirt_best': None,
-        'wet_best': None,
-        'synth_best': None,
-        'turf_best': None,
-        'dst_best': None,
-        'line_top': None,
+        'life_best': None, 'dirt_best': None, 'wet_best': None,
+        'synth_best': None, 'turf_best': None, 'dst_best': None, 'line_top': None,
     }
     for line in horse_text.splitlines():
-        line = line.strip()
-        if line.startswith('Life '):
-            vals = [int(x) for x in NUM_TOKEN_RE.findall(line) if 0 <= int(x) <= 130]
+        s = line.strip()
+        if not s:
+            continue
+        if s.startswith('Life '):
+            vals = [int(x) for x in NUM_TOKEN_RE.findall(s) if 0 <= int(x) <= 130]
             if vals:
                 out['life_best'] = max(vals)
-        elif line.startswith('D.Fst'):
-            vals = [int(x) for x in NUM_TOKEN_RE.findall(line) if 0 <= int(x) <= 130]
+        elif s.startswith('D.Fst'):
+            vals = [int(x) for x in NUM_TOKEN_RE.findall(s) if 0 <= int(x) <= 130]
             if vals:
                 out['dirt_best'] = max(vals)
-        elif line.startswith('Wet'):
-            vals = [int(x) for x in NUM_TOKEN_RE.findall(line) if 0 <= int(x) <= 130]
+        elif s.startswith('Wet'):
+            vals = [int(x) for x in NUM_TOKEN_RE.findall(s) if 0 <= int(x) <= 130]
             if vals:
                 out['wet_best'] = max(vals)
-        elif line.startswith('Synth'):
-            vals = [int(x) for x in NUM_TOKEN_RE.findall(line) if 0 <= int(x) <= 130]
+        elif s.startswith('Synth'):
+            vals = [int(x) for x in NUM_TOKEN_RE.findall(s) if 0 <= int(x) <= 130]
             if vals:
                 out['synth_best'] = max(vals)
-        elif line.startswith('Turf'):
-            vals = [int(x) for x in NUM_TOKEN_RE.findall(line) if 0 <= int(x) <= 130]
+        elif s.startswith('Turf'):
+            vals = [int(x) for x in NUM_TOKEN_RE.findall(s) if 0 <= int(x) <= 130]
             if vals:
                 out['turf_best'] = max(vals)
-        elif line.startswith('Dst'):
-            vals = [int(x) for x in NUM_TOKEN_RE.findall(line) if 0 <= int(x) <= 130]
+        elif s.startswith('Dst'):
+            vals = [int(x) for x in NUM_TOKEN_RE.findall(s) if 0 <= int(x) <= 130]
             if vals:
                 out['dst_best'] = max(vals)
 
@@ -293,18 +281,15 @@ def extract_profile_beyers(horse_text: str, pps: Optional[List[Dict]] = None) ->
             out['line_top'] = max(beyers)
         if out['life_best'] is None or out['line_top'] > out['life_best']:
             out['life_best'] = out['line_top']
-
         dirt = [p['beyer'] for p in pps if p.get('surface') == 'dirt' and isinstance(p.get('beyer'), int)]
         turf = [p['beyer'] for p in pps if p.get('surface') == 'turf' and isinstance(p.get('beyer'), int)]
         synth = [p['beyer'] for p in pps if p.get('surface') == 'synthetic' and isinstance(p.get('beyer'), int)]
-
         if dirt:
             out['dirt_best'] = max([v for v in [out['dirt_best'], max(dirt)] if v is not None])
         if turf:
             out['turf_best'] = max([v for v in [out['turf_best'], max(turf)] if v is not None])
         if synth:
             out['synth_best'] = max([v for v in [out['synth_best'], max(synth)] if v is not None])
-
     return out
 
 
@@ -324,8 +309,6 @@ def extract_pp_lines(horse_text: str) -> List[str]:
             lines.append(line)
     return lines
 
-
-# ─── PP LINE PARSING ────────────────────────────────────────────────────────
 
 def parse_track(line: str) -> Optional[str]:
     m = re.search(r'\b\d{1,4}[A-Za-z-]*\s+([A-Z]{2,4})\b', line)
@@ -413,19 +396,13 @@ def parse_beyer_from_line(line: str) -> Optional[int]:
     toks = after_class_tokens(text)
     if not toks:
         return None
-
-    # Filter date-like tokens (e.g. 4/17, 4-17)
     toks = [t for t in toks if not re.fullmatch(r'\d{1,2}[/-]\d{1,2}', t)]
-
-    # Skip purse tokens
     i = 0
     while i < len(toks) and is_purse_token(toks[i]):
         i += 1
     toks = toks[i:]
     if not toks:
         return None
-
-    # Primary: Beyer followed by 3+ position tokens
     for idx, tok in enumerate(toks):
         if not re.fullmatch(r'\d{1,3}', tok):
             continue
@@ -436,8 +413,6 @@ def parse_beyer_from_line(line: str) -> Optional[int]:
         pos_count = sum(1 for x in following if is_pos_token(x))
         if pos_count >= 3:
             return val
-
-    # Fallback: first valid digit
     for tok in toks:
         if re.fullmatch(r'\d{1,3}', tok):
             val = int(tok)
@@ -448,7 +423,7 @@ def parse_beyer_from_line(line: str) -> Optional[int]:
 
 def parse_pp_record(line: str) -> Dict:
     return {
-        'date_token': line.split()[0],
+        'date_token': line.split()[0] if line.split() else '',
         'track': parse_track(line),
         'surface': parse_surface(line),
         'race_class': parse_race_class_from_line(line),
@@ -458,14 +433,14 @@ def parse_pp_record(line: str) -> Dict:
     }
 
 
+# ─── SCORING ─────────────────────────────────────────────────────────────
+
 def is_route_context(race_surface: str, race_distance_text: str) -> bool:
     t = race_distance_text.lower()
     return race_surface == 'turf' or any(x in t for x in ['1 mile', '1 1/16', '1 1/8', '1 miles', 'mile'])
 
 
-# ─── SCORING ────────────────────────────────────────────────────────────────
-
-def score_pace_fit(pace: Dict[str, Optional[object]], race_surface: str, race_distance_text: str = '') -> Tuple[float, str]:
+def score_pace_fit(pace: Dict, race_surface: str, race_distance_text: str = '') -> Tuple[float, str]:
     early, late, style = pace.get('early'), pace.get('late'), pace.get('style')
     if early is None or late is None:
         if style in {'EP', 'E/P'}:
@@ -501,7 +476,6 @@ def score_pace_fit(pace: Dict[str, Optional[object]], race_surface: str, race_di
 
     if not notes:
         notes.append('balanced pace')
-
     return round(score, 2), '; '.join(notes)
 
 
@@ -515,17 +489,14 @@ def surface_switch_penalty(race_surface: str, profile: Dict) -> float:
             return CONFIG['SURFACE_UNKNOWN_DIRT_TURF_PENALTY']
         if synth is not None:
             return CONFIG['SURFACE_UNKNOWN_SYNTH_SWITCH_PENALTY']
-
     if race_surface == 'turf' and turf is None:
         if dirt is not None and synth is None:
             return CONFIG['SURFACE_UNKNOWN_DIRT_TURF_PENALTY']
         if synth is not None:
             return CONFIG['SURFACE_UNKNOWN_SYNTH_SWITCH_PENALTY']
-
     if race_surface == 'synthetic' and synth is None:
         if dirt is not None or turf is not None:
             return CONFIG['SURFACE_UNKNOWN_SYNTH_SWITCH_PENALTY']
-
     return 0.0
 
 
@@ -535,7 +506,6 @@ def score_surface_fit(race_surface: str, profile: Dict, pps: List[Dict]) -> Tupl
         'turf': profile.get('turf_best'),
         'synthetic': profile.get('synth_best'),
     }.get(race_surface)
-
     top = profile.get('life_best') or profile.get('line_top') or 0
     recent_same = [p['beyer'] for p in pps[:5] if p.get('surface') == race_surface and isinstance(p.get('beyer'), int)]
 
@@ -615,12 +585,8 @@ def summarize_horse(pps: List[Dict], beyer_par: Optional[int]) -> Dict:
     figures = [p['beyer'] for p in pps if isinstance(p.get('beyer'), int)]
     if not figures:
         return {
-            'last_beyer': None,
-            'best_last_3': None,
-            'avg_last_3': None,
-            'top_beyer': None,
-            'par_delta_last': None,
-            'trend': 'unknown',
+            'last_beyer': None, 'best_last_3': None, 'avg_last_3': None,
+            'top_beyer': None, 'par_delta_last': None, 'trend': 'unknown',
         }
 
     last3 = figures[:3]
@@ -680,7 +646,6 @@ def build_horse_analysis(hb: Dict, race: Dict) -> Dict:
 
     final_score = round((base or 0) + (pace_adj or 0) + (class_adj or 0) + (surface_adj or 0), 2)
 
-    # Value flag
     value_flag = ''
     ml = hb['morning_line']
     try:
@@ -698,8 +663,8 @@ def build_horse_analysis(hb: Dict, race: Dict) -> Dict:
         'program_number': hb['program_number'],
         'horse_name': hb['horse_name'],
         'morning_line': hb['morning_line'],
-        'jockey': connections['jockey'],
-        'trainer': connections['trainer'],
+        'jockey': connections.get('jockey'),
+        'trainer': connections.get('trainer'),
         'timeform_pace': pace,
         'profile': profile,
         'beyer_summary': summary,
@@ -713,7 +678,54 @@ def build_horse_analysis(hb: Dict, race: Dict) -> Dict:
     }
 
 
-# ─── PIPELINE ───────────────────────────────────────────────────────────────
+# ─── VALIDATORS ────────────────────────────────────────────────────────────
+
+def validate(data: Dict) -> List[str]:
+    issues = []
+    races = data.get('races', [])
+    if not races:
+        issues.append('No races found')
+    for race in races:
+        rn = race.get('race_number')
+        horses = race.get('horses', [])
+        if not horses:
+            issues.append(f'Race {rn}: no horses parsed')
+        for h in horses:
+            name = h.get('horse_name', '')
+            ml = h.get('morning_line', '')
+            if not name:
+                issues.append(f'Race {rn}: blank horse name')
+            if not re.fullmatch(r'[0-9]+(?:-[0-9]+(?:/[0-9]+)?)?', str(ml)):
+                issues.append(f'Race {rn} {name}: unusual morning line {ml!r}')
+            pps = h.get('pps', [])
+            if not pps and h.get('beyer_summary', {}).get('last_beyer') is None:
+                issues.append(f'Race {rn} {name}: no Beyer history extracted')
+    return issues
+
+
+def validate_pars(data: Dict) -> List[str]:
+    issues = []
+    for race in data.get('races', []):
+        par = race.get('beyer_par')
+        if par is None:
+            continue
+        tops = []
+        for h in race.get('horses', []):
+            s = h.get('beyer_summary', {})
+            for key in ('last_beyer', 'best_last_3'):
+                v = s.get(key)
+                if isinstance(v, (int, float)):
+                    tops.append(v)
+        if tops:
+            top = max(tops)
+            if top > par + 40:
+                issues.append(f"Race {race.get('race_number')}: top Beyer {top} far above par {par}")
+            if top < par - 35:
+                issues.append(f"Race {race.get('race_number')}: top Beyer {top} far below par {par}")
+    return issues
+
+
+# ─── ANALYZE ─────────────────────────────────────────────────────────────
 
 def analyze_drf_text(text: str) -> Dict:
     text = normalize_text(text)
@@ -737,7 +749,7 @@ def analyze_drf_pdf(pdf_path: str) -> Dict:
     return analyze_drf_text(extract_text_from_pdf(pdf_path))
 
 
-# ─── OUTPUT FORMATTERS ─────────────────────────────────────────────────────
+# ─── RENDER ──────────────────────────────────────────────────────────────
 
 def render_telegram_summary(data: Dict) -> str:
     parts = []
@@ -746,14 +758,42 @@ def render_telegram_summary(data: Dict) -> str:
         for i, h in enumerate(race.get('top_3', []), 1):
             s = h['beyer_summary']
             tf = h['timeform_pace']
-            flag = f" | {h['value_flag'].upper()}" if h['value_flag'] else ''
             conn = f" | J:{h['jockey'] or '?'} T:{h['trainer'] or '?'}"
             lines.append(
                 f"{i}. #{h['program_number']} {h['horse_name']} ({h['morning_line']}) | "
                 f"Score {h['analysis_score']} | Last {s['last_beyer']} | Avg3 {s['avg_last_3']} | "
-                f"E/L {tf['early']}/{tf['late']} | Pace {h['pace_adjustment']:+} | "
+                f"E/L {tf.get('early','?')}/{tf.get('late','?')} | Pace {h['pace_adjustment']:+} | "
                 f"Class {h['class_adjustment']:+} | Surface {h['surface_adjustment']:+}{flag}{conn}"
             )
             lines.append(f" Notes: {', '.join(h['reasons'][:4])}")
         parts.append('\n'.join(lines))
-    return '\n\n'.join(parts) if parts else '
+    return '\n\n'.join(parts) if parts else 'No races parsed.'
+
+
+def handle_drf_input(file_bytes: bytes = None, text_input: str = None) -> str:
+    if text_input:
+        return render_telegram_summary(analyze_drf_text(text_input))
+    if file_bytes:
+        with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp:
+            tmp.write(file_bytes)
+            path = tmp.name
+            return render_telegram_summary(analyze_drf_pdf(path))
+    return 'No DRF input provided.'
+
+
+if __name__ == '__main__':
+    import sys
+    if len(sys.argv) < 2:
+        print('Usage: python drf_beyer_bot_v8.py <drf.pdf or textfile.txt>')
+        sys.exit(1)
+    path = Path(sys.argv[1])
+    if path.suffix.lower() == '.pdf':
+        result = analyze_drf_pdf(str(path))
+    else:
+        result = analyze_drf_text(path.read_text(encoding='utf-8', errors='ignore'))
+    issues = validate(result) + validate_pars(result)
+    if issues:
+        print('⚠️ VALIDATION ISSUES:', ', '.join(issues), '\n')
+    print(render_telegram_summary(result))
+    print('\n--- JSON ---\n')
+    print(json.dumps(result, indent=2))
