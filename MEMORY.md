@@ -2,7 +2,7 @@
 
 **Charlie's curated memory - what matters across sessions**
 
-Last updated: April 7, 2026
+Last updated: April 9, 2026
 
 ---
 
@@ -38,30 +38,94 @@ Last updated: April 7, 2026
 - I did better doing picks myself: 33 picks, 6 winners, 7 seconds, 4 thirds (Mar 1, 2026)
 - **Rule:** Do racing picks inline, in main session, no delegation
 
-### **WORKFLOW**
+### **WORKFLOW — CARLO'S DOCUMENTED PROCESS (Apr 9, 2026)**
 
-1. Find DRF PDF for today
-2. Read [[TOP-3-PICKS-METHODOLOGY.md]]
-3. Generate picks for all races
-   - **IF DATA MISSING:** Open the actual PDF, find the horse, read past performances
-   - **NEVER fabricate or guess data**
-4. **PRE-FINALIZATION VERIFICATION** (MANDATORY - cannot skip)
-   - For EACH pick: verify horse name, post position, Beyers, trainer ALL match DRF PDF
-   - Confirm comments describe ACTUAL race results from PDF
-   - If ANY data cannot be verified: STOP and alert Carlo
-5. Create PDF with post position colors (reportlab)
-6. **Email using `send_email_pdf.py`** (MANDATORY)
-7. Verify delivery ("✅ Email sent successfully")
+**Follow this exactly — no shortcuts, no skipping steps.**
 
-**SCRATCHES:** Handled **separately on demand** — Carlo will ask when he wants them checked. Do NOT build scratch checking into the picks workflow.
+**STEP 1 — DRF PDF**
+Carlo posts the DRF PDF. Use it as the primary data source.
+
+**STEP 2 — Get Today's GP Races**
+```
+get_todays_races(track="GP")
+```
+→ Capture race_key, post_time, surface, distance, entry_count.
+
+**STEP 3 — Get Scratches FIRST (CRITICAL)**
+```
+get_scratches(view="upcoming", track="GP", start_date, end_date)
+```
+→ Remove all scratched horses from consideration BEFORE picking.
+
+**STEP 4 — Get All Changes**
+```
+get_changes(view="upcoming", track="GP", start_date, end_date, limit=50)
+```
+→ Capture jockey changes, weight changes, track condition changes.
+
+**STEP 5 — Extract DRF Data**
+```bash
+python3 scripts/drf_beyer_extractor.py DRF.pdf output/
+```
+→ Produces `output/beyers.csv` + `output/beyers.json`.
+
+**STEP 5b — Validate (MANDATORY)**
+```bash
+python3 scripts/validate_drf_parse.py output/beyers.json
+```
+→ Fix any issues before proceeding. Zero-tolerance on missing Beyer history.
+
+**STEP 5c — Analyze**
+```bash
+python3 scripts/drf_beyer_unified.py DRF.pdf
+```
+→ Or use GP-specific `drf_beyer_bot_v8.py`, WO-specific `drf_beyer_bot_wo.py`.
+
+**STEP 6 — Verify Post Positions**
+```
+get_race_details(race_key="GP-YYYYMMDD-N")
+```
+→ Cross-check PP# vs TrackData.
+→ Apply cloth color + number color using `saddlecloth.md` from the racing skill folder.
+
+**STEP 7 — Cross-Check Scratches**
+Every pick must:
+- Appear in TrackData entries AND
+- NOT appear in scratches list
+→ Scratched horses = NEVER pick.
+
+**STEP 8 — Apply Handicapping + Final Ranking**
+Rank by: Beyer best-of-3 → Tiebreak: FTS fast works > post position > ML odds.
+Apply pace/class/trainer/odds angles.
+
+**STEP 9 — Generate PDF**
+Run `build_picks_pdf.py` for each race.
+→ Include post colors (from `saddlecloth.md`).
+→ List scratches, methodology, changes.
+→ Verify again with TrackData (pre-generation check).
+
+**STEP 9b — Final Re-Verify (MANDATORY)**
+After PDF is generated but BEFORE emailing:
+- Re-confirm all post positions against TrackData one final time
+- Confirm no scratched horses are in the PDF
+→ If anything looks wrong: STOP, fix, re-verify.
+
+**STEP 10 — E-mail picks to Carlo**
+→ Send email only. No Telegram message unless email fails.
+
+**RULES:**
+- NO fabricated picks — if no data, flag clearly and ask Carlo
+- Scratch check happens BEFORE picks, not after
+- Full TrackData + DRF cross-check at every step
+- Post position colors from `saddlecloth.md` — NEVER hardcode
+- **Before emailing: ask "Did I do my best?"** — Carlo's words, March 19, 2026
 
 **ABSOLUTE RULES:**
 - PRE-FINALIZATION VERIFICATION mandatory before PDF
 - If you can't verify it from the PDF, don't write it
 - Better late with correct picks than on-time with fabricated analysis
-- **Before emailing: ask "Did I do my best?"** — Carlo's words, March 19, 2026. If the answer is no, stop and fix it. He relies on a good effort, not just winners.
-- **If extracted data looks wrong (duplicate figures, identical Beyers across horses) → STOP. Go back to PDF. Verify manually. Never use suspicious data.**
-- March 19, 2026: 6-4-2 out of 30 picks. Worst day ever. Caused by rushing after interruptions and using bad extracted data I knew was wrong. Never again.
+- **If extracted data looks wrong → STOP. Go back to PDF. Verify manually. Never use suspicious data.**
+- April 9, 2026: Made multiple PP errors (Race 5 completely wrong, Race 7 duplicated PP#7 for 3 horses). Root cause: did not verify picks against TrackData before writing PDF. Never again.
 
 ### **METHODOLOGY FILE (ETCHED IN STONE)**
 
@@ -99,11 +163,12 @@ Last updated: April 7, 2026
 
 - **Methodology:** [[TOP-3-PICKS-METHODOLOGY.md]] (Carlo's exact process)
 - **Email script:** `scripts/send_email_pdf.py` (tested, works)
-- **DRF Parser:** `scripts/parse_drf.py` — USE THIS FIRST on every DRF PDF
-  - Run: `python3 scripts/parse_drf.py <pdf_path>`
-  - Uses `pdftotext` (must be installed) — NO AI hallucination
-  - Extracts all 10 races, all horses, Beyer figures, trainers directly from text
-  - **ALWAYS run this before handicapping — never rely on AI PDF extraction alone**
+- **DRF Parser:** `scripts/drf_extract.py` — USE THIS on every DRF PDF
+  - Updated April 13, 2026: Uses Bold font detection to extract Beyers
+  - Beyer digits are Bold, finish/field are Regular - extracts only Bold digits
+  - Handles 1, 2, 3-digit Beyers correctly (1, 2, or 3 Bold digits)
+  - Run: `python3 scripts/drf_extract.py <pdf_path>`
+  - **Workflow:** DRF for Beyers, TrackData for PP verification
 - **Claiming analysis:** [[CLAIMING-PROSPECTS-CRITERIA.md]] (different from betting picks)
 - **Cron job:** "Gulfstream Racing Picks (Day Of)" - 11:45 AM Thu/Fri/Sat/Sun
 
@@ -114,6 +179,11 @@ Last updated: April 7, 2026
 - Key colours that bite: #6 = black bg / YELLOW text. #7 = orange bg / BLACK text. #12 = LIME GREEN bg / black text
 - **ALWAYS visually verify the PDF** before sending — open it, check the badges look right
 
+### **RACE COUNT GATE — HARD STOP**
+Template `scripts/picks_pdf_template.py` now has a pre-flight check that calls `get_todays_races` and compares to `len(RACES)`. Script will not build PDF if counts mismatch. Every new picks day inherits this gate automatically.
+
+**The rule:** No PDF generation without race count verification via TrackData.
+
 ### **TELEGRAM SILENCE RULE — THIRD VIOLATION TODAY**
 - Send the email. Say NOTHING on Telegram.
 - Only post on Telegram if the email script returns an error.
@@ -122,8 +192,9 @@ Last updated: April 7, 2026
 
 ### **DRF PDF PARSING RULE (etched in stone after March 19, 2026, upgraded March 20, 2026)**
 - **Step 1:** Run `lit parse <pdf> --format text` (LiteParse — better spatial columns, installed March 20, 2026)
-- **Step 2:** Cross-reference with scratches from MCP server
-- **Step 3:** THEN do handicapping analysis
+- **Step 2:** Run `drf_extractor.py` → `auto_rank.py` for structured extraction
+- **Step 3:** Cross-reference with scratches from TrackData MCP
+- **Step 4:** THEN do handicapping analysis
 - **NEVER use AI PDF extraction as primary source** — it hallucinates identical figures
 - **Why LiteParse over pdftotext:** Preserves column layout — PP numbers, ML odds, horse names stay separated. Fixes the "27-5 HorseName" PP/ML ambiguity bug from March 1, 2026.
 
@@ -153,6 +224,13 @@ Last updated: April 7, 2026
 - **Root cause:** Didn't open actual DRF PDF to verify data, gave up and invented it
 - **Fix:** Added PRE-FINALIZATION VERIFICATION checklist - mandatory before PDF
 - **Lesson:** If you can't verify it from the PDF, don't write it. No fabricated data. Ever.
+
+**April 9, 2026 - Multiple PP Errors:**
+- **Race 5:** Picked horses from Race 4 and Race 3 — completely fabricated the race
+- **Race 7:** Used PP #7 for THREE different horses (Top Maverick, He Be Hoppin, My Man Money)
+- **Race 4:** Mixed up PPs 2/3/4 (Beautiful Crazy, Honor Her, Speightfulelection)
+- **Root cause:** Did not cross-check picks against TrackData entries before generating PDF. Skipped verification step.
+- **Fix:** Added mandatory TrackData verification step to workflow (Carlo's documented process). Post positions must match TrackData exactly before any pick is written.
 
 ---
 

@@ -120,14 +120,20 @@ When Carlo asks for race analysis, ALWAYS reference these files FIRST:
 ## TTS (Text-to-Speech)
 
 - **Provider:** Edge TTS (Microsoft neural voices, no API key needed)
-- **Voice:** en-US-JennyNeural (friendly, considerate, comfort)
-- **Auto mode:** off (text by default, voice on request only)
+- **Voice:** en-US-AvaNeural (Expressive, Caring, Pleasant, Friendly)
+- **Voice rule:** When Carlo sends a voice note → reply in voice (Ava)
 - **Note:** Matches Charlie's warm, empathetic female personality
-- **Changed:** Feb 15, 2026 - installed edge-tts, fixed voice (SaraNeural didn't exist)
+- **Changed:** Apr 15, 2026 - switched from JennyNeural to AvaNeural (Carlo's pick)
 
 ---
 
 ## PDF Parsing
+
+### Horse Vet/Expense Tracker
+- **File:** `racing/D_Amato_Racing.xlsx`
+- **Sheets:** WB-23 (work bills), Vet-23 Table (vet records), Reference (product lookup)
+- **Usage:** Carlo can ask "what treatments did [horse] get" or "vet fees for [horse]"
+- **Source:** Sent by Carlo Apr 9, 2026 — update monthly
 
 ### Post Position Colors — ALWAYS IMPORT, NEVER HARDCODE
 - **File:** `scripts/pp_colors.py`
@@ -135,11 +141,23 @@ When Carlo asks for race analysis, ALWAYS reference these files FIRST:
 - **All picks PDF scripts MUST import from here** — never hardcode PP colours again
 - Covers PP #1–12 with correct bg + text colours (e.g. #6=black/yellow, #7=orange/black, #12=lime/black)
 
-### LiteParse ⭐ Primary DRF Parser (installed March 20, 2026)
+### pdfplumber DRF Parser ⭐ PRIMARY (updated April 13, 2026)
+- **Script:** `scripts/drf_extract.py` — Coordinate-based extraction using pdfplumber
+- **Key discovery:** Beyer digits are Bold, finish/field digits are Regular
+- **Method:** Extract ONLY Bold digits before `/` to get Beyer
+  - 1 Bold digit → single-digit Beyer (e.g., 9)
+  - 2 Bold digits → 2-digit Beyer (e.g., 46)
+  - 3 Bold digits → 3-digit Beyer (e.g., 107)
+  - 4+ Bold digits → 2-digit Beyer with finish appended (e.g., 7710 → 77)
+- **Why it works:** DRF Bold font distinguishes Beyer digits from finish/field, handles concatenated words
+- **Usage:** `python3 scripts/drf_extract.py <pdf_path> [race_num]`
+- **Output:** All races with horses sorted by PP. Includes trainer, jockey, Beyers[], avg_beyer_3, best_beyer
+- **Note:** Only extracts Beyers now (no post/field). Workflow: DRF for Beyers, TrackData for PP verification.
+- **Replaces:** The old `parse_drf.py` (LiteParse-based) for picks workflow
+
+### LiteParse (backup, March 20, 2026)
 - **CLI:** `lit parse <file.pdf> --format text`
-- **Better than pdftotext:** Preserves spatial column layout — PP#, ML odds, horse names stay separated
-- **Fixes:** The "27-5 HorseName" PP/ML ambiguity bug (March 1, 2026 incident)
-- **Use for:** All DRF PDFs before handicapping
+- **Use:** Only if pdfplumber parser fails
 
 ### PP COLOURS — ALWAYS USE THIS FILE (updated April 3, 2026)
 - **File:** `/home/damato/.hermes/skills/racing/saddlecloth.md` — SINGLE SOURCE OF TRUTH
@@ -178,6 +196,54 @@ When Carlo asks for race analysis, ALWAYS reference these files FIRST:
 ---
 
 Add whatever helps you do your job. This is your cheat sheet.
+
+---
+
+## 🐎 DRF Parsing Tools (Gulfstream + Woodbine)
+
+**Location:** `scripts/` — all Python, no dependencies beyond pdfplumber
+
+| File | Purpose | Best for |
+|------|---------|----------|
+| `drf_beyer_bot_v8.py` | Full scoring parser (GP) | Gulfstream Park PDFs |
+| `drf_beyer_bot_wo.py` | WO parser (PyMuPDF) | Woodbine PDFs |
+| `drf_beyer_unified.py` | Auto-detects GP or WO | Unknown format |
+| `drf_beyer_extractor.py` | CSV + JSON export | Data analysis, archival |
+| `validate_drf_parse.py` | Quality gate | Pre-flight check before picks |
+
+**Usage:**
+```bash
+# GP — full scoring
+python3 scripts/drf_beyer_bot_v8.py /path/to/GP_DRf.pdf
+
+# WO — full scoring
+python3 scripts/drf_beyer_bot_wo.py /path/to/WO_DRF.pdf
+
+# Auto-detect (GP or WO)
+python3 scripts/drf_beyer_unified.py /path/to/DRF.pdf
+
+# Extract to CSV + JSON
+python3 scripts/drf_beyer_extractor.py /path/to/DRF.pdf [output_dir]
+
+# Validate parse quality
+python3 scripts/validate_drf_parse.py output/beyers.json
+```
+
+**Workflow:**
+1. Run `drf_beyer_extractor.py` → `output/beyers.json`
+2. Run `validate_drf_parse.py` on the JSON
+3. If clean → use `drf_beyer_unified.py` for analysis
+
+---
+
+## 📦 Dropbox
+
+- **Access token:** stored in `config/dropbox_token.txt` (chmod 600)
+- **App name:** OpenClaw-Charlie
+- **Shared folder:** Carlo's Dropbox (`Carlo and Chi` folder confirmed accessible ✅)
+- **Use:** Fetch DRF PDFs, share racing picks, exchange files
+- **API:** Dropbox API v2
+- **Test:** `curl -H "Authorization: Bearer $(cat config/dropbox_token.txt)" -H "Content-Type: application/json" "https://api.dropboxapi.com/2/files/list_folder" --data '{"path":""}'`
 
 ---
 
