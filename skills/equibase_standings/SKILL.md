@@ -38,7 +38,7 @@ python3 skills/equibase_standings/equibase_crawl.py --track WO --type trainer --
 
 ### Python Usage (import)
 ```python
-from skills.equibase-standings.equibase_crawl import get_standings, format_standings
+from skills.equibase_standings.equibase_crawl import get_standings, format_standings
 
 # Fetch all 88 WO trainers
 entries = get_standings("WO", "trainer", year=2026)
@@ -48,7 +48,7 @@ text = format_standings("WO", "trainer", entries)
 print(text)
 
 # Look up a specific trainer
-from skills.equibase-standings.equibase_crawl import format_single_trainer
+from skills.equibase_standings.equibase_crawl import format_single_trainer
 print(format_single_trainer(entries, "Katryan"))
 ```
 
@@ -99,7 +99,7 @@ JSON is authoritative. Console table is for human reading only.
 
 ### Single Trainer Lookup
 ```python
-from skills.equibase-standings.equibase_crawl import format_single_trainer
+from skills.equibase_standings.equibase_crawl import format_single_trainer
 
 text = format_single_trainer(entries, "Abraham Katryan")
 ```
@@ -141,7 +141,7 @@ python3 skills/equibase_standings/equibase_pdf.py --track WO --output /path/to/m
 
 ### Python Usage (import)
 ```python
-from skills.equibase-standings.equibase_pdf import build_pdf, fetch_standings
+from skills.equibase_standings.equibase_pdf import build_pdf, fetch_standings
 
 # Fetch data
 trainers = fetch_standings("WO", "trainer")

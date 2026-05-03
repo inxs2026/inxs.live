@@ -13,20 +13,20 @@ reports via email or Telegram.
 Usage (shell)
 --------------
     # All 3 types for Woodbine
-    python3 skills/equibase-standings/equibase_pdf.py --track WO
+    python3 skills/equibase_standings/equibase_pdf.py --track WO
 
     # Just trainers for Gulfstream
-    python3 skills/equibase-standings/equibase_pdf.py --track GP --types trainer
+    python3 skills/equibase_standings/equibase_pdf.py --track GP --types trainer
 
     # Trainer + jockey only
-    python3 skills/equibase-standings/equibase_pdf.py --track WO --types trainer jockey
+    python3 skills/equibase_standings/equibase_pdf.py --track WO --types trainer jockey
 
     # Different year
-    python3 skills/equibase-standings/equibase_pdf.py --track WO --year 2025
+    python3 skills/equibase_standings/equibase_pdf.py --track WO --year 2025
 
 Usage (import)
 --------------
-    from skills.equibase-standings.equibase_pdf import build_pdf
+    from skills.equibase_standings.equibase_pdf import build_pdf
 
     build_pdf(
         track_code="WO",

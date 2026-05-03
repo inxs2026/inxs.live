@@ -12,13 +12,13 @@ at WO, GP, or other supported tracks.
 
 Usage (shell)
 -------------
-    python3 skills/equibase-standings/equibase_crawl.py --track WO --type trainer
-    python3 skills/equibase-standings/equibase_crawl.py --track GP --type jockey --top 10
-    python3 skills/equibase-standings/equibase_crawl.py --track WO --type owner --output /tmp/wo_owner.json
+    python3 skills/equibase_standings/equibase_crawl.py --track WO --type trainer
+    python3 skills/equibase_standings/equibase_crawl.py --track GP --type jockey --top 10
+    python3 skills/equibase_standings/equibase_crawl.py --track WO --type owner --output /tmp/wo_owner.json
 
 Usage (import)
 --------------
-    from skills.equibase-standings.equibase_crawl import get_standings, format_standings
+    from skills.equibase_standings.equibase_crawl import get_standings, format_standings
     data = get_standings("WO", "trainer", year=2026)
     text = format_standings("WO", "trainer", data)
     print(text)

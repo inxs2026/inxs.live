@@ -40,6 +40,39 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 
 ---
 
+## ⚠️ Critical Path Rules (Etched in Stone)
+
+### NEVER use /tmp for image tool files
+**The image tool (and other tools) can only read from allowed directories.**
+`/tmp` is NOT in the allowed file-read list.
+
+**Rule:** Any time you convert a PDF to images using pdftoppm or similar, you MUST immediately copy to workspace:
+
+```bash
+pdftoppm -r 150 -png input.pdf /tmp/page  # output goes to /tmp/page-1.png etc.
+cp /tmp/page-1.png /home/damato/.openclaw/workspace/tmp_page1.png  # ALWAYS copy first!
+# THEN use /home/damato/.openclaw/workspace/tmp_page1.png in the image tool
+```
+
+**Why:** If the image tool tries to read `/tmp/page-1.png` directly → `Local media path is not under an allowed directory` → soft-lock. This is what killed the April 26 WO picks session.
+
+**Allowed read directories:**
+- `/home/damato/.openclaw/workspace/` (workspace tree)
+- `/home/damato/.openclaw/media/` (media tree)
+- Some skill directories
+
+**Never:** `/tmp`, `$HOME`, paths outside the allowed tree.
+
+### Context Overflow Guard
+If the session is approaching 100K tokens, do NOT start heavy multi-step work:
+- PDF parsing (multiple pages)
+- Multi-image analysis (more than 3-4 images at once)
+- Long model calls
+
+**Early warning:** If heartbeat reports "⚠️ Session approaching context limit", stop and archive/reset before continuing.
+
+---
+
 ## 🏇 Horse Racing Analysis - Mandatory Files
 
 When Carlo asks for race analysis, ALWAYS reference these files FIRST:
@@ -124,6 +157,7 @@ When Carlo asks for race analysis, ALWAYS reference these files FIRST:
 - **Voice rule:** When Carlo sends a voice note → reply in voice (Ava)
 - **Note:** Matches Charlie's warm, empathetic female personality
 - **Changed:** Apr 15, 2026 - switched from JennyNeural to AvaNeural (Carlo's pick)
+- **Changed:** Apr 27, 2026 - emojis NOT spoken (paw print 🐾 is visual only, not read aloud)
 
 ---
 
@@ -193,9 +227,88 @@ When Carlo asks for race analysis, ALWAYS reference these files FIRST:
 - **Purpose:** Web UI fallback if MCP server is down
 - **Credentials stored:** `/home/damato/.openclaw/workspace/.trackdata_credentials`
 
+### TrackData.live — DRF PDF Auto-Download (VERIFIED Apr 21, 2026) ⭐
+**On race day, I can pull the DRF PDF directly from TrackData — no manual upload needed.**
+
+**Steps:**
+1. **Get track + date from Carlo** (e.g., "do WO races tomorrow")
+2. **Download PDF:**
+```bash
+curl -s -L "https://api.trackdata.live/api/uploads/{TRACK}--{YYYY-MM-DD}.pdf" \
+  -o racing/DRF/{TRACK}--{YYYY-MM-DD}.pdf
+```
+- URL format: `{TRACK}--{MM-DD-YYYY}.pdf` (e.g. `WO--04-19-2026.pdf`)
+- Works for any track/date that's been uploaded (WO, GP, SA, AQU, KEE, TAM, etc.)
+- Confirm upload exists first via: `mcporter call trackdata.get_recent_uploads --json '{"limit": 5}'`
+
+3. **Extract Beyers:**
+```bash
+python3 scripts/drf_extract.py racing/DRF/{TRACK}--{YYYY-MM-DD}.pdf
+```
+
+4. **Build picks** per [[TOP-3-PICKS-METHODOLOGY.md]]
+
+5. **Email to Carlo**
+
+**Verification (Apr 21, 2026):**
+- WO--04-19-2026.pdf → 715KB, 12 pages, 6 races, 40 horses ✅
+- Extraction worked perfectly with `drf_extract.py` ✅
+- Download URL: `https://api.trackdata.live/api/uploads/WO--04-19-2026.pdf`
+
+**Note:** No API key or auth needed for download — it's publicly accessible once uploaded.
+
 ---
 
-Add whatever helps you do your job. This is your cheat sheet.
+## 📦 Dropbox
+
+- **Access token:** stored in `config/dropbox_token.txt` (chmod 600)
+- **App name:** OpenClaw-Charlie
+- **Shared folder:** Carlo's Dropbox (`Carlo and Chi` folder confirmed accessible ✅)
+- **Use:** Fetch DRF PDFs, share racing picks, exchange files
+- **API:** Dropbox API v2
+- **Test:** `curl -H "Authorization: Bearer $(cat config/dropbox_token.txt)" -H "Content-Type: application/json" "https://api.dropboxapi.com/2/files/list_folder" --data '{"path":""}'`
+
+---
+
+## 📄 PDF to Word Converter
+
+**Script:** `scripts/pdf_to_docx.py`
+**Library:** `pdf2docx` (installed system-wide)
+
+**When Carlo says:** "convert X to Word / docx / Microsoft format" → run this script
+
+```bash
+python3 scripts/pdf_to_docx.py <input.pdf> [output.docx]
+```
+
+- Output defaults to same folder as input, same name, `.docx` extension
+- Works on any PDF — picks, reports, documents, etc.
+- Fast (~1 sec per 4 pages)
+
+---
+
+## 🏇 Horse Racing Analysis - Mandatory Files
+
+When Carlo asks for race analysis, ALWAYS reference these files FIRST:
+
+### **TOP 3 PICKS** (Betting Analysis)
+- **File:** [[TOP-3-PICKS-METHODOLOGY.md]] ⭐ **OFFICIAL PROCESS**
+- **When:** Analyzing races for betting picks
+- **Process:**
+  1. Calculate Beyer averages (last 3) for ALL contenders
+  2. Analyze form, class, trainer/jockey angles, pace
+  3. Rank by MOST positive factors
+  4. Write 2-3 sentence explanation per pick
+- **Rule:** "In Beyers We Trust" - Numbers + form, not hunches
+- **System working well - follow it exactly!**
+
+### **CLAIMING PROSPECTS** (Horses to Buy)
+- **File:** [[racing/methodology/CLAIMING-PROSPECTS-CRITERIA.md]]  
+- **When:** Identifying horses worth claiming (buying out of race)
+- **Key:** Soundness FIRST (workout/race patterns), NOT purchase price!
+- **Critical:** Claiming prospects ≠ betting picks
+
+**RULE:** Read the appropriate methodology file BEFORE starting any racing analysis.
 
 ---
 
@@ -236,28 +349,121 @@ python3 scripts/validate_drf_parse.py output/beyers.json
 
 ---
 
-## 📦 Dropbox
+## WO DRF Beyer Extraction (VERIFIED Apr 19, 2026)
 
-- **Access token:** stored in `config/dropbox_token.txt` (chmod 600)
-- **App name:** OpenClaw-Charlie
-- **Shared folder:** Carlo's Dropbox (`Carlo and Chi` folder confirmed accessible ✅)
-- **Use:** Fetch DRF PDFs, share racing picks, exchange files
-- **API:** Dropbox API v2
-- **Test:** `curl -H "Authorization: Bearer $(cat config/dropbox_token.txt)" -H "Content-Type: application/json" "https://api.dropboxapi.com/2/files/list_folder" --data '{"path":""}'`
+### Production Script
+`racing/wo_beyer_extract.py` - extracts all Beyers from WO DRF PDF
 
----
+### Key Fixes (Apr 19, 2026)
+1. **Block boundaries**: Life 'L' at x=370-390 = horse block TOP
+2. **Last horse**: use `life_ys[i+1] if i+1 < len else 800`
+3. **avg3**: first 3 sorted by y ascending = most recent
 
-## 📄 PDF to Word Converter
+### Verified 100% correct against image analysis
+| Horse | Beyers | avg3 |
+|-------|--------|------|
+| Twist of Sugar | [37,33,45,45,65,66,57] | 38.3 |
+| Vegas Road | [53] | 53.0 |
+| Money Heist | [48,48] | 48.0 |
+| Seeking Magic | [41,41,41,30,14,36,34,27,32] | 41.0 |
+| Miss Soothsayer | [58,62,46,53,52,50,44] | 55.3 |
 
-**Script:** `scripts/pdf_to_docx.py`
-**Library:** `pdf2docx` (installed system-wide)
-
-**When Carlo says:** "convert X to Word / docx / Microsoft format" → run this script
-
+### Usage
 ```bash
-python3 scripts/pdf_to_docx.py <input.pdf> [output.docx]
+python3 racing/wo_beyer_extract.py
+# Outputs: racing/WO--04-19-2026_beyer_results.json
 ```
 
-- Output defaults to same folder as input, same name, `.docx` extension
-- Works on any PDF — picks, reports, documents, etc.
-- Fast (~1 sec per 4 pages)
+
+## WO DRF Beyer Extraction - FINAL VERIFIED METHOD (Apr 19, 2026)
+
+### Production Script
+ - 100% verified correct
+
+### Key Fixes (VERIFIED with Carlo)
+1. **Block boundaries**: Life 'L' at x=370-390 = horse block TOP
+2. **-0 pattern**: '-' at x=212.9 + '0' at x=216.6 = 0 Beyer (horse didn't earn figure)
+3. **Normal pair**: digit at x=213.3 + digit at x=216.6 = 2-digit Beyer
+4. **avg3**: average of most recent 3 = highest y values (end of sorted list)
+5. **First pages**: {1, 2, 3, 5, 7, 9, 11} (includes Race 2's page)
+
+### Verified Examples (Apr 19, 2026)
+- Lady On the Nile: [0, 0, 37, 47, 47, 40, 64] → avg3=50.3
+- Reload Baba: [25, 23, 26] → avg3=24.7
+- Twist of Sugar: [37, 33, 45, 45, 65, 66, 57] → avg3=62.7
+
+### Usage
+python3 racing/wo_beyer_extract.py
+
+
+## PRIMARY BeyEr Extraction: Image Tool (Apr 19, 2026) - CARLO ORDERED
+
+### Carlo confirmed: image analysis is the ONLY reliable extraction method
+pdfplumber had bugs for months - coords were wrong, -0 pattern missed.
+
+### How It Works
+1. Convert PDF: `pdftoppm -r 150 -png input.pdf page`
+2. Analyze: Use `image` tool with detailed prompt
+3. Parse: Extract horse names, Beyers[], avg3 from response
+
+### Prompt Template
+```
+Look at this Woodbine DRF page. For EACH horse, list:
+1. Horse name
+2. ALL Beyer figures in order (most recent first)
+3. avg3 = average of most recent 3
+
+Format: HORSENAME: [beyer1, beyer2, ...] avg3=X.X
+```
+
+### Production Script
+`racing/wo_beyer_extract_image.py` - documents workflow
+`racing/wo_beyer_extract.py` - DEPRECATED, use image tool instead
+
+## WO DRF Beyer Extraction - VERIFIED CORRECT (Apr 19, 2026)
+
+### The Method (Verified with Carlo's bordered image)
+1. Filter for **BOLD font** digits at x=213.3 (tens) and x=216.6 (units)
+2. Pair digits within 3px y tolerance
+3. Sort by y ascending - lowest y = top of page = most recent race
+4. **FIRST 3 in sorted list = most recent 3 Beyers** (NOT last 3!)
+5. avg3 = average of FIRST 3
+
+### Key code:
+```python
+beyer_tens = [(c['top'], c['text']) for c in chars 
+              if 'Bold' in str(c.get('fontname', '')) and 213 < c['x0'] < 214 and c['text'].isdigit()]
+beyer_units = [(c['top'], c['text']) for c in chars 
+               if 'Bold' in str(c.get('fontname', '')) and 216.5 < c['x0'] < 217.5 and c['text'].isdigit()]
+# Pair, sort, avg3 of FIRST 3
+```
+
+### Verified against Carlo's bordered image (Nicki Is a Breeze):
+- Extraction: [57, 59, 44, 58, 54, 54, 58, 43, 67, 59, 51, 55] ✓
+- Carlo's box: [57, 59, 44] most recent → avg3 = 53.3 ✓
+
+### Production script:
+`racing/wo_beyer_extract.py` - UPDATE with BOLD filter + FIRST 3 logic
+
+### CRITICAL REMINDERS
+- Top of page = most recent race
+- First 3 in y-sorted list = most recent 3 Beyers
+- Life 'L' at x=370-390 = horse block top
+
+## 📊 Equibase Standings — Charlie's Skill
+
+**My own skill** (built May 3, 2026 — Carlo asked me to own it)
+
+```bash
+# Console standings
+python3 skills/equibase_standings/equibase_crawl.py --track WO --type trainer
+
+# PDF report (all 3 types)
+python3 skills/equibase_standings/equibase_pdf.py --track WO
+python3 skills/equibase_standings/equibase_pdf.py --track GP --types trainer jockey owner
+```
+
+- Wraps Hermes crawler via Hermes venv Python (same data, same Imperva handling)
+- PDF output: `standings/{TRACK}_standings_{YYYYMMDD}.pdf`
+- Skill file: `skills/equibase_standings/SKILL.md`
+- Scripts: `skills/equibase_standings/equibase_crawl.py` + `equibase_pdf.py`
