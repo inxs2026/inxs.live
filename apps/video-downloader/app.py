@@ -28,6 +28,17 @@ JOB_STATE_DIR.mkdir(parents=True, exist_ok=True)
 OPEN_DOWNLOADS_ENABLED = os.environ.get("ENABLE_OPEN_DOWNLOADS", "").lower() in {"1", "true", "yes"}
 COOKIES_FILE = os.environ.get("COOKIES_FILE", "").strip() or None
 
+# iPhone/iOS only reliably plays MP4 (H.264 / avc1 video + AAC / mp4a audio, yuv420p).
+# YouTube's "best" streams are usually VP9/AV1 video + Opus audio, which iOS refuses to open.
+# Prefer H.264+AAC here; a post-download compatibility pass (see _ensure_ios_compatible)
+# guarantees the final file is playable even when these preferences can't be met.
+IOS_VIDEO_FORMAT = (
+    "bestvideo[vcodec^=avc1]+bestaudio[acodec^=mp4a]/"
+    "best[vcodec^=avc1][acodec^=mp4a]/"
+    "bestvideo[ext=mp4]+bestaudio[ext=m4a]/"
+    "best[ext=mp4]/best"
+)
+
 app = Flask(__name__)
 
 jobs = {}
@@ -255,6 +266,99 @@ class _CapturingLogger:
         self.lines.append(f"ERROR: {msg}")
 
 
+def _probe_codecs(path):
+    """Return (video_codec, audio_codec, pix_fmt) via ffprobe, or (None, None, None)."""
+    try:
+        out = subprocess.check_output(
+            [
+                "ffprobe", "-v", "error",
+                "-show_entries", "stream=codec_type,codec_name,pix_fmt",
+                "-of", "json", str(path),
+            ],
+            stderr=subprocess.STDOUT,
+            timeout=60,
+        )
+        streams = json.loads(out).get("streams", [])
+    except Exception:
+        return None, None, None
+
+    vcodec = acodec = pix_fmt = None
+    for stream in streams:
+        if stream.get("codec_type") == "video" and vcodec is None:
+            vcodec = stream.get("codec_name")
+            pix_fmt = stream.get("pix_fmt")
+        elif stream.get("codec_type") == "audio" and acodec is None:
+            acodec = stream.get("codec_name")
+    return vcodec, acodec, pix_fmt
+
+
+def _ensure_ios_compatible(job_id: str, filename: str, logger) -> str:
+    """Guarantee the output opens on an iPhone.
+
+    iOS plays MP4 with H.264 (yuv420p) video + AAC audio. If the file already
+    matches, we do a lossless faststart remux (moov atom to the front, instant).
+    Otherwise we re-encode to H.264/AAC MP4. On any failure we keep the original
+    file rather than lose the download.
+    """
+    if shutil.which("ffmpeg") is None:
+        return filename
+
+    src = Path(filename)
+    if not src.exists():
+        return filename
+
+    vcodec, acodec, pix_fmt = _probe_codecs(src)
+    video_ok = vcodec == "h264" and pix_fmt in (None, "yuv420p", "yuvj420p")
+    audio_ok = acodec in (None, "aac")
+
+    target = src.with_suffix(".mp4")
+    tmp = src.with_name(src.stem + ".iostmp.mp4")
+
+    if src.suffix.lower() == ".mp4" and video_ok and audio_ok:
+        cmd = [
+            "ffmpeg", "-y", "-i", str(src),
+            "-c", "copy", "-movflags", "+faststart", str(tmp),
+        ]
+        action = "faststart remux"
+    else:
+        cmd = [
+            "ffmpeg", "-y", "-i", str(src),
+            "-c:v", "libx264", "-preset", "veryfast", "-profile:v", "high",
+            "-pix_fmt", "yuv420p", "-vf", "scale=-2:'min(1080,ih)'",
+            "-c:a", "aac", "-b:a", "192k", "-ac", "2",
+            "-movflags", "+faststart", str(tmp),
+        ]
+        action = "converting to iPhone-compatible H.264/AAC"
+
+    _set_job(
+        job_id,
+        status="processing",
+        progress=98.0,
+        message=f"Optimizing for iPhone ({action})...",
+    )
+
+    try:
+        subprocess.run(
+            cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=3600
+        )
+    except Exception as exc:
+        logger.warning(f"iOS compatibility pass failed ({action}): {exc}")
+        if tmp.exists():
+            try:
+                tmp.unlink()
+            except OSError:
+                pass
+        return filename
+
+    try:
+        if src.resolve() != target.resolve() and src.exists():
+            src.unlink()
+    except OSError:
+        pass
+    tmp.replace(target)
+    return str(target)
+
+
 def _download_worker(job_id: str, url: str, format_choice: str):
     if yt_dlp is None:
         _set_job(job_id, status="error", error="Missing dependency: yt-dlp is not installed.")
@@ -320,15 +424,15 @@ def _download_worker(job_id: str, url: str, format_choice: str):
                 ],
             }
         )
-    elif format_choice == "mp4":
+    else:
+        # Both "mp4" and "best_quality" target an iPhone-playable MP4. The final
+        # _ensure_ios_compatible() pass repairs anything these selectors can't satisfy.
         ydl_opts.update(
             {
-                "format": "bestvideo[vcodec^=avc1]+bestaudio[acodec^=mp4a]/best[ext=mp4]/best",
+                "format": IOS_VIDEO_FORMAT,
                 "merge_output_format": "mp4",
             }
         )
-    else:
-        ydl_opts.update({"format": "bestvideo+bestaudio/best"})
 
     try:
         attempt_opts = [ydl_opts]
@@ -370,6 +474,9 @@ def _download_worker(job_id: str, url: str, format_choice: str):
             raise last_error or RuntimeError("Download failed")
 
         filename = _resolve_output_file(filename, format_choice, info)
+
+        if format_choice != "mp3":
+            filename = _ensure_ios_compatible(job_id, filename, logger)
 
         _set_job(
             job_id,
