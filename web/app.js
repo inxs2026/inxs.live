@@ -24,7 +24,7 @@ async function loadJobs(){if(loading)return;loading=true;$('refresh').classList.
  $('footer-dot').className='dot '+(data.errors.length?'red':'green');
  $('last-sync').textContent=`Jobs synced ${formatted(data.updatedAt)} · Auto-refresh 30s`;
  $('inventory-warning').hidden=data.errors.length===0;$('inventory-warning').textContent=data.errors.join(' · ')+'. The inventory may be incomplete.';
- $('sources').innerHTML=data.sources.map(s=>`<div class="source-row"><strong><span class="dot ${s.ok?'green':'red'}"></span> ${esc(s.name)}</strong><span>${s.count} jobs · ${esc(s.note)}</span></div>`).join('');renderJobs();openLinkedJob();
+ $('sources').innerHTML=data.sources.map(s=>`<div class="source-row"><strong><span class="dot ${s.ok?'green':'red'}"></span> ${esc(s.name)}</strong><span>${s.count} jobs · ${esc(s.note)}</span></div>`).join('');renderJobs();try{const log=await getJSON('/api/acknowledgements');for(const item of log.history||[])if(item.verification)noticeVerifications.set(item.identity,item.verification);}catch{}openLinkedJob();
  }catch(error){$('connection').classList.add('error');$('connection').textContent='Dashboard connection lost. Showing the last inventory; retrying in 30 seconds.';$('footer-dot').className='dot red';if(!jobs.length)$('job-rows').innerHTML='<tr><td colspan="5" class="empty">Could not load jobs. Use refresh to retry.</td></tr>';}finally{loading=false;$('refresh').classList.remove('busy');}}
 
 function renderJobs(){const query=$('search').value.trim().toLowerCase();const status=$('status').value;

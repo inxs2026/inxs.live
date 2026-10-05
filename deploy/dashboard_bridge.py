@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-"""Authenticated, read-only bridge for Vercel to the existing LAN Dashboard."""
+"""Authenticated dashboard bridge; scheduler access remains read-only for Vercel to the existing LAN Dashboard."""
 import hmac
+import json
+import acknowledgements
 import os
 import threading
 import urllib.error
@@ -19,10 +21,32 @@ SLOTS = threading.BoundedSemaphore(8)
 
 
 class Handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        if not hmac.compare_digest(self.headers.get('Authorization', ''), 'Bearer ' + TOKEN):
+            return self.respond(401, b'{"error":"Unauthorized"}', 'application/json')
+        if urllib.parse.urlsplit(self.path).path != '/api/acknowledgements':
+            return self.respond(405, b'{"error":"Method not allowed"}', 'application/json')
+        try:
+            length=int(self.headers.get('Content-Length', '0'))
+            if length < 1 or length > 65536:
+                raise ValueError('Invalid body')
+            form=urllib.parse.parse_qs(self.rfile.read(length).decode(),strict_parsing=True)
+            result=acknowledgements.observe(json.loads(form['notices'][0]),form.get('complete',['false'])[0]=='true') if 'notices' in form else acknowledgements.acknowledge(form.get('key',[''])[0])
+            self.respond(200,json.dumps(result).encode(),'application/json')
+        except (ValueError,UnicodeError):
+            self.respond(400,b'{"error":"Invalid acknowledgement"}','application/json')
+        except Exception:
+            self.respond(503,b'{"error":"Acknowledgement could not be saved"}','application/json')
+
     def do_GET(self):
         if not hmac.compare_digest(self.headers.get('Authorization', ''), 'Bearer ' + TOKEN):
             return self.respond(401, b'{"error":"Unauthorized"}', 'application/json')
         url = urllib.parse.urlsplit(self.path)
+        if url.path == '/api/acknowledgements':
+            try:
+                return self.respond(200,json.dumps(acknowledgements.listing()).encode(),'application/json')
+            except Exception:
+                return self.respond(503,b'{"error":"Acknowledgements unavailable"}','application/json')
         if url.path not in PATHS:
             return self.respond(404, b'{"error":"Not found"}', 'application/json')
         if not SLOTS.acquire(blocking=False):

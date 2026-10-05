@@ -15,7 +15,7 @@ async function webAssets() {
 const COOKIE = '__Host-inxs_session';
 const HOURS = 12 * 60 * 60;
 const DATA_PATHS = new Set([
-  '/api/jobs', '/api/system-health', '/api/timeline', '/api/racing-performance',
+  '/api/acknowledgements', '/api/jobs', '/api/system-health', '/api/timeline', '/api/racing-performance',
   '/api/racing', '/api/woodbine-stats', '/api/stocks', '/api/stock-quotes',
   '/api/briefing', '/api/health', '/agco-document', '/racing-document',
   '/stats-document', '/stock-document',
@@ -67,13 +67,13 @@ function session(secret) {
 function sameOrigin(req) {
   try { return new URL(req.headers.origin).host === req.headers.host; } catch { return false; }
 }
-async function form(req) {
+async function form(req, limit = 4096) {
   if (req.body && typeof req.body === 'object' && !Buffer.isBuffer(req.body)) return req.body;
   if (typeof req.body === 'string') return Object.fromEntries(new URLSearchParams(req.body));
   let body = '';
   for await (const chunk of req) {
     body += chunk.toString();
-    if (body.length > 4096) throw new Error('Body too large');
+    if (body.length > limit) throw new Error('Body too large');
   }
   return Object.fromEntries(new URLSearchParams(body));
 }
@@ -133,14 +133,21 @@ async function handler(req, res) {
     if (pathname.startsWith('/api/') || DATA_PATHS.has(pathname)) return send(res, 401, JSON.stringify({ error: 'Please sign in.' }), 'application/json');
     return redirect(res, '/login?next=' + encodeURIComponent(safeNext(url.pathname + url.search)));
   }
-  if (!['GET', 'HEAD'].includes(req.method)) return send(res, 405, 'Method not allowed.');
+  let acknowledgementBody;
+  if (pathname === '/api/acknowledgements' && req.method === 'POST') {
+    if (!sameOrigin(req)) return send(res, 403, 'Invalid request origin.');
+    try { const input = await form(req, 65536); if (typeof input.notices === 'string') { if (input.notices.length > 60000 || !Array.isArray(JSON.parse(input.notices))) throw new Error('Invalid notices'); acknowledgementBody = new URLSearchParams({ notices: input.notices, complete: input.complete === 'true' ? 'true' : 'false' }).toString(); } else { if (typeof input.key !== 'string' || !input.key || input.key.length > 2048) throw new Error('Invalid key'); acknowledgementBody = new URLSearchParams({ key: input.key }).toString(); } }
+    catch { return send(res, 400, 'Invalid acknowledgement.'); }
+  }
+  if (!['GET', 'HEAD'].includes(req.method) && acknowledgementBody === undefined) return send(res, 405, 'Method not allowed.');
   if (DATA_PATHS.has(pathname)) {
     const origin = process.env.DASHBOARD_ORIGIN;
     const token = process.env.DASHBOARD_ORIGIN_TOKEN;
     if (!origin || !token) return send(res, 503, JSON.stringify({ error: 'The Linux data connection is not configured.' }), 'application/json');
     try {
       const upstream = await fetch(new URL(pathname + url.search, origin), {
-        headers: { Authorization: 'Bearer ' + token }, redirect: 'error', signal: AbortSignal.timeout(25000),
+        method: req.method === 'HEAD' ? 'GET' : req.method, body: acknowledgementBody,
+        headers: { Authorization: 'Bearer ' + token, ...(acknowledgementBody !== undefined ? { 'Content-Type': 'application/x-www-form-urlencoded' } : {}) }, redirect: 'error', signal: AbortSignal.timeout(25000),
       });
       const body = Buffer.from(await upstream.arrayBuffer());
       res.statusCode = upstream.status;

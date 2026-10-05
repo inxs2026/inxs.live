@@ -115,3 +115,7 @@
 .briefing-page .sports-panel .game{padding:18px;background:linear-gradient(135deg,#2a203a80,#18151f);border-color:#b495ff30}
 @media(max-width:720px){.briefing-page .sports-panel .game{padding:16px}.briefing-page .sports-panel .game-teams{gap:8px}.briefing-page .sports-panel .game-teams strong{font-size:16px}.briefing-page .sports-panel .game-teams .game-score{font-size:28px}}
 .scoreboard-day{margin:2px 20px 12px;font-size:12px;color:#a998bc}
+
+.attention-notice{display:flex;align-items:flex-start;gap:16px}.attention-notice>a{flex:1}.attention-notice button{flex-shrink:0;margin-top:10px;border:1px solid #d4a05a55;border-radius:7px;background:#241f18;color:#e3bd8b;padding:8px 12px;cursor:pointer;font:inherit}.attention-notice button:disabled{opacity:.6}.attention-notice button:focus-visible{outline:2px solid var(--purple);outline-offset:3px}.acknowledged-notices{color:var(--muted)}.acknowledged-notices summary{font-weight:600}@media(max-width:720px){.attention-notice{flex-direction:column;gap:0}.attention-notice button{margin-bottom:8px}}
+
+.attention-history{margin-top:8px;color:var(--muted)}.attention-history>summary{font-size:11px}.notice-history-entry{padding:10px 0;border-top:1px solid var(--line)}.notice-history-meta{font-size:10px;color:var(--muted)}.notice-history-entry a{font-size:11px;line-height:1.7}.notice-history-entry p{margin:8px 0}

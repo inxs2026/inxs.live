@@ -12,10 +12,11 @@ before(async () => {
   process.env.DASHBOARD_PASSWORD_HASH = salt.toString('hex') + ':' + crypto.pbkdf2Sync(password, salt, 210000, 32, 'sha256').toString('hex');
   process.env.DASHBOARD_SESSION_SECRET = crypto.randomBytes(32).toString('hex');
   process.env.DASHBOARD_ORIGIN_TOKEN = crypto.randomBytes(32).toString('hex');
-  upstream = http.createServer((req, res) => {
+  upstream = http.createServer(async (req, res) => {
     assert.equal(req.headers.authorization, 'Bearer ' + process.env.DASHBOARD_ORIGIN_TOKEN);
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ path: req.url, status: 'ok' }));
+    let body='';for await(const chunk of req)body+=chunk.toString();
+    res.end(JSON.stringify({ path: req.url, status: 'ok', ...(req.method==='POST'?{method:req.method,body}:{}) }));
   });
   await new Promise(r => upstream.listen(0, '127.0.0.1', r));
   process.env.DASHBOARD_ORIGIN = 'http://127.0.0.1:' + upstream.address().port;
@@ -80,3 +81,5 @@ test('missing authentication configuration fails closed', async () => {
   assert.equal((await request('/', { headers: { Cookie: cookie } })).status, 503);
   process.env.DASHBOARD_SESSION_SECRET = secret;
 });
+
+test('acknowledgement writes require session and same origin and forward only to the fixed origin',async()=>{const route='/api/acknowledgements',body=new URLSearchParams({key:'fixture-job|2026-10-04|error'}).toString();assert.equal((await request(route,{method:'POST',body,headers:{Origin:base}})).status,401);const fresh=await login(password);const auth=fresh.headers.get('set-cookie').split(';')[0];assert.equal((await request(route,{method:'POST',body,headers:{Cookie:auth,Origin:'https://other.example'}})).status,403);assert.equal((await request(route,{method:'POST',body:'key=',headers:{Cookie:auth,Origin:base}})).status,400);const res=await request(route,{method:'POST',body,headers:{Cookie:auth,Origin:base,'Content-Type':'application/x-www-form-urlencoded'}});assert.equal(res.status,200);const d=await res.json();assert.equal(d.method,'POST');assert.equal(d.path,route);assert.equal(d.body,body);assert.equal((await request('/api/jobs',{method:'POST',headers:{Cookie:auth,Origin:base}})).status,405);});
