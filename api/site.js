@@ -15,7 +15,7 @@ async function webAssets() {
 const COOKIE = '__Host-inxs_session';
 const HOURS = 12 * 60 * 60;
 const DATA_PATHS = new Set([
-  '/api/acknowledgements', '/api/jobs', '/api/system-health', '/api/timeline', '/api/racing-performance',
+  '/api/acknowledgements', '/api/jobs', '/api/codex-usage', '/api/system-health', '/api/timeline', '/api/racing-performance',
   '/api/racing', '/api/woodbine-stats', '/api/stocks', '/api/stock-quotes',
   '/api/briefing', '/api/health', '/agco-document', '/racing-document',
   '/stats-document', '/stock-document',

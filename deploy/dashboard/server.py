@@ -21,6 +21,7 @@ import stocks
 import stock_quotes
 import woodbine_stats
 import operations
+import codex_usage
 import performance
 import sports_teams
 import acknowledgements
@@ -334,6 +335,8 @@ class Handler(BaseHTTPRequestHandler):
             self.respond(json.dumps(acknowledgements.listing()).encode(),'application/json')
         elif path == '/api/jobs':
             self.respond(json.dumps(inventory()).encode(), 'application/json')
+        elif path == '/api/codex-usage':
+            self.respond(json.dumps(codex_usage.usage()).encode(), 'application/json')
         elif path == '/api/system-health':
             self.respond(json.dumps(operations.system_health()).encode(), 'application/json')
         elif path == '/api/timeline':

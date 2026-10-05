@@ -13,7 +13,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 TOKEN = os.environ['DASHBOARD_ORIGIN_TOKEN']
 if len(TOKEN) < 32:
     raise RuntimeError('Origin token must contain at least 32 characters')
-PATHS = {'/api/jobs', '/api/system-health', '/api/timeline', '/api/racing-performance',
+PATHS = {'/api/jobs', '/api/codex-usage', '/api/system-health', '/api/timeline', '/api/racing-performance',
          '/api/racing', '/api/woodbine-stats', '/api/stocks', '/api/stock-quotes',
          '/api/briefing', '/api/health', '/agco-document', '/racing-document',
          '/stats-document', '/stock-document'}
