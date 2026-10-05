@@ -13,8 +13,8 @@ async function loadAttention(){
  const add=(text,url)=>notices.push({text,url});
  results.forEach((r,i)=>{if(r.status!=='fulfilled')add(['Job inventory','Stock reports','Briefing feeds','Racing data'][i]+' could not be checked',['/dashboard','/stocks','/','/woodbine'][i]);});
  const jobsData=results[0].value;
- if(jobsData){const failed=jobsData.jobs.filter(j=>j.status==='active'&&!j.archived&&isFailed(j));for(const j of failed)add(`${j.platform} · ${j.name}: ${j.failureReason||'Last run reported '+j.result+'. The scheduler did not provide a detailed cause.'} Last attempt ${formatted(j.lastRun)}. ${j.nextRun?'Next scheduled attempt '+formatted(j.nextRun)+'. Check the next result; recovery is not yet confirmed.':'No next attempt is available. Needs a schedule check.'}`,'/#automations');
- const overdue=jobsData.jobs.filter(j=>j.status==='active'&&j.nextRun&&Number.isFinite(Date.parse(j.nextRun))&&Date.now()-Date.parse(j.nextRun)>900000);if(overdue.length)add(`${overdue.length} next-run timestamp${overdue.length===1?' is':'s are'} overdue — check schedules`,'/#automations');
+ if(jobsData){const failed=jobsData.jobs.filter(j=>j.status==='active'&&!j.archived&&isFailed(j));for(const j of failed)add(`${j.platform} · ${j.name}: ${j.failureReason||'Last run reported '+j.result+'. The scheduler did not provide a detailed cause.'} Last attempt ${formatted(j.lastRun)}. ${j.nextRun?'Next scheduled attempt '+formatted(j.nextRun)+'. Check the next result; recovery is not yet confirmed.':'No next attempt is available. Needs a schedule check.'}`,'/dashboard#automations');
+ const overdue=jobsData.jobs.filter(j=>j.status==='active'&&j.nextRun&&Number.isFinite(Date.parse(j.nextRun))&&Date.now()-Date.parse(j.nextRun)>900000);if(overdue.length)add(`${overdue.length} next-run timestamp${overdue.length===1?' is':'s are'} overdue — check schedules`,'/dashboard#automations');
  for(const [name,state] of Object.entries(jobsData.gateways||{}))if(state!=='active')add(name+' gateway: '+state,'/');
  if(jobsData.errors.length)add('Job inventory may be incomplete','/');}
  const stocksData=results[1].value;
