@@ -19,13 +19,25 @@ function racingStatusText(racing){
  if(racing?.schedule?.scheduled===false&&!racing.races.length)return 'No racing scheduled today'+(racing.schedule.nextRaceDate?' · Next race day: '+racing.schedule.nextRaceDate:' · No further dates in the approved calendar');
  return '';
 }
+function jobFailureImpact(j){
+ return j.unit==='81265f85-6e79-4379-a5d3-119ebbe43c7e'&&j.failureReason==='The model runtime changed before the job could start.'?'That attempt produced no Top 3 Beyer picks PDF. Smart Picks is a separate job.':'The failed run does not confirm its intended output or delivery.';
+}
+function jobFailureAction(j){
+ const reason=j.failureReason||'';
+ if(reason.includes('runtime changed'))return 'Verify this job can start successfully before its next scheduled run. Its recovery is not yet verified.';
+ if(reason.includes('authenticate'))return 'Repair this job’s service credentials, then verify a successful run.';
+ if(reason.includes('allowed time'))return 'Investigate the slow step or timeout, then verify the expected report was produced.';
+ if(reason.includes('limited requests'))return 'Check provider availability and verify the next retry succeeds.';
+ if(reason.includes('delivery problem'))return 'Check the destination and delivery credentials, then confirm the report was delivered.';
+ return 'Inspect this job’s run log, repair the reported failure, and verify its expected output.';
+}
 async function loadAttention(){
  const notices=[];
  const results=await Promise.allSettled(['/api/jobs','/api/stocks','/api/briefing','/api/racing'].map(getJSON));
  const add=(text,url)=>notices.push({text,url});
  results.forEach((r,i)=>{if(r.status!=='fulfilled')add(['Job inventory','Stock reports','Briefing feeds','Racing data'][i]+' could not be checked',['/dashboard','/stocks','/','/woodbine'][i]);});
  const jobsData=results[0].value;
- if(jobsData){const failed=jobsData.jobs.filter(j=>j.status==='active'&&!j.archived&&isFailed(j));for(const j of failed)add(`${j.platform} · ${j.name}: ${j.failureReason||'Last run reported '+j.result+'. The scheduler did not provide a detailed cause.'} Last attempt ${formatted(j.lastRun)}. ${j.nextRun?'Next scheduled attempt '+formatted(j.nextRun)+'. Check the next result; recovery is not yet confirmed.':'No next attempt is available. Needs a schedule check.'}`,'/dashboard#automations');
+ if(jobsData){const failed=jobsData.jobs.filter(j=>j.status==='active'&&!j.archived&&isFailed(j));for(const j of failed)add(`${j.platform} · ${j.name} — last run failed ${formatted(j.lastRun)}. Cause: ${j.failureReason||'The scheduler did not provide a detailed cause.'} ${jobFailureImpact(j)} Action needed: ${jobFailureAction(j)} ${j.nextRun?'Next scheduled attempt: '+formatted(j.nextRun)+'.':''} Open this job’s details ↗`,'/dashboard#job='+encodeURIComponent(j.id));
  const overdue=jobsData.jobs.filter(j=>j.status==='active'&&j.nextRun&&Number.isFinite(Date.parse(j.nextRun))&&Date.now()-Date.parse(j.nextRun)>900000);if(overdue.length)add(`${overdue.length} next-run timestamp${overdue.length===1?' is':'s are'} overdue — check schedules`,'/dashboard#automations');
  for(const [name,state] of Object.entries(jobsData.gateways||{}))if(state!=='active')add(name+' gateway: '+state,'/');
  if(jobsData.errors.length)add('Job inventory may be incomplete','/');}
