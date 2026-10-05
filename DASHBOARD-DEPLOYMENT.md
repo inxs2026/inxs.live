@@ -1,6 +1,7 @@
 # INXS dashboard deployment
 
-`web/index.html` is the Dashboard homepage. `web/tools/index.html` preserves the
+`web/index.html` is the Daily briefing homepage. The automation overview is
+at `/dashboard` (`web/dashboard.html`); `/briefing` remains a compatible alias. `web/tools/index.html` preserves the
 former INXS homepage and its tool links. Invoice, mortgage, LeaseScan and
 LeaseCreate remain at their existing URLs; media tool subdomains remain linked.
 All paths on this Vercel project go through `api/site.js` before serving a file.

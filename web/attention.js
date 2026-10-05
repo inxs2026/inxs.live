@@ -11,7 +11,7 @@ async function loadAttention(){
  const notices=[];
  const results=await Promise.allSettled(['/api/jobs','/api/stocks','/api/briefing','/api/racing'].map(getJSON));
  const add=(text,url)=>notices.push({text,url});
- results.forEach((r,i)=>{if(r.status!=='fulfilled')add(['Job inventory','Stock reports','Briefing feeds','Racing data'][i]+' could not be checked',['/','/stocks','/briefing','/woodbine'][i]);});
+ results.forEach((r,i)=>{if(r.status!=='fulfilled')add(['Job inventory','Stock reports','Briefing feeds','Racing data'][i]+' could not be checked',['/dashboard','/stocks','/','/woodbine'][i]);});
  const jobsData=results[0].value;
  if(jobsData){const failed=jobsData.jobs.filter(j=>j.status==='active'&&!j.archived&&isFailed(j));for(const j of failed)add(`${j.platform} · ${j.name}: ${j.failureReason||'Last run reported '+j.result+'. The scheduler did not provide a detailed cause.'} Last attempt ${formatted(j.lastRun)}. ${j.nextRun?'Next scheduled attempt '+formatted(j.nextRun)+'. Check the next result; recovery is not yet confirmed.':'No next attempt is available. Needs a schedule check.'}`,'/#automations');
  const overdue=jobsData.jobs.filter(j=>j.status==='active'&&j.nextRun&&Number.isFinite(Date.parse(j.nextRun))&&Date.now()-Date.parse(j.nextRun)>900000);if(overdue.length)add(`${overdue.length} next-run timestamp${overdue.length===1?' is':'s are'} overdue — check schedules`,'/#automations');
@@ -20,8 +20,8 @@ async function loadAttention(){
  const stocksData=results[1].value;
  if(stocksData)for(const slot of ['morning','afternoon']){const expected=expectedStockDate(slot),r=stocksData.reports[slot];if(!r||r.date<expected){const run=stocksData.latestRuns?.[slot];add(`${slot==='morning'?'Morning':'Afternoon'} ${run?.date>=expected?'report succeeded; dashboard copy missing for ':'stock report missing for '}${expected}`,'/stocks#stock-watchlists');}}
  const feeds=results[2].value;
- if(feeds)for(const [key,f] of Object.entries(feeds)){if(f.error||f.stale||(f.data&&(!f.updatedAt||Date.now()-Date.parse(f.updatedAt)>1200000)))add(({weather:'Weather',news:'Canadian news',usnews:'U.S. news',sports:'Sports news',scores:'Sports scores'}[key]||key)+(f.data?' is using cached data':' is unavailable'),'/briefing');}
- if(feeds?.scores?.data?.unavailable?.length)add('Some sports scoreboards are unavailable','/briefing');
+ if(feeds)for(const [key,f] of Object.entries(feeds)){if(f.error||f.stale||(f.data&&(!f.updatedAt||Date.now()-Date.parse(f.updatedAt)>1200000)))add(({weather:'Weather',news:'Canadian news',usnews:'U.S. news',sports:'Sports news',scores:'Sports scores'}[key]||key)+(f.data?' is using cached data':' is unavailable'),'/');}
+ if(feeds?.scores?.data?.unavailable?.length)add('Some sports scoreboards are unavailable','/');
  const racing=results[3].value;
  if(racing){if(racing.errors.length)add('Saved racing picks need attention','/woodbine');if(racing.scratches.error||racing.scratches.snapshot)add('Latest daily scratch feed has not been confirmed','/woodbine');
  if(racing.scratches.available&&!racing.scratches.snapshot){const keys=racing.scratches.items.map(s=>`${s.race}|${s.pp}|${s.name}|${s.reason}`);let previous=null;try{previous=JSON.parse(localStorage.getItem('dashboard-scratches-'+racing.date));localStorage.setItem('dashboard-scratches-'+racing.date,JSON.stringify(keys));}catch{}

@@ -45,7 +45,7 @@ test('spaces in the password work and session cookie is secure', async () => {
   cookie = set.split(';')[0];
 });
 test('dashboard and every existing tool page serve after sign-in', async () => {
-  for (const route of ['/', '/briefing', '/stocks', '/woodbine', '/woodbine-stats', '/health', '/tools', '/invoice', '/mortgage', '/leasescan', '/leasecreate/', '/leasecreate/js/app.js']) {
+  for (const route of ['/', '/dashboard', '/briefing', '/stocks', '/woodbine', '/woodbine-stats', '/health', '/tools', '/invoice', '/mortgage', '/leasescan', '/leasecreate/', '/leasecreate/js/app.js']) {
     const res = await request(route, { headers: { Cookie: cookie } }); assert.equal(res.status, 200, route);
   }
   const html = await (await request('/', { headers: { Cookie: cookie } })).text();

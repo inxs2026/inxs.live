@@ -1,6 +1,7 @@
 # INXS.live
 
-The password-protected Dashboard is the main Vercel website. Its homepage and
+The password-protected Daily briefing is the main Vercel page. The automation
+overview remains available at `/dashboard`. Its homepage and
 assets are in `web/`; the former homepage is preserved at `/tools`. Invoice,
 mortgage, LeaseScan and LeaseCreate keep their existing paths, and the media
 services keep their subdomain links.
