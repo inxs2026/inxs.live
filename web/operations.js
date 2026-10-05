@@ -28,9 +28,9 @@ function switchOverview(view){const today=view==='today';document.body.classList
 if($('timeline-panel')){document.querySelectorAll('[data-overview-view]').forEach(b=>b.addEventListener('click',()=>switchOverview(b.dataset.overviewView)));$('refresh-timeline').addEventListener('click',loadTimeline);window.addEventListener('hashchange',()=>{if(location.hash==='#automations')switchOverview('schedules');else if(location.hash==='#timeline-panel')switchOverview('today');});switchOverview(location.hash==='#automations'?'schedules':'today');loadTimeline();setInterval(loadTimeline,60000);}
 window.addEventListener('dashboard:attention',({detail:d})=>{
  if(!$('summary-racing'))return;
- const r=d.racing, available=r?.sources?.filter(s=>s.available).length||0;
- $('summary-racing').textContent=!r?'Racing check unavailable':r.races.length?`${r.races.length} races · ${available}/2 agents ready`:'No saved card for today';
- $('summary-racing-note').textContent=!r?'Check Woodbine Racing for details':r.races.length?`${r.scratches.snapshot||r.scratches.error?'Scratch feed not confirmed':r.scratches.items.length+' reported scratches'} · ${r.refreshing?'Checking updates':'Checked '+opsTime(r.scratches.checkedAt)}`:'This does not confirm a non-racing day';
+ const r=d.racing, offDay=r?.schedule?.scheduled===false&&!r.races.length, available=r?.sources?.filter(s=>s.available).length||0;
+ $('summary-racing').textContent=!r?'Racing check unavailable':offDay?'No racing scheduled today':r.races.length?`${r.races.length} races · ${available}/2 agents ready`:'No saved card for today';
+ $('summary-racing-note').textContent=!r?'Check Woodbine Racing for details':offDay?(r.schedule.nextRaceDate?'Next race day · '+opsDate(r.schedule.nextRaceDate):'No further dates in the approved calendar'):r.races.length?`${r.scratches.snapshot||r.scratches.error?'Scratch feed not confirmed':r.scratches.items.length+' reported scratches'} · ${r.refreshing?'Checking updates':'Checked '+opsTime(r.scratches.checkedAt)}`:'This does not confirm a non-racing day';
  $('summary-attention').textContent=d.notices.length?d.notices.length+' notice'+(d.notices.length===1?'':'s'):'No issues found';
  $('summary-attention-note').textContent=d.notices.length?'Tap for job failures, missing reports and feed checks':'Within the checks currently available';
 });

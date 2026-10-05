@@ -5,7 +5,7 @@
   "scripts": {
     "postinstall": "node scripts/package-web.cjs",
     "pretest": "node scripts/package-web.cjs",
-    "test": "node --test tests/site.test.cjs"
+    "test": "node --test tests/*.test.cjs"
   },
   "engines": { "node": "24.x" }
 }

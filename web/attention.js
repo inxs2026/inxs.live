@@ -7,6 +7,18 @@ function expectedStockDate(slot,now=new Date()){
  while([0,6].includes(date.getUTCDay()))date.setUTCDate(date.getUTCDate()-1);
  return date.toISOString().slice(0,10);
 }
+function racingNotices(racing){
+ const notices=[];
+ if(racing.errors.length)notices.push('Saved racing picks need attention');
+ if(racing.schedule?.scheduled===false&&!racing.races.length)return notices;
+ if(racing.schedule?.scheduled===true&&!racing.races.length)notices.push('Racing is scheduled today; no saved picks are available yet');
+ if(racing.scratches.error||racing.scratches.snapshot)notices.push('Latest daily scratch feed has not been confirmed');
+ return notices;
+}
+function racingStatusText(racing){
+ if(racing?.schedule?.scheduled===false&&!racing.races.length)return 'No racing scheduled today'+(racing.schedule.nextRaceDate?' · Next race day: '+racing.schedule.nextRaceDate:' · No further dates in the approved calendar');
+ return '';
+}
 async function loadAttention(){
  const notices=[];
  const results=await Promise.allSettled(['/api/jobs','/api/stocks','/api/briefing','/api/racing'].map(getJSON));
@@ -23,11 +35,11 @@ async function loadAttention(){
  if(feeds)for(const [key,f] of Object.entries(feeds)){if(f.error||f.stale||(f.data&&(!f.updatedAt||Date.now()-Date.parse(f.updatedAt)>1200000)))add(({weather:'Weather',news:'Canadian news',usnews:'U.S. news',sports:'Sports news',scores:'Sports scores'}[key]||key)+(f.data?' is using cached data':' is unavailable'),'/');}
  if(feeds?.scores?.data?.unavailable?.length)add('Some sports scoreboards are unavailable','/');
  const racing=results[3].value;
- if(racing){if(racing.errors.length)add('Saved racing picks need attention','/woodbine');if(racing.scratches.error||racing.scratches.snapshot)add('Latest daily scratch feed has not been confirmed','/woodbine');
- if(racing.scratches.available&&!racing.scratches.snapshot){const keys=racing.scratches.items.map(s=>`${s.race}|${s.pp}|${s.name}|${s.reason}`);let previous=null;try{previous=JSON.parse(localStorage.getItem('dashboard-scratches-'+racing.date));localStorage.setItem('dashboard-scratches-'+racing.date,JSON.stringify(keys));}catch{}
+ if(racing){for(const text of racingNotices(racing))add(text,'/woodbine');
+ if(racing.schedule?.scheduled!==false&&racing.scratches.available&&!racing.scratches.snapshot){const keys=racing.scratches.items.map(s=>`${s.race}|${s.pp}|${s.name}|${s.reason}`);let previous=null;try{previous=JSON.parse(localStorage.getItem('dashboard-scratches-'+racing.date));localStorage.setItem('dashboard-scratches-'+racing.date,JSON.stringify(keys));}catch{}
  const added=Array.isArray(previous)?keys.filter(k=>!previous.includes(k)).length:0;
  if(added)add(`${added} new scratch${added===1?'':'es'} since your last check`,'/woodbine');else if(keys.length)add(`${keys.length} reported scratch${keys.length===1?'':'es'} on today’s card`,'/woodbine');}}
- const el=document.getElementById('attention-strip');const wasOpen=el.querySelector('details')?.open;el.classList.toggle('has-notices',!!notices.length);el.innerHTML=`<details${wasOpen?' open':''}><summary><span class="attention-heading">${notices.length?'Needs attention':'Status check'}</span><span>${notices.length?notices.length+' notice'+(notices.length===1?'':'s'):'No issues found in the checks available'} · tap for details</span></summary><div class="attention-items">${notices.length?notices.map(n=>`<a href="${n.url}">${esc(n.text)} <span>↗</span></a>`).join(''):'<p>Checked active jobs, gateways, weekday stock reports, briefing feeds, and today’s scratches. Direct cron run history is unavailable. Stock deadlines allow 15 minutes after their scheduled time.</p>'}</div><p class="attention-checked">Checked ${esc(formatted(new Date().toISOString()))}</p></details>`;
+ const el=document.getElementById('attention-strip');const wasOpen=el.querySelector('details')?.open;el.classList.toggle('has-notices',!!notices.length);el.innerHTML=`<details${wasOpen?' open':''}><summary><span class="attention-heading">${notices.length?'Needs attention':'Status check'}</span><span>${notices.length?notices.length+' notice'+(notices.length===1?'':'s'):(racingStatusText(racing)||'No issues found in the checks available')} · tap for details</span></summary><div class="attention-items">${notices.length?notices.map(n=>`<a href="${n.url}">${esc(n.text)} <span>↗</span></a>`).join(''):'<p>Checked active jobs, gateways, weekday stock reports, briefing feeds, and race-day scratches. Direct cron run history is unavailable. Stock deadlines allow 15 minutes after their scheduled time.</p>'}${racingStatusText(racing)?`<p>${esc(racingStatusText(racing))}. Picks and scratch checks are not expected on a non-racing day.</p>`:''}</div><p class="attention-checked">Checked ${esc(formatted(new Date().toISOString()))}</p></details>`;
  window.dispatchEvent(new CustomEvent('dashboard:attention',{detail:{notices,racing,stocks:stocksData,jobs:jobsData}}));
 }
 loadAttention();setInterval(loadAttention,60000);
