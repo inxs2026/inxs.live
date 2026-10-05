@@ -1,4 +1,5 @@
 const crypto = require('node:crypto');
+const { originRead } = require('../lib/origin-read.cjs');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const zlib = require('node:zlib');
@@ -145,13 +146,13 @@ async function handler(req, res) {
     const token = process.env.DASHBOARD_ORIGIN_TOKEN;
     if (!origin || !token) return send(res, 503, JSON.stringify({ error: 'The Linux data connection is not configured.' }), 'application/json');
     try {
-      const upstream = await fetch(new URL(pathname + url.search, origin), {
+      const upstream = await originRead(new URL(pathname + url.search, origin), {
         method: req.method === 'HEAD' ? 'GET' : req.method, body: acknowledgementBody,
         headers: { Authorization: 'Bearer ' + token, ...(acknowledgementBody !== undefined ? { 'Content-Type': 'application/x-www-form-urlencoded' } : {}) }, redirect: 'error', signal: AbortSignal.timeout(25000),
       });
-      const body = Buffer.from(await upstream.arrayBuffer());
+      const body = upstream.body;
       res.statusCode = upstream.status;
-      res.setHeader('Content-Type', upstream.headers.get('content-type') || 'application/octet-stream');
+      res.setHeader('Content-Type', upstream.type || 'application/octet-stream');
       if (req.method === 'HEAD') return res.end();
       return res.end(body);
     } catch (error) {
