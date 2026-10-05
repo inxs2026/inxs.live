@@ -20,12 +20,13 @@ function racingStatusText(racing){
  return '';
 }
 function jobFailureImpact(j){
+ if(j.name==='heartbeat-main')return 'The background heartbeat check did not complete. This does not mean stock quotes or the website are unavailable.';
  return j.unit==='81265f85-6e79-4379-a5d3-119ebbe43c7e'&&j.failureReason==='The model runtime changed before the job could start.'?'That attempt produced no Top 3 Beyer picks PDF. Smart Picks is a separate job.':'The failed run does not confirm its intended output or delivery.';
 }
 const noticeVerifications=new Map();
 function jobFailureAction(j){
  const verified=noticeVerifications.get(noticeIdentity('', '/dashboard#job='+encodeURIComponent(j.id),jobFailureOccurrence(j)));
- if(verified)return verified+' Next full race-day run will verify report generation and delivery.';
+ if(verified)return verified+(j.unit==='81265f85-6e79-4379-a5d3-119ebbe43c7e'?' Next full race-day run will verify report generation and delivery.':' The next scheduled run will confirm recovery.');
  const reason=j.failureReason||'';
  if(reason.includes('runtime changed'))return 'Verify this job can start successfully before its next scheduled run. Its recovery is not yet verified.';
  if(reason.includes('authenticate'))return 'Repair this job’s service credentials, then verify a successful run.';

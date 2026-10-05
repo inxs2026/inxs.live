@@ -102,6 +102,8 @@ def native_rows(data, owner, archived=False):
 def failure_reason(message):
     # Return fixed explanations only; scheduler errors can contain credentials or private paths.
     text = str(message or '').lower()
+    if 'heartbeat failed: agent-runner-failure' in text:
+        return 'The heartbeat agent could not complete its run.'
     if 'superseded' in text and 'runtime' in text:
         return 'The model runtime changed before the job could start.'
     if 'timeout' in text or 'timed out' in text:
