@@ -38,6 +38,7 @@ function jobFailureAction(j){
 function noticeHistory(history){return `<details class="attention-history"><summary>Notice history${history.length?' ('+history.length+')':''}</summary>${history.length?history.map(n=>`<article class="notice-history-entry"><div class="notice-history-meta">${esc(n.resolved_at?'No longer reported':n.acknowledged_at?'Acknowledged':'Open')} · First seen ${esc(formatted(n.first_seen))}${n.acknowledged_at?' · Acknowledged '+esc(formatted(n.acknowledged_at)):''}${n.resolved_at?' · Cleared '+esc(formatted(n.resolved_at)):''}</div><a href="${esc(n.url)}">${esc(n.text)}</a>${n.verification?`<p>Technical check: ${esc(n.verification)} · ${esc(formatted(n.verified_at))}</p>`:''}</article>`).join(''):'<p>No recorded notices yet.</p>'}<p>History is retained after acknowledgement or recovery. Showing the latest 100 notices. “No longer reported” means the current checks no longer report this issue.</p></details>`;}
 function noticeIdentity(text,url,occurrence){return JSON.stringify([url,occurrence||new Intl.DateTimeFormat('en-CA',{timeZone:'America/Toronto',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())+'|'+text]);}
 function jobFailureOccurrence(j){return JSON.stringify([j.id,j.lastRun,j.result,j.failureReason]);}
+function attentionCheckComplete(results){return results.slice(0,4).every(r=>r.status==='fulfilled')&&Array.isArray(results[0].value?.errors)&&results[0].value.errors.length===0;}
 async function loadAttention(){
  const notices=[];
  const results=await Promise.allSettled(['/api/jobs','/api/stocks','/api/briefing','/api/racing','/api/acknowledgements'].map(getJSON));
@@ -60,7 +61,7 @@ async function loadAttention(){
  const added=Array.isArray(previous)?keys.filter(k=>!previous.includes(k)).length:0;
  if(added)add(`${added} new scratch${added===1?'':'es'} since your last check`,'/woodbine');else if(keys.length)add(`${keys.length} reported scratch${keys.length===1?'':'es'} on today’s card`,'/woodbine');}}
  let log=results[4].status==='fulfilled'?results[4].value:null;
- try{const response=await fetch('/api/acknowledgements',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({notices:JSON.stringify(notices),complete:String(results.slice(0,4).every(r=>r.status==='fulfilled'))}).toString()});if(!response.ok)throw new Error('History unavailable');log=await response.json();}catch{log=null;}
+ try{const response=await fetch('/api/acknowledgements',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({notices:JSON.stringify(notices),complete:String(attentionCheckComplete(results))}).toString()});if(!response.ok)throw new Error('History unavailable');log=await response.json();}catch{log=null;}
  const saved=new Set(log?.keys||[]);
  const acknowledged=notices.filter(n=>saved.has(n.key)), active=notices.filter(n=>!saved.has(n.key));
  const el=document.getElementById('attention-strip');const wasOpen=el.querySelector('details')?.open;el.classList.toggle('has-notices',!!active.length);
