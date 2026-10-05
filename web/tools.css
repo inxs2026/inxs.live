@@ -1,0 +1,20 @@
+/* The tool directory uses the shared dashboard shell and theme. */
+.workspace-tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:24px}
+.workspace-tool{display:flex;flex-direction:column;gap:14px;padding:24px;min-width:0;transition:border-color .15s,background .15s}
+.workspace-tool:hover{border-color:var(--purple);background:var(--panel-top)}
+.tool-card-top{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.workspace-tool-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:11px;background:#b495ff12;color:var(--purple);border:1px solid #b495ff20}
+.workspace-tool-icon svg{width:21px;height:21px}
+.tool-category{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.workspace-tool h2{margin:5px 0 0;color:var(--text);font-size:19px;font-weight:600;line-height:1.4;letter-spacing:-.3px}
+.workspace-tool p{margin:0;color:var(--muted);font-size:13px;line-height:1.8;flex:1}
+.workspace-tool-action{display:flex;align-items:center;justify-content:space-between;gap:14px;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:var(--purple)}
+.workspace-tool-action svg{width:16px;height:16px}
+.tool-external{font-size:10px;color:var(--muted);margin-top:-7px}
+.planned-tools{margin-top:22px;padding:18px 24px;color:var(--muted);font-size:12px}
+.planned-tools>summary{cursor:pointer;min-height:24px;line-height:2}
+.planned-tool-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;padding-top:14px;border-top:1px solid var(--line);margin-top:10px}
+.planned-tool-list h3{margin:0 0 7px;font-size:13px;font-weight:500;color:var(--muted)}
+.planned-tool-list p{margin:0;font-size:12px;line-height:1.8}
+@media(max-width:1150px){.workspace-tools{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:720px){.workspace-tools{grid-template-columns:minmax(0,1fr);gap:14px;margin-top:20px}.workspace-tool{padding:20px}.workspace-tool h2{font-size:18px}.planned-tools{padding:16px 20px}.planned-tool-list{grid-template-columns:minmax(0,1fr);gap:18px}}
