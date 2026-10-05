@@ -4,3 +4,13 @@ __pycache__/
 .DS_Store
 apps/video-converter/downloads/
 apps/video-converter/uploads/
+
+.vercel
+
+node_modules/
+
+.env*
+
+assemble_site.py
+
+api/web-assets.json.gz

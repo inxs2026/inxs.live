@@ -1,0 +1,64 @@
+[hidden] { display: none !important; }
+.today-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0 24px}.today-card{padding:20px;text-decoration:none;min-width:0}.today-card>span{display:block;font-size:10px;letter-spacing:1.3px;color:#b99bd8;margin-bottom:12px}.today-card strong{display:block;font-size:17px;line-height:1.5;color:#eedfff}.today-card p{margin:9px 0 0;color:#aa98ba;font-size:12px;line-height:1.6}.today-card:hover{border-color:#b99bd86b}
+@media(max-width:720px){.today-summary{grid-template-columns:minmax(0,1fr);gap:10px}.today-card{padding:16px}.today-card>span{margin-bottom:7px}.today-card strong{font-size:16px}}
+.today-view .metrics { display:none; }
+.today-view .metrics>.metric:nth-child(1),.today-view .metrics>.metric:nth-child(3) { display:none; }
+.overview-views { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin: 8px 0 20px; }
+.overview-views button,.overview-views a { min-height:44px; border:1px solid var(--line); border-radius:10px; background:#17141e; color:#b7a7c9; padding:10px 17px; font:inherit; font-size:13px; text-decoration:none; cursor:pointer; }
+.overview-views .selected { background:#9b64e324; color:#e0c8fc; border-color:#9b64e369; }
+.overview-views a { margin-left:auto; display:flex; align-items:center; gap:8px; }
+.timeline-panel h2,.health-section h2 { font-size:18px; margin:0; color:#ecdefb; }
+.timeline-items { padding:0 24px 12px; }
+.workflow-card { display:grid; grid-template-columns:100px minmax(0,1fr) auto; gap:18px; padding:22px 0; border-top:1px solid var(--line); }
+.workflow-time { color:#c4a0f1; font-size:18px; font-weight:600; padding-top:2px; }
+.workflow-time small { display:block; margin-top:7px; color:#a796b6; font-size:11px; font-weight:400; }
+.workflow-main h3 { margin:0 0 8px; font-size:16px; line-height:1.4; color:#f1e4ff; }
+.workflow-meta { font-size:12px; color:#a99bb9; margin:0 0 13px; line-height:1.7; }
+.workflow-evidence { display:flex; gap:8px 20px; flex-wrap:wrap; font-size:12px; line-height:1.6; color:#b4a7c0; }
+.workflow-evidence a { color:#ccb1f1; text-decoration:none; }
+.workflow-evidence strong { font-weight:500; color:#dbcee8; }
+.workflow-evidence .confirmed { color:#8bd2ae; }
+.workflow-evidence .older { color:#d5b58a; }
+.workflow-steps { margin-top:15px; font-size:12px; color:#ac9bbf; }
+.workflow-steps summary { cursor:pointer; min-height:30px; }
+.workflow-step { display:flex; flex-wrap:wrap; gap:4px 12px; padding:10px 0; border-top:1px solid var(--line); line-height:1.6; }
+.workflow-step span { color:#8f819f; }
+.ops-badge { display:inline-flex; align-items:center; justify-content:center; align-self:start; padding:6px 10px; border-radius:7px; font-size:11px; color:#c5b1dd; background:#ad80e51a; border:1px solid #ad80e52c; white-space:nowrap; }
+.ops-badge.verified,.ops-badge.active,.ops-badge.clear,.ops-badge.ran { color:#92d7b2; background:#50bd8520; border-color:#50bd8535; }
+.ops-badge.attention,.ops-badge.mismatch,.ops-badge.failed,.ops-badge.inactive { color:#f0a0ad; background:#e8687e17; border-color:#e8687e3c; }
+.ops-badge.check-failed,.ops-badge.unknown,.ops-badge.unavailable { color:#e2bf91; background:#e2bf9116; border-color:#e2bf9130; }
+.background-work { border-top:1px solid var(--line); }
+.background-work>summary { padding:20px 24px; cursor:pointer; color:#a491b9; font-size:13px; }
+.operations-footnote { padding:0 24px 20px; margin:4px 0 0; color:#9282a4; font-size:11px; line-height:1.7; }
+.health-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
+.health-card { padding:24px; min-width:0; }
+.health-card h3 { font-size:15px; margin:0 0 16px; color:#e3d0f8; }
+.health-card .ops-badge { margin-bottom:12px; }
+.health-card p { margin:8px 0 0; color:#aa9ab9; font-size:12px; line-height:1.8; }
+.health-section { margin-top:24px; }
+.health-section>header { display:flex; justify-content:space-between; align-items:center; margin:0 0 16px; gap:12px; }
+.health-section>header p { margin:8px 0 0; color:#a393b4; font-size:12px; line-height:1.6; }
+.backup-card { padding:24px; min-width:0; }
+.backup-card h3 { margin:0 0 15px; font-size:16px; color:#ead9fc; }
+.backup-name { margin:16px 0 14px; font-size:12px; color:#bba6d1; overflow-wrap:anywhere; line-height:1.7; }
+.backup-stats { display:flex; flex-wrap:wrap; gap:12px 24px; margin:0 0 15px; }
+.backup-stats dt { font-size:10px; margin:0; color:#93839f; }
+.backup-stats dd { font-size:17px; margin:5px 0 0; color:#e4cdfc; }
+.backup-note { font-size:12px; line-height:1.8; color:#af9ec0; margin:10px 0; }
+.backup-card .schedule-note { border-top:1px solid var(--line); padding-top:14px; margin-top:18px; }
+.disk-value { font-size:32px; color:#debefa; font-weight:600; }
+.disk-meter { height:7px; background:#a076d523; border-radius:9px; overflow:hidden; margin:15px 0; }
+.disk-fill { height:100%; background:#a57ad7; }
+.health-alert { padding:16px 20px; border:1px solid #f28ca547; background:#f28ca510; color:#edbcc7; border-radius:10px; margin-bottom:20px; font-size:13px; line-height:1.8; }
+.health-link { color:#cbaaef; text-decoration:none; }
+@media(max-width:1050px) { .health-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:720px) {
+ .heading-right { flex:0 0 auto; min-width:84px; } #clock { white-space:nowrap; }
+ .overview-views { gap:6px; } .overview-views button,.overview-views a { font-size:12px; padding:10px 12px; } .overview-views a { margin-left:0; }
+ .workflow-card { grid-template-columns:minmax(0,1fr) auto; gap:10px; padding:20px 0; }
+ .workflow-time { grid-column:1/-1; display:flex; align-items:center; gap:12px; font-size:16px; } .workflow-time small { margin:0; }
+ .timeline-items { padding:0 17px 10px; } .workflow-main h3 { font-size:15px; } .ops-badge { font-size:10px; padding:5px 7px; }
+ .workflow-evidence { flex-direction:column; gap:5px; font-size:12px; } .workflow-meta { margin-bottom:10px; }
+ .health-grid { grid-template-columns:minmax(0,1fr); gap:14px; } .health-card,.backup-card { padding:20px; }
+ .background-work>summary { padding:18px; } .operations-footnote { padding:0 18px 18px; }
+}

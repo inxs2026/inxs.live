@@ -1,28 +1,23 @@
-# inxs.live
+# INXS.live
 
-Self-contained monorepo for the `inxs.live` landing page and its deployable tool stack.
+The password-protected Dashboard is the main Vercel website. Its homepage and
+assets are in `web/`; the former homepage is preserved at `/tools`. Invoice,
+mortgage, LeaseScan and LeaseCreate keep their existing paths, and the media
+services keep their subdomain links.
 
-## Repo structure
+All website requests pass through `api/site.js`, including HTML, scripts, data
+APIs and PDF reports. Live Dashboard data comes from the existing Linux service
+through the authenticated loopback bridge in `deploy/dashboard_bridge.py`.
 
-- `index.html` -> public homepage
-- `invoice` -> browser-based invoice builder served at `/invoice`
-- `mortgage` -> Canadian mortgage calculator served at `/mortgage`
-- `apps/pdf-docs` -> PDF/DOCX converter
-- `apps/video-converter` -> video conversion app
-- `apps/video-downloader` -> media downloader
-- `deploy` -> Caddy + Docker Compose for Portainer/Umbrel
+See [DASHBOARD-DEPLOYMENT.md](DASHBOARD-DEPLOYMENT.md) for deployment, environment
+variables, password rotation and the Linux availability requirement.
 
-## Live endpoints
+## Structure
 
-- `https://inxs.live` served by Vercel
-- `https://inxs.live/invoice`
-- `https://inxs.live/mortgage`
-- `https://pdf.inxs.live`
-- `https://convert.inxs.live`
-- `https://download.inxs.live`
+- `web/` — Dashboard frontend, tools directory and browser tools
+- `api/site.js` — password login, signed sessions, file serving and data proxy
+- `apps/` — existing media service applications
+- `deploy/` — existing media stack and authenticated Dashboard bridge
+- `tests/site.test.cjs` — authentication, protected routes and proxy checks
 
-## Deployment
-
-Use [deploy/docker-compose.yml](/home/damato/Projects/INXS-Live/deploy/docker-compose.yml) as the Portainer stack file from this repo.
-
-This repo is set up so Vercel serves the frontend, including `/invoice` and `/mortgage`, and Cloudflare Tunnel exposes only the backend tool subdomains, with no inbound `80` or `443` port mappings on the Umbrel host.
+Run `npm test` to check the website routing and authentication.

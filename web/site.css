@@ -1,0 +1,3 @@
+
+.signout{margin:0}.signout button{border:1px solid #5a466c;border-radius:8px;background:transparent;color:#d7c8eb;font:inherit;font-size:12px;padding:8px 12px;cursor:pointer}.signout button:hover{background:#34263f}
+@media(max-width:720px){.rail{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(2,52px);height:calc(116px + env(safe-area-inset-bottom));gap:0;padding:6px 4px calc(6px + env(safe-area-inset-bottom))}.rail-link{width:100%;height:52px;min-width:0;flex:none}.rail .brand,.rail-divider,.rail-bottom{display:none}main{padding-bottom:calc(145px + env(safe-area-inset-bottom))}html{scroll-padding-bottom:140px}.local-label{display:none}.topbar-right{gap:10px}}

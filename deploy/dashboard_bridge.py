@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+"""Authenticated, read-only bridge for Vercel to the existing LAN Dashboard."""
+import hmac
+import os
+import threading
+import urllib.error
+import urllib.parse
+import urllib.request
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+TOKEN = os.environ['DASHBOARD_ORIGIN_TOKEN']
+if len(TOKEN) < 32:
+    raise RuntimeError('Origin token must contain at least 32 characters')
+PATHS = {'/api/jobs', '/api/system-health', '/api/timeline', '/api/racing-performance',
+         '/api/racing', '/api/woodbine-stats', '/api/stocks', '/api/stock-quotes',
+         '/api/briefing', '/api/health', '/agco-document', '/racing-document',
+         '/stats-document', '/stock-document'}
+SLOTS = threading.BoundedSemaphore(8)
+
+
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if not hmac.compare_digest(self.headers.get('Authorization', ''), 'Bearer ' + TOKEN):
+            return self.respond(401, b'{"error":"Unauthorized"}', 'application/json')
+        url = urllib.parse.urlsplit(self.path)
+        if url.path not in PATHS:
+            return self.respond(404, b'{"error":"Not found"}', 'application/json')
+        if not SLOTS.acquire(blocking=False):
+            return self.respond(503, b'{"error":"Please retry"}', 'application/json')
+        try:
+            target = 'http://10.0.0.49:8088' + url.path + ('?' + url.query if url.query else '')
+            with urllib.request.urlopen(target, timeout=23) as response:
+                self.respond(response.status, response.read(), response.headers.get('Content-Type', 'application/json'))
+        except urllib.error.HTTPError as exc:
+            self.respond(exc.code, b'{"error":"Report unavailable or invalid request"}', 'application/json')
+        except Exception:
+            self.respond(502, b'{"error":"Linux dashboard unavailable"}', 'application/json')
+        finally:
+            SLOTS.release()
+
+    def respond(self, status, body, content_type):
+        self.send_response(status)
+        self.send_header('Content-Type', content_type)
+        self.send_header('Content-Length', str(len(body)))
+        self.send_header('Cache-Control', 'private, no-store')
+        self.send_header('X-Content-Type-Options', 'nosniff')
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, format, *args):
+        # Do not log credentials, queries, or report names.
+        pass
+
+
+if __name__ == '__main__':
+    server = ThreadingHTTPServer(('127.0.0.1', 8089), Handler)
+    server.daemon_threads = True
+    server.serve_forever()

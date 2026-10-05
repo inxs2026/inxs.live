@@ -1,0 +1,160 @@
+.racing-toolbar { display: flex; justify-content: space-between; align-items: flex-end; gap: 18px; margin: 24px 0; }
+.agco-panel { margin-bottom:28px; }
+.agco-body { padding:0 24px 24px; }
+.agco-date { color:#e6c78f; font-size:13px; margin-bottom:16px; }
+.agco-summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin:18px 0; }
+.agco-summary>div { border:1px solid #493b53; background:#b495ff06; border-radius:8px; padding:14px; }
+.agco-summary span { display:block; font-size:11px; color:#f0c987; line-height:1.6; }
+.agco-summary strong { display:block; margin-top:7px; font-size:20px; color:#c4a2ed; font-variant-numeric:tabular-nums; }
+.agco-condition,.agco-note { font-size:12px; line-height:1.8; color:#ae99bd; }
+.agco-condition strong { color:#dfc390; margin-right:7px; }
+.agco-links { display:flex; flex-wrap:wrap; gap:12px; }
+@media(max-width:720px){.agco-body{padding:0 20px 20px}.agco-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.agco-summary>div:last-child{grid-column:1/-1}.agco-summary strong{font-size:18px}.agco-note,.agco-condition{font-size:13px}.agco-links a{min-height:44px}.agco-summary>div{padding:12px}}
+.racing-inputs { display: flex; gap: 15px; flex-wrap: wrap; }
+.racing-inputs label { display: flex; flex-direction: column; gap: 7px; font-size: 11px; color: #a69bb8; }
+.racing-inputs select { min-height: 44px; max-width: none; min-width: 190px; font-size: 13px; }
+.racing-status { font-size: 11px; color: var(--muted); margin: 16px 0; line-height: 1.7; }
+.racing-summary { display: flex; gap: 12px; margin-bottom: 22px; flex-wrap: wrap; }
+.racing-stat { padding: 13px 20px; border: 1px solid #393044; border-radius: 10px; background: #b495ff07; flex: 1; min-width: 130px; }
+.racing-stat strong { display: block; font-size: 24px; color: #d2bcff; font-weight: 550; }
+.racing-stat span { color: #9c8bad; font-size: 11px; }
+.racing-sources { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; margin: 22px 0; }
+.racing-source { padding: 21px 23px; }
+.racing-source h2 { font-size: 15px; margin: 8px 0; }
+.racing-source .source-agent { color: #c7abf7; font-size: 11px; display: flex; align-items: center; gap: 7px; }
+.racing-source.openclaw .source-agent { color: var(--blue); }
+.racing-source p { font-size: 11px; color: #9585a8; margin: 0 0 12px; }
+.racing-source details { font-size: 12px; color: #c8b6dc; line-height: 1.8; }
+.racing-source summary { cursor: pointer; font-size: 12px; }
+.racing-source details p { margin: 10px 0 0; font-size: 12px; }
+.racing-source details code { font-size: 10px; overflow-wrap: anywhere; }
+.source-report { display: inline-flex; align-items: center; min-height: 36px; margin-top: 12px; padding: 6px 11px; border: 1px solid #463154; border-radius: 7px; font-size: 11px; color: #d9c4f6; }
+.source-report:hover { background: #b495ff12; }
+.scale-note { color: #a394b5; font-size: 12px; line-height: 1.8; margin-bottom: 25px; }
+.scratch-panel { margin-bottom: 28px; }
+.scratch-panel .panel-heading { padding-bottom: 14px; }
+.scratch-body { padding: 0 24px 22px; }
+.scratch-feed-note { font-size: 11px; color: #9e8aad; margin-bottom: 16px; }
+.scratch-feed-note.stale { color: #d4b083; }
+.scratch-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.scratch-item { border: 1px solid #6b39454a; background: #8a3b460c; border-radius: 9px; padding: 14px 16px; }
+.scratch-item strong { display: block; font-size: 14px; color: #e9c4d2; margin: 4px 0; }
+.scratch-item .scratch-race { font-size: 11px; color: #c697b1; }
+.scratch-item p { color: #ac879b; font-size: 12px; margin: 0; }
+.racing-empty { font-size: 13px; padding: 18px 0; color: #a193b2; line-height: 1.7; }
+.changes-details { margin-top: 20px; font-size: 12px; color: #b19ac5; }
+.changes-details summary { cursor: pointer; }
+.change-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #ffffff09; }
+.change-item strong { color: #cbb9da; min-width: 46px; font-size: 11px; }
+.change-item span { color: #a491b5; }
+.race-card { margin-bottom: 22px; }
+.race-heading { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; padding: 23px 24px 20px; border-bottom: 1px solid #ffffff08; background: #b495ff04; }
+.race-heading h2 { font-size: 20px; margin-bottom: 6px; }
+.race-meta { font-size: 12px; color: #a391b4; }
+.race-heading time { font-size: 11px; color: #a391b4; white-space: nowrap; }
+.race-comparison { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); }
+.race-agent { padding: 22px 24px; min-width: 0; }
+.race-agent + .race-agent { border-left: 1px solid #ffffff08; }
+.race-agent-heading { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 15px; font-size: 12px; }
+.race-agent-heading strong { color: #c7abf7; font-weight: 550; }
+.race-agent.openclaw .race-agent-heading strong { color: #a2c0f8; }
+.race-agent-heading span { color: #8c7d9d; font-size: 10px; }
+.pick-row { display: grid; grid-template-columns: 24px minmax(0,1fr) auto; gap: 9px; padding: 13px 0; border-bottom: 1px solid #ffffff07; align-items: start; }
+.pick-rank { font-family: ui-monospace,monospace; font-size: 11px; color: #82708f; padding-top: 2px; }
+.pick-name { font-size: 13px; font-weight: 500; color: #dfd0ed; overflow-wrap: anywhere; }
+
+.pick-figures { color: #9580a9; font-size: 10px; margin-top: 5px; }
+.pick-score { color: #c9aff7; font-size: 16px; font-weight: 500; }
+.race-agent.openclaw .pick-score { color: #adc8f6; }
+.pick-score small { color: #8c7a9e; font-size: 9px; display: block; text-align: right; }
+.pick-row.scratched { background: #ae56670a; }
+.scratch-tag { display: inline-block; color: #efa7b2; background: #aa526317; padding: 1px 5px; border-radius: 4px; font-size: 9px; margin: 5px 0; }
+.pick-note { font-size: 10px; color: #c3a377; margin-top: 4px; }
+.race-details { font-size: 11px; color: #b29ac7; margin-top: 16px; line-height: 1.8; }
+.race-details summary { cursor: pointer; }
+.race-details p { color: #8e7b9e; font-size: 11px; }
+.race-review { margin-top: 15px; border: 1px solid #7b633323; border-radius: 8px; padding: 11px 13px; font-size: 11px; color: #c7aa82; }
+.race-review summary { cursor: pointer; }
+.race-review ul { margin: 10px 0 0; padding-left: 18px; }
+.race-review li { margin: 6px 0; }
+.official-pick { border-top: 1px solid #ffffff08; padding: 14px 24px; font-size: 12px; display: flex; flex-wrap: wrap; gap: 9px; color: #b2a0c5; background: #d5af6010; }
+.official-pick strong { color: #dfc391; font-weight: 500; }
+.official-pick a { margin-left: auto; color: #bca273; font-size: 10px; }
+.official-pick a:hover { color: #efd7ab; }
+.racing-card-label { font-size: 11px; color: #9c85b0; margin: 20px 0 12px; }
+.racing-provenance { color: #7c6a8b; font-size: 11px; margin: 25px 0; line-height: 1.8; }
+@media(max-width:1100px) {
+  .race-agent { padding: 19px; }
+  .race-agent-heading { flex-direction: column; gap: 5px; }
+}
+@media(max-width:720px) {
+  .rail-link { width: auto; flex: 1; }
+  .nav-label { font-size: 10px; white-space: nowrap; }
+  .racing-toolbar { align-items: center; }
+  .racing-inputs { flex: 1; }
+  .racing-inputs label { width: 100%; font-size: 12px; }
+  .racing-inputs select { width: 100%; min-width: 0; font-size: 16px; }
+  .racing-summary { gap: 9px; }
+  .racing-stat { min-width: 90px; padding: 12px; }
+  .racing-stat span { font-size: 10px; }
+  .racing-sources, .race-comparison, .scratch-list { grid-template-columns: minmax(0,1fr); }
+  .racing-source { padding: 19px; }
+  .racing-source summary, .source-report, .changes-details summary, .race-details summary, .race-review summary { min-height: 44px; display: flex; align-items: center; }
+  .race-agent + .race-agent { border-left: 0; border-top: 1px solid var(--line); }
+  .race-agent { padding: 20px; }
+  .race-heading { padding: 20px; flex-wrap: wrap; gap: 8px; }
+  .race-heading h2 { font-size: 19px; }
+  .race-agent-heading { flex-direction: row; }
+  .pick-name { font-size: 15px; }
+  
+  .pick-figures, .pick-note, .race-details p, .race-review { font-size: 12px; }
+  .pick-score { font-size: 18px; }
+  .pick-score small { font-size: 10px; }
+  .race-details { font-size: 13px; }
+  .official-pick { padding: 16px 20px; flex-direction: column; }
+  .official-pick a { margin-left: 0; min-height: 36px; display: flex; align-items: center; font-size: 12px; }
+  .scratch-body { padding: 0 20px 20px; }
+  .scratch-feed-note, .racing-status { font-size: 12px; }
+  .racing-provenance { font-size: 12px; }
+}
+
+/* Established horse/program colors, independent of pick rank. */
+.saddlecloth {
+ display: inline-flex; justify-content: center; align-items: center;
+ min-width: 32px; height: 29px; padding: 0 5px; margin-right: 7px;
+ border: 1px solid #ffffff55; border-radius: 4px; box-sizing: border-box;
+ font: 800 16px/1 ui-sans-serif,system-ui,sans-serif; vertical-align: middle;
+ flex-shrink: 0; text-shadow: none;
+}
+.saddlecloth.saddlecloth-unknown { background-color: #30283d; color: #cfbfdc; }
+.pick-name { line-height: 1.7; }
+.pick-rank { padding-top: 8px; }
+.change-item { align-items: center; }
+.official-pick { align-items: center; }
+.saddlecloth.saddlecloth-1 { background-color: #FF0000; color: #FFFFFF; }
+.saddlecloth.saddlecloth-2 { background-color: #FFFFFF; color: #000000; }
+.saddlecloth.saddlecloth-3 { background-color: #0000FF; color: #FFFFFF; }
+.saddlecloth.saddlecloth-4 { background-color: #FFFF00; color: #000000; }
+.saddlecloth.saddlecloth-5 { background-color: #008000; color: #FFFFFF; }
+.saddlecloth.saddlecloth-6 { background-color: #000000; color: #FFDD00; }
+.saddlecloth.saddlecloth-7 { background-color: #FF7F00; color: #000000; }
+.saddlecloth.saddlecloth-8 { background-color: #FF69B4; color: #000000; }
+.saddlecloth.saddlecloth-9 { background-color: #00CED1; color: #000000; }
+.saddlecloth.saddlecloth-10 { background-color: #800080; color: #FFFFFF; }
+.saddlecloth.saddlecloth-11 { background-color: #808080; color: #FF0000; }
+.saddlecloth.saddlecloth-12 { background-color: #ADFF2F; color: #000000; }
+.saddlecloth.saddlecloth-13 { background-color: #8B4513; color: #FFFFFF; }
+.saddlecloth.saddlecloth-14 { background-color: #A52A2A; color: #FFDD00; }
+.saddlecloth.saddlecloth-15 { background-color: #F0E68C; color: #000000; }
+.saddlecloth.saddlecloth-16 { background-color: #7EC8E8; color: #FF7F00; }
+.saddlecloth.saddlecloth-17 { background-color: #000080; color: #FFFFFF; }
+.saddlecloth.saddlecloth-18 { background-color: #006400; color: #FFDD00; }
+.saddlecloth.saddlecloth-19 { background-color: #4682B4; color: #FF0000; }
+.saddlecloth.saddlecloth-20 { background-color: #FF1493; color: #FFDD00; }
+.saddlecloth.saddlecloth-21 { background-color: #E6E6FA; color: #000080; }
+.saddlecloth.saddlecloth-22 { background-color: #003366; color: #FFFFFF; }
+@media(max-width:720px) { .saddlecloth { min-width: 34px; height: 32px; font-size: 17px; } }
+.results-panel{padding:22px;margin-bottom:22px}.results-panel h2{font-size:19px;margin:0 0 10px}.results-period,.results-rules{font-size:12px;color:#a395b1}.results-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:16px 0}.results-grid article{background:#b495ff08;border:1px solid #b495ff1a;border-radius:10px;padding:16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.results-grid h3{grid-column:1/-1;margin:0;color:#d2b5fa;font-size:16px}.results-grid span,.results-grid small{display:block;font-size:11px;color:#ab9bb9}.results-grid strong{display:block;color:#e6d6f6;font-size:26px;margin:6px 0}.results-rules summary{cursor:pointer;padding:6px 0}.results-rules p{line-height:1.8}.result-line{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:10px 20px;background:#ffffff02;font-size:11px;color:#a69ab3}.result-line a{color:var(--purple);margin-left:auto}.finish-tag{font-size:11px;color:#d7c4ef;margin-top:5px}.finish-win{color:#8fe0b5;font-weight:600}.racing-source .freshness-badge{margin-top:10px}
+@media(max-width:720px){.results-panel{padding:16px}.results-grid{grid-template-columns:1fr;gap:12px}.results-grid strong{font-size:24px}.result-line{padding:10px 16px}.result-line a{margin-left:0}}
+.performance-heading{display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap}.performance-heading label{display:flex;gap:10px;align-items:center;color:#ac96bd;font-size:12px}.performance-heading select{background:#19131f;color:#e7d2f6;border:1px solid #aa77ce40;border-radius:8px;padding:10px;font:inherit;min-height:44px}.performance-panel .results-grid article{min-width:0}.performance-progress{color:#ae94c1;font-size:12px;line-height:1.8}.performance-history{margin-top:20px;color:#c8addd;font-size:13px}.performance-history summary{cursor:pointer;min-height:32px}.performance-day{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:15px 0;border-top:1px solid var(--line);line-height:1.8}.performance-day a{color:#e8c8ff}.performance-day small{display:block;color:#a38aad}.performance-empty{color:#bba2cc;font-size:13px;line-height:1.8}@media(max-width:720px){.performance-heading{align-items:flex-start}.performance-heading label{flex-wrap:wrap}.performance-day{grid-template-columns:1fr 1fr}.performance-day>a{grid-column:1/-1}.performance-panel .results-grid{grid-template-columns:minmax(0,1fr)}}
+.performance-method{grid-column:1/-1}.performance-panel .results-grid strong{overflow-wrap:anywhere}@media(max-width:720px){.performance-panel .results-grid strong{font-size:22px}}

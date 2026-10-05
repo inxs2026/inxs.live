@@ -1,0 +1,11 @@
+{
+  "name": "inxs-dashboard",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "postinstall": "node scripts/package-web.cjs",
+    "pretest": "node scripts/package-web.cjs",
+    "test": "node --test tests/site.test.cjs"
+  },
+  "engines": { "node": "24.x" }
+}

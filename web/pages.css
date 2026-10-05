@@ -1,0 +1,117 @@
+.nav-label { font-size: 13px; }
+.brand-name { color: #e3d8f8; font-size: 15px; font-weight: 600; }
+.jobs-only { grid-template-columns: minmax(0, 1fr); }
+/* Six destinations use two readable rows on phones. */
+@media(max-width:720px){
+ .rail{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));height:calc(104px + env(safe-area-inset-bottom))!important;gap:0!important;padding:3px 6px calc(3px + env(safe-area-inset-bottom))!important}
+ .rail .rail-link{width:100%;height:49px;padding:3px!important;gap:3px}
+ .rail .nav-label{font-size:10px;white-space:normal;line-height:1.25;text-align:center}
+ main{padding-bottom:calc(132px + env(safe-area-inset-bottom))!important}
+ html{scroll-padding-bottom:125px}
+ .heading-right{flex:0 0 auto;min-width:84px}#clock{white-space:nowrap}
+}
+.briefing-page { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; align-items: start; }
+.briefing-page .mini-heading h2 { font-size: 15px; }
+.briefing-page .headline-title { font-size: 14px; }
+.briefing-page .headline-meta { font-size: 10px; }
+.briefing-page .sports-headlines .headline-title { font-size: 12px; }
+.briefing-page .game-teams { font-size: 14px; }
+.briefing-page .game-title, .briefing-page .widget-footer { font-size: 10px; }
+.briefing-page .temperature { font-size: 56px; }
+@media (min-width: 721px) {
+  .rail { width: 200px; align-items: stretch; padding: 28px 16px; }
+  .shell { margin-left: 200px; }
+  .brand { background: transparent; width: auto; height: 42px; display: flex; gap: 11px; box-shadow: none; padding-left: 10px; }
+  .brand svg { color: var(--purple); }
+  .rail-divider { width: 100%; margin: 15px 0; }
+  .rail-link { display: flex; justify-content: flex-start; width: 100%; height: 46px; gap: 12px; padding: 12px; }
+  .rail-bottom { align-self: flex-start; margin-left: 9px; }
+}
+@media (min-width: 721px) and (max-width: 1150px) {
+  .briefing-page { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .briefing-page .sports-panel { grid-column: 1 / -1; }
+  .briefing-page .score-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+  .briefing-page .sports-headlines { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+}
+@media (max-width: 720px) {
+  .rail-link { width: auto; flex: 1; }
+  .rail-link::after { content: none; }
+  .nav-label { font-size: 10px; white-space: nowrap; }
+  .briefing-page { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .briefing-page .sports-headlines .headline-title { font-size: 14px; }
+  .page-heading h1 { overflow-wrap: normal; }
+}
+
+/* Four phone navigation items retain readable labels and touch targets. */
+@media(max-width:720px){.rail{padding-left:4px;padding-right:4px;gap:0}.rail-link{min-width:0;padding-left:2px;padding-right:2px}.nav-label{font-size:9px}}
+/* Full-width weather strip above the news and sports columns. */
+.briefing-page .weather-panel { grid-column: 1 / -1; }
+.briefing-page #weather:not(.loading) { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(120px, .6fr) minmax(260px, 1.6fr); align-items: center; gap: 20px; padding: 16px 20px; }
+.briefing-page .weather-now { padding: 0; gap: 18px; justify-content: flex-start; }
+.briefing-page .temperature { font-size: 42px; }
+.briefing-page .weather-art { width: 42px; height: 42px; }
+.briefing-page .weather-meta { padding: 0; flex-direction: column; gap: 6px; font-size: 11px; }
+.briefing-page .forecast { margin: 0; padding: 0 0 0 20px; border-top: 0; border-left: 1px solid #baa0dc26; }
+.briefing-page .forecast-day { font-size: 11px; }
+.briefing-page .forecast-day strong { font-size: 15px; }
+.briefing-page .forecast-day span { font-size: 11px; }
+.briefing-page .weather-panel .widget-footer { padding-top: 8px; padding-bottom: 8px; }
+@media (min-width: 721px) and (max-width: 1150px) {
+  .briefing-page #weather:not(.loading) { grid-template-columns: minmax(160px, 1fr) minmax(110px, .7fr); gap: 14px; }
+  .briefing-page .forecast { grid-column: 1 / -1; border-left: 0; border-top: 1px solid #baa0dc26; padding: 12px 0 0; }
+}
+@media (max-width: 720px) {
+  .briefing-page #weather:not(.loading) { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 12px; padding: 14px 16px; }
+  .briefing-page .temperature { font-size: 34px; }
+  .briefing-page .temperature span { font-size: 18px; top: 5px; }
+  .briefing-page .weather-now { gap: 10px; }
+  .briefing-page .weather-art { width: 28px; height: 28px; }
+  .briefing-page .weather-meta { font-size: 10px; }
+  .briefing-page .condition { font-size: 10px; }
+  .briefing-page .forecast { grid-column: 1 / -1; border-left: 0; border-top: 1px solid #baa0dc26; padding: 10px 0 0; }
+}
+.freshness-badge{display:inline-block;font-size:10px;line-height:1.4;font-weight:600;padding:3px 7px;border:1px solid transparent;border-radius:6px;white-space:nowrap;vertical-align:middle}
+.freshness-current{color:#93dfb7;background:#70d4a710;border-color:#70d4a72b}
+.freshness-older,.freshness-cached{color:#efc48d;background:#d4a05a12;border-color:#d4a05a30}
+.freshness-unavailable{color:#b1a6bc;background:#9683a312;border-color:#9683a330}
+.freshness-overdue{color:#f6b3bd;background:#e8687e14;border-color:#e8687e42}
+.report-archive{margin:20px 0;padding:18px 22px}.report-archive summary,.stock-prices summary{cursor:pointer;min-height:32px;color:#d5b2f3;font-size:13px;line-height:1.7}.report-archive>div{display:grid;gap:8px;margin-top:14px}.report-archive a{color:#beaad4;padding:10px 0;border-top:1px solid var(--line);font-size:13px}.stock-prices{margin-top:18px}.attention-items a{line-height:1.8;overflow-wrap:anywhere}
+.attention-strip{margin:0 0 20px;border:1px solid #6cdbb226;border-radius:12px;background:#101b181f;color:#b2cbbd;padding:12px 16px;font-size:12px}
+.attention-strip.has-notices{background:#bf91490c;border-color:#d4a05a32;color:#e3bd8b}
+.attention-strip summary{cursor:pointer;min-height:28px;line-height:1.8}
+.attention-heading{font-weight:600;margin-right:12px}
+.attention-items{display:grid;gap:7px;margin-top:12px}.attention-items a{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #ffffff0b;padding-top:9px;color:#d9c6b3}.attention-items a:hover{color:var(--purple)}
+.attention-items p,.attention-checked{font-size:11px;color:var(--muted)}.attention-checked{margin-bottom:0}
+@media(max-width:720px){.attention-strip{font-size:11px;padding:10px 12px}.attention-strip summary>span{display:block}.attention-heading{margin-right:0}.briefing-page .widget-footer{gap:8px;flex-wrap:wrap}.freshness-badge{font-size:9px}}
+/* Five phone tabs allow long page names to wrap within their touch targets. */
+@media(max-width:720px){.rail-link{flex:1 1 0;min-width:0;height:56px;gap:3px}.nav-label{white-space:normal;line-height:1.2;text-align:center;max-width:100%;min-height:22px;display:flex;align-items:center;justify-content:center}}
+/* News gets two generous columns; the full-width scoreboard follows below. */
+.briefing-page{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
+.briefing-page .sports-panel{grid-column:1/-1}
+.briefing-page .news-panel{display:flex;flex-direction:column;min-width:0}
+.briefing-page .news-panel .widget-footer{margin-top:auto}
+.briefing-page .news-panel .headline{padding:18px 0;gap:13px}
+.briefing-page .news-panel .headline>div{min-width:0}
+.briefing-page .news-panel .headline-title{display:block;overflow:visible;font-size:16px;line-height:1.5;font-weight:600;color:#e0d8ed}
+.briefing-page .headline-summary{margin:8px 0 10px;font-size:13px;line-height:1.75;color:#a99fb8}
+.briefing-page .news-panel .headline-meta{font-size:10px;color:#8f80a0}
+.briefing-page .scoreboard-content{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:24px;padding:8px 20px 18px}
+.briefing-page .sports-panel .score-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:12px;padding:0}
+.briefing-page .sports-panel .game{padding:16px;border:1px solid #b495ff18;border-radius:10px;background:#b495ff06}
+.briefing-page .sports-panel .game-title{font-size:11px}
+.briefing-page .sports-panel .game-teams{font-size:18px;margin-top:10px}
+.briefing-page .sports-panel .game-teams span{font-size:12px}
+.briefing-page .scoreboard-news{min-width:0;border-left:1px solid var(--line);padding-left:24px}
+.briefing-page .scoreboard-news h3{font-size:11px;color:#a99aba;letter-spacing:1px;text-transform:uppercase;margin:0 0 4px}
+.briefing-page .sports-panel .sports-headlines{display:block;padding:0}
+.briefing-page .sports-panel .sports-headlines .headline-title{font-size:13px}
+@media(max-width:1150px){.briefing-page .scoreboard-content{grid-template-columns:1fr}.briefing-page .scoreboard-news{border-left:0;border-top:1px solid var(--line);padding:16px 0 0}.briefing-page .sports-panel .sports-headlines{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}}
+@media(max-width:720px){.briefing-page{grid-template-columns:minmax(0,1fr)}.briefing-page .news-panel .headline-title{font-size:15px}.briefing-page .headline-summary{font-size:13px;line-height:1.7}.briefing-page .scoreboard-content{padding:8px 16px 16px;gap:18px}.briefing-page .sports-panel .score-list{grid-template-columns:minmax(0,1fr)}.briefing-page .sports-panel .sports-headlines{display:block}.briefing-page .sports-panel .game{padding:15px}}
+/* Final and live scores are the strongest element in each game card. */
+.briefing-page .sports-panel .game-teams{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:center;margin-top:16px}
+.briefing-page .sports-panel .game-teams strong{font-size:20px;letter-spacing:.5px}.briefing-page .sports-panel .game-teams strong:last-child{text-align:right}
+.briefing-page .sports-panel .game-teams .game-score{font-size:32px;line-height:1.25;font-weight:750;color:#f0d8ff;font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:-.5px;text-align:center}
+.briefing-page .sports-panel .game-teams .game-score.pregame{font-size:18px;font-weight:600;color:#bba7cc;letter-spacing:1px}
+.briefing-page .sports-panel .game{padding:18px;background:linear-gradient(135deg,#2a203a80,#18151f);border-color:#b495ff30}
+@media(max-width:720px){.briefing-page .sports-panel .game{padding:16px}.briefing-page .sports-panel .game-teams{gap:8px}.briefing-page .sports-panel .game-teams strong{font-size:16px}.briefing-page .sports-panel .game-teams .game-score{font-size:28px}}
+.scoreboard-day{margin:2px 20px 12px;font-size:12px;color:#a998bc}
