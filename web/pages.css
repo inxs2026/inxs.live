@@ -76,7 +76,7 @@
 .freshness-unavailable{color:#b1a6bc;background:#9683a312;border-color:#9683a330}
 .freshness-overdue{color:#f6b3bd;background:#e8687e14;border-color:#e8687e42}
 .report-archive{margin:20px 0;padding:18px 22px}.report-archive summary,.stock-prices summary{cursor:pointer;min-height:32px;color:#d5b2f3;font-size:13px;line-height:1.7}.report-archive>div{display:grid;gap:8px;margin-top:14px}.report-archive a{color:#beaad4;padding:10px 0;border-top:1px solid var(--line);font-size:13px}.stock-prices{margin-top:18px}.attention-items a{line-height:1.8;overflow-wrap:anywhere}
-.attention-strip{margin:0 0 20px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);padding:12px 16px;font-size:12px}
+.attention-strip{margin:0 0 20px;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--muted);padding:12px 16px;font-size:12px}
 .attention-strip.has-notices{background:#bf91490c;border-color:#d4a05a32;color:#e3bd8b}
 .attention-strip summary{cursor:pointer;min-height:28px;line-height:1.8}
 .attention-heading{font-weight:600;margin-right:12px}
@@ -119,3 +119,5 @@
 .attention-notice{display:flex;align-items:flex-start;gap:16px}.attention-notice>a{flex:1}.attention-notice button{flex-shrink:0;margin-top:10px;border:1px solid #d4a05a55;border-radius:7px;background:#241f18;color:#e3bd8b;padding:8px 12px;cursor:pointer;font:inherit}.attention-notice button:disabled{opacity:.6}.attention-notice button:focus-visible{outline:2px solid var(--purple);outline-offset:3px}.acknowledged-notices{color:var(--muted)}.acknowledged-notices summary{font-weight:600}@media(max-width:720px){.attention-notice{flex-direction:column;gap:0}.attention-notice button{margin-bottom:8px}}
 
 .attention-history{margin-top:8px;color:var(--muted)}.attention-history>summary{font-size:11px}.notice-history-entry{padding:10px 0;border-top:1px solid var(--line)}.notice-history-meta{font-size:10px;color:var(--muted)}.notice-history-entry a{font-size:11px;line-height:1.7}.notice-history-entry p{margin:8px 0}
+
+.attention-strip:not(.has-notices) .attention-items a{color:var(--muted)}
