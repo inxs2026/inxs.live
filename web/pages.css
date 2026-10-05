@@ -76,11 +76,11 @@
 .freshness-unavailable{color:#b1a6bc;background:#9683a312;border-color:#9683a330}
 .freshness-overdue{color:#f6b3bd;background:#e8687e14;border-color:#e8687e42}
 .report-archive{margin:20px 0;padding:18px 22px}.report-archive summary,.stock-prices summary{cursor:pointer;min-height:32px;color:#d5b2f3;font-size:13px;line-height:1.7}.report-archive>div{display:grid;gap:8px;margin-top:14px}.report-archive a{color:#beaad4;padding:10px 0;border-top:1px solid var(--line);font-size:13px}.stock-prices{margin-top:18px}.attention-items a{line-height:1.8;overflow-wrap:anywhere}
-.attention-strip{margin:0 0 20px;border:1px solid #6cdbb226;border-radius:12px;background:#101b181f;color:#b2cbbd;padding:12px 16px;font-size:12px}
+.attention-strip{margin:0 0 20px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);padding:12px 16px;font-size:12px}
 .attention-strip.has-notices{background:#bf91490c;border-color:#d4a05a32;color:#e3bd8b}
 .attention-strip summary{cursor:pointer;min-height:28px;line-height:1.8}
 .attention-heading{font-weight:600;margin-right:12px}
-.attention-items{display:grid;gap:7px;margin-top:12px}.attention-items a{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #ffffff0b;padding-top:9px;color:#d9c6b3}.attention-items a:hover{color:var(--purple)}
+.attention-items{display:grid;gap:7px;margin-top:12px}.attention-items a{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #ffffff0b;padding-top:9px;color:var(--text)}.attention-items a:hover{color:var(--purple)}
 .attention-items p,.attention-checked{font-size:11px;color:var(--muted)}.attention-checked{margin-bottom:0}
 @media(max-width:720px){.attention-strip{font-size:11px;padding:10px 12px}.attention-strip summary>span{display:block}.attention-heading{margin-right:0}.briefing-page .widget-footer{gap:8px;flex-wrap:wrap}.freshness-badge{font-size:9px}}
 /* Five phone tabs allow long page names to wrap within their touch targets. */
