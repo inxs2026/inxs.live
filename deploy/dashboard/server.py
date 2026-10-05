@@ -22,6 +22,7 @@ import stock_quotes
 import woodbine_stats
 import operations
 import performance
+import sports_teams
 import acknowledgements
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -262,14 +263,15 @@ def scores():
     def league(pair):
         name, slug = pair
         data = json.loads(fetch('https://site.api.espn.com/apis/site/v2/sports/' + slug + '/scoreboard?dates=' + target.strftime('%Y%m%d') + '&limit=1000'))
+        brands=sports_teams.registry(slug)
         events = []
         for event in data.get('events', []):
             if dt.datetime.fromisoformat(event['date'].replace('Z', '+00:00')).astimezone(ZoneInfo('America/Toronto')).date() != target:
                 continue
             competition = event['competitions'][0]
             teams = sorted(competition['competitors'], key=lambda c: c.get('homeAway') == 'home')
-            events.append(dict(id=event['id'], date=event['date'], status=event['status']['type']['shortDetail'], state=event['status']['type']['state'], teams=[dict(name=t['team'].get('abbreviation', t['team']['displayName']), score=t.get('score', '0'), home=t.get('homeAway') == 'home') for t in teams], url='https://www.espn.com/' + slug + '/game/_/gameId/' + event['id']))
-        return dict(league=name, events=events)
+            events.append(dict(id=event['id'], date=event['date'], status=event['status']['type']['shortDetail'], state=event['status']['type']['state'], teams=[sports_teams.competitor(t,brands) for t in teams], url='https://www.espn.com/' + slug + '/game/_/gameId/' + event['id']))
+        return dict(league=name, logo=sports_teams.branding((data.get('leagues') or [{}])[0])['logo'], events=events)
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
         futures = {pool.submit(league, pair): pair[0] for pair in leagues}
         for f, name in futures.items():
@@ -394,7 +396,7 @@ class Handler(BaseHTTPRequestHandler):
             self.respond(json.dumps(data).encode(), 'application/json')
         elif path == '/api/health':
             self.respond(json.dumps(dict(status='ok', time=now())).encode(), 'application/json')
-        elif path in ('/', '/health', '/health/', '/operations.js', '/operations.css', '/stocks', '/stocks/', '/briefing', '/briefing/', '/woodbine', '/woodbine/', '/woodbine-stats', '/woodbine-stats/', '/stats.js', '/stats.css', '/app.js', '/attention.js', '/stocks.js', '/stocks.css', '/racing.js', '/racing.css', '/style.css', '/mobile.css', '/pages.css', '/favicon.svg'):
+        elif path in ('/', '/health', '/health/', '/operations.js', '/operations.css', '/stocks', '/stocks/', '/briefing', '/briefing/', '/woodbine', '/woodbine/', '/woodbine-stats', '/woodbine-stats/', '/stats.js', '/stats.css', '/app.js', '/team-branding.js', '/attention.js', '/stocks.js', '/stocks.css', '/racing.js', '/racing.css', '/style.css', '/mobile.css', '/pages.css', '/favicon.svg'):
             name = {'/': 'index.html', '/health': 'health.html', '/health/': 'health.html', '/stocks': 'stocks.html', '/stocks/': 'stocks.html', '/briefing': 'briefing.html', '/briefing/': 'briefing.html', '/woodbine': 'woodbine.html', '/woodbine/': 'woodbine.html', '/woodbine-stats': 'woodbine-stats.html', '/woodbine-stats/': 'woodbine-stats.html'}.get(path, path[1:])
             types = {'.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.svg': 'image/svg+xml'}
             self.respond((ROOT / 'static' / name).read_bytes(), types[Path(name).suffix])
@@ -408,7 +410,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Cache-Control', 'no-store')
         self.send_header('X-Content-Type-Options', 'nosniff')
         self.send_header('Referrer-Policy', 'no-referrer')
-        self.send_header('Content-Security-Policy', "default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'")
+        self.send_header('Content-Security-Policy', "default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' https://a.espncdn.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'")
         self.end_headers()
         self.wfile.write(body)
 

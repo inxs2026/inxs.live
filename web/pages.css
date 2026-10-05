@@ -121,3 +121,14 @@
 .attention-history{margin-top:8px;color:var(--muted)}.attention-history>summary{font-size:11px}.notice-history-entry{padding:10px 0;border-top:1px solid var(--line)}.notice-history-meta{font-size:10px;color:var(--muted)}.notice-history-entry a{font-size:11px;line-height:1.7}.notice-history-entry p{margin:8px 0}
 
 .attention-strip:not(.has-notices) .attention-items a{color:var(--muted)}
+
+/* Official team badges and primary/alternate colors across every scoreboard. */
+.briefing-page .sports-panel .game{background:linear-gradient(110deg,var(--away-color,transparent),transparent 48%,var(--home-color,transparent)),var(--panel);border-color:var(--line)}
+.game-team{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-width:0;text-align:center}
+.team-logo{width:44px;height:44px;object-fit:contain;flex-shrink:0}
+.briefing-page .sports-panel .game-teams .game-team strong:last-child,.briefing-page .sports-panel .game-teams .game-team strong{font-size:17px;text-align:center;color:var(--text);letter-spacing:.6px}
+.team-colors{display:block;width:32px;height:3px;border-radius:2px;background:linear-gradient(to right,var(--team-color) 0 65%,var(--team-alternate) 65% 100%)}
+.briefing-page .sports-panel .game-teams .game-score{color:var(--text)}
+@media(max-width:720px){.team-logo{width:40px;height:40px}.briefing-page .sports-panel .game-teams .game-team strong{font-size:16px}.game-team{gap:6px}}
+
+.league-tabs button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:48px}.league-logo{width:28px;height:28px;object-fit:contain;flex-shrink:0}.league-count{font-size:10px;opacity:.7;font-variant-numeric:tabular-nums}.league-tabs button:not(.selected) .league-logo{opacity:.75}.league-tabs button:hover .league-logo,.league-tabs button.selected .league-logo{opacity:1}
