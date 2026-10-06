@@ -41,3 +41,30 @@ password does not change authentication on those subdomains.
 Browser assets are packaged by `scripts/package-web.cjs` during npm installation.
 The gzip JSON bundle is included in the function so Vercel does not transpile
 browser ES modules. The original editable frontend remains under `web/`.
+
+
+## Cameras
+
+The authenticated `/cameras` page has a six-camera grid and a single-camera selector.
+The bridge imports `deploy/cameras.py` and serves only `/api/cameras` and fixed
+`/camera-stream/[1-6]/index.m3u8` / `segment_<number>.ts` paths. Credentials never
+appear in API responses or browser assets. All reads require the existing INXS
+session and bridge bearer token; CDN caching remains disabled.
+
+Store recorder credentials in `~/.config/inxs-dashboard/cameras.json` with mode
+0600, containing `host`, `username`, `password`, and a six-element `channels`
+array. The host is restricted to `10.0.0.105`. Never commit this file.
+
+FFmpeg converts the recorder substreams to muted H.264 HLS at 640 pixels wide,
+10 fps, approximately 350 kbit/s per camera. Safari uses native HLS; other
+supported browsers use the vendored hls.js 1.7.3 library (BSD license alongside
+its asset). Opening one camera uses that same feed at a larger display size.
+The relay retains a short rolling buffer rather than recordings. Workers stop
+90 seconds after the last view and restart on demand. Rejected logins stop
+retrying until the credential file changes. FFmpeg diagnostics are discarded
+after classifying authentication failures, so credentials are not logged.
+
+The existing bridge service has write access only to its private state folder.
+Restart `dashboard-bridge` after changing relay code. Confirm actual video on
+all six channels before reporting the feature connected. Tests:
+`python3 -m unittest discover -s deploy -p test_cameras.py` and `npm test`.

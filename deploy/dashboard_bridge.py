@@ -3,6 +3,7 @@
 import hmac
 import json
 import acknowledgements
+import cameras
 import os
 import threading
 import urllib.error
@@ -42,6 +43,19 @@ class Handler(BaseHTTPRequestHandler):
         if not hmac.compare_digest(self.headers.get('Authorization', ''), 'Bearer ' + TOKEN):
             return self.respond(401, b'{"error":"Unauthorized"}', 'application/json')
         url = urllib.parse.urlsplit(self.path)
+        if url.path == '/api/cameras':
+            try:
+                requested = urllib.parse.parse_qs(url.query).get('channels', [''])[0]
+                channels = {int(x) for x in requested.split(',') if x}
+                if not channels <= set(range(1,7)): raise ValueError('Invalid channel')
+                return self.respond(200,json.dumps(cameras.relay.status(channels)).encode(),'application/json')
+            except ValueError:
+                return self.respond(400,b'{"error":"Invalid camera selection"}','application/json')
+            except Exception:
+                return self.respond(503,b'{"error":"Camera connection unavailable"}','application/json')
+        if url.path.startswith('/camera-stream/'):
+            status,body,content_type = cameras.relay.read(url.path)
+            return self.respond(status,body,content_type)
         if url.path == '/api/acknowledgements':
             try:
                 return self.respond(200,json.dumps(acknowledgements.listing()).encode(),'application/json')

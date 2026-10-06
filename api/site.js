@@ -16,13 +16,13 @@ async function webAssets() {
 const COOKIE = '__Host-inxs_session';
 const HOURS = 12 * 60 * 60;
 const DATA_PATHS = new Set([
-  '/api/acknowledgements', '/api/jobs', '/api/codex-usage', '/api/system-health', '/api/timeline', '/api/racing-performance',
+  '/api/cameras', '/api/acknowledgements', '/api/jobs', '/api/codex-usage', '/api/system-health', '/api/timeline', '/api/racing-performance',
   '/api/racing', '/api/woodbine-stats', '/api/stocks', '/api/stock-quotes',
   '/api/briefing', '/api/health', '/agco-document', '/racing-document',
   '/stats-document', '/stock-document',
 ]);
 const PAGES = { '/': 'index.html', '/briefing': 'index.html', '/dashboard': 'dashboard.html', '/stocks': 'stocks.html',
-  '/woodbine': 'woodbine.html', '/woodbine-stats': 'woodbine-stats.html', '/health': 'health.html' };
+  '/woodbine': 'woodbine.html', '/woodbine-stats': 'woodbine-stats.html', '/health': 'health.html', '/cameras': 'cameras.html' };
 const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png',
   '.ico': 'image/x-icon', '.json': 'application/json; charset=utf-8', '.woff2': 'font/woff2' };
@@ -131,7 +131,7 @@ async function handler(req, res) {
     return redirect(res, '/login');
   }
   if (!validSession(req, secret)) {
-    if (pathname.startsWith('/api/') || DATA_PATHS.has(pathname)) return send(res, 401, JSON.stringify({ error: 'Please sign in.' }), 'application/json');
+    if (pathname.startsWith('/api/') || pathname.startsWith('/camera-stream/') || DATA_PATHS.has(pathname)) return send(res, 401, JSON.stringify({ error: 'Please sign in.' }), 'application/json');
     return redirect(res, '/login?next=' + encodeURIComponent(safeNext(url.pathname + url.search)));
   }
   let acknowledgementBody;
@@ -141,7 +141,7 @@ async function handler(req, res) {
     catch { return send(res, 400, 'Invalid acknowledgement.'); }
   }
   if (!['GET', 'HEAD'].includes(req.method) && acknowledgementBody === undefined) return send(res, 405, 'Method not allowed.');
-  if (DATA_PATHS.has(pathname)) {
+  if (DATA_PATHS.has(pathname) || /^\/camera-stream\/[1-6]\/(index\.m3u8|segment_[0-9]+\.ts)$/.test(pathname)) {
     const origin = process.env.DASHBOARD_ORIGIN;
     const token = process.env.DASHBOARD_ORIGIN_TOKEN;
     if (!origin || !token) return send(res, 503, JSON.stringify({ error: 'The Linux data connection is not configured.' }), 'application/json');

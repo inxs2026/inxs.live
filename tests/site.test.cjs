@@ -28,11 +28,11 @@ after(async () => { await Promise.all([new Promise(r => server.close(r)), new Pr
 const request = (route, options = {}) => fetch(base + route, { redirect: 'manual', ...options });
 const login = (password, next = '/') => request('/login', { method: 'POST', headers: { Origin: base, 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ password, next }).toString() });
 test('pages, tools, scripts, and reports are protected before sign-in', async () => {
-  for (const route of ['/', '/tools', '/invoice', '/leasecreate/js/app.js', '/index.html', '/app.js']) {
+  for (const route of ['/', '/tools', '/invoice', '/leasecreate/js/app.js', '/index.html', '/app.js', '/cameras']) {
     const res = await request(route); assert.equal(res.status, 303); assert.match(res.headers.get('location'), /^\/login/);
     assert.match(res.headers.get('cache-control'), /no-store/);
   }
-  for (const route of ['/api/jobs', '/stock-document?report=private.pdf']) assert.equal((await request(route)).status, 401);
+  for (const route of ['/api/jobs', '/api/cameras', '/camera-stream/1/index.m3u8', '/camera-stream/1/segment_123.ts', '/stock-document?report=private.pdf']) assert.equal((await request(route)).status, 401);
 });
 test('wrong passwords and cross-origin sign-ins fail', async () => {
   assert.equal((await login('incorrect')).status, 401);
@@ -46,7 +46,7 @@ test('spaces in the password work and session cookie is secure', async () => {
   cookie = set.split(';')[0];
 });
 test('dashboard and every existing tool page serve after sign-in', async () => {
-  for (const route of ['/', '/dashboard', '/briefing', '/stocks', '/woodbine', '/woodbine-stats', '/health', '/tools', '/invoice', '/mortgage', '/leasescan', '/leasecreate/', '/leasecreate/js/app.js']) {
+  for (const route of ['/', '/dashboard', '/briefing', '/stocks', '/woodbine', '/woodbine-stats', '/health', '/cameras', '/tools', '/invoice', '/mortgage', '/leasescan', '/leasecreate/', '/leasecreate/js/app.js']) {
     const res = await request(route, { headers: { Cookie: cookie } }); assert.equal(res.status, 200, route);
   }
   const html = await (await request('/', { headers: { Cookie: cookie } })).text();
@@ -83,3 +83,12 @@ test('missing authentication configuration fails closed', async () => {
 });
 
 test('acknowledgement writes require session and same origin and forward only to the fixed origin',async()=>{const route='/api/acknowledgements',body=new URLSearchParams({key:'fixture-job|2026-10-04|error'}).toString();assert.equal((await request(route,{method:'POST',body,headers:{Origin:base}})).status,401);const fresh=await login(password);const auth=fresh.headers.get('set-cookie').split(';')[0];assert.equal((await request(route,{method:'POST',body,headers:{Cookie:auth,Origin:'https://other.example'}})).status,403);assert.equal((await request(route,{method:'POST',body:'key=',headers:{Cookie:auth,Origin:base}})).status,400);const res=await request(route,{method:'POST',body,headers:{Cookie:auth,Origin:base,'Content-Type':'application/x-www-form-urlencoded'}});assert.equal(res.status,200);const d=await res.json();assert.equal(d.method,'POST');assert.equal(d.path,route);assert.equal(d.body,body);assert.equal((await request('/api/jobs',{method:'POST',headers:{Cookie:auth,Origin:base}})).status,405);});
+
+test('camera reads use the authenticated fixed bridge and reject arbitrary stream paths',async()=>{
+ const fresh=await login(password),auth=fresh.headers.get('set-cookie').split(';')[0];
+ for(const route of ['/api/cameras?channels=1,2,3,4,5,6','/camera-stream/1/index.m3u8','/camera-stream/6/segment_123.ts']){
+  const res=await request(route,{headers:{Cookie:auth}});assert.equal(res.status,200);assert.equal((await res.json()).path,route);assert.match(res.headers.get('cache-control'),/no-store/);
+ }
+ for(const route of ['/camera-stream/7/index.m3u8','/camera-stream/1/private.json','/camera-stream/1/config.env','/cameras.json'])assert.equal((await request(route,{headers:{Cookie:auth}})).status,404);
+ assert.equal((await request('/api/cameras',{method:'POST',headers:{Cookie:auth}})).status,405);
+});
