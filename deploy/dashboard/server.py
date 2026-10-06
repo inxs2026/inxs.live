@@ -331,7 +331,12 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         path = urllib.parse.urlparse(self.path).path
-        if path == '/api/acknowledgements':
+        if path in ('/cameras','/cameras/'):
+            self.send_response(302)
+            self.send_header('Location','https://inxs.live/cameras')
+            self.send_header('Cache-Control','no-store')
+            self.end_headers()
+        elif path == '/api/acknowledgements':
             self.respond(json.dumps(acknowledgements.listing()).encode(),'application/json')
         elif path == '/api/jobs':
             self.respond(json.dumps(inventory()).encode(), 'application/json')

@@ -8,7 +8,7 @@ for(let id=1;id<=6;id++){
  card.querySelector('button').addEventListener('click',()=>{cameraSelect.value=String(id);selectCameras();});cameraGrid.append(card);
 }
 function cameraStatus(id,text){document.querySelector(`[data-camera="${id}"] .camera-state`).textContent=text;}
-function stopCamera(id){const p=cameraPlayers.get(id);if(!p)return;p.hls?.destroy();p.video.pause();p.video.removeAttribute('src');p.video.load();cameraPlayers.delete(id);}
+function stopCamera(id){const p=cameraPlayers.get(id);if(!p)return;p.video.onerror=null;p.video.onwaiting=null;p.video.onplaying=null;p.hls?.destroy();p.video.pause();p.video.removeAttribute('src');p.video.load();cameraPlayers.delete(id);}
 function startCamera(item){
  if(cameraPlayers.has(item.id))return;
  const video=document.querySelector(`[data-camera="${item.id}"] video`),player={video};cameraPlayers.set(item.id,player);
@@ -28,7 +28,7 @@ async function refreshCameras(){
  if(cameraBusy||document.hidden)return;cameraBusy=true;
  try{
   const d=await getJSON('/api/cameras?channels='+cameraIds().join(','));
-  cameraNotice.textContent=d.note;
+  if(document.hidden)return;cameraNotice.textContent=d.note;
   for(const item of d.cameras){if(!cameraIds().includes(item.id))continue;
    if(item.state==='ready')startCamera(item);
    else{stopCamera(item.id);cameraStatus(item.id,item.state==='setup-required'?'Recorder login needed.':item.state==='signin-required'?'Recorder login or live-view permission needs checking.':item.state==='starting'?'Connecting…':'Camera unavailable. Retrying…');}
