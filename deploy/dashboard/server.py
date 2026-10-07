@@ -232,7 +232,7 @@ def fetch(url):
 
 def weather():
     city = CONFIG['weather']
-    query = urllib.parse.urlencode(dict(latitude=city['latitude'], longitude=city['longitude'], current='temperature_2m,apparent_temperature,weather_code,wind_speed_10m', daily='temperature_2m_max,temperature_2m_min', timezone='America/Toronto', forecast_days=5))
+    query = urllib.parse.urlencode(dict(latitude=city['latitude'], longitude=city['longitude'], current='temperature_2m,apparent_temperature,weather_code,wind_speed_10m', daily='temperature_2m_max,temperature_2m_min,weather_code,precipitation_probability_max', timezone='America/Toronto', forecast_days=14))
     data = json.loads(fetch('https://api.open-meteo.com/v1/forecast?' + query))
     return dict(city=city['name'], current=data['current'], daily=data['daily'], source='Open-Meteo', url='https://open-meteo.com/')
 
