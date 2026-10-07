@@ -8,3 +8,16 @@
 
 /* The briefing weather is now a column, rather than the former full-width strip. */
 .briefing-page #weather:not(.loading){display:block;padding:0}.briefing-page .weather-now{padding:19px 22px 13px;justify-content:space-between;gap:12px}.briefing-page .weather-meta{padding:0 22px 17px;flex-direction:row;flex-wrap:wrap;gap:12px}.briefing-page .weather-outlook{width:100%;min-width:0;box-sizing:border-box}@media(max-width:720px){.briefing-page .weather-now{padding:18px 16px 12px}.briefing-page .weather-meta{padding:0 16px 14px}}
+/* Readable, compact navigation at normal desktop zoom. */
+@media(min-width:721px){
+ .rail{width:228px;padding:16px 12px;gap:7px;overflow-y:auto}
+ .shell{margin-left:228px}
+ .rail .brand{height:36px;flex-shrink:0}
+ .rail-divider{margin:7px 0;flex-shrink:0}
+ .rail .rail-link{height:38px;min-height:38px;flex-shrink:0;padding:7px 10px;gap:10px;color:#72a7ef}
+ .rail .nav-label{font-size:16px;font-weight:700;line-height:1.3}
+ .rail .rail-link:hover{color:#a4caff;background:#72a7ef12}
+ .rail .rail-link.selected{color:#9bc6ff;background:#72a7ef16;border-color:#72a7ef40}
+ .rail .rail-bottom{height:24px;min-height:24px;flex-shrink:0}
+}
+@media(max-width:720px){.rail .nav-label{color:#72a7ef;font-weight:700}.rail .rail-link.selected .nav-label{color:#9bc6ff}}
