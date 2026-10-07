@@ -4,3 +4,9 @@
 
 /* One league at a time: its games followed by expanded standings. */
 .sports-scoreboards{display:block}.sports-scoreboards .score-list{grid-template-columns:repeat(3,minmax(0,1fr))}.standing-table{min-width:1150px}.standing-table th:first-child{width:220px;min-width:220px;position:sticky;left:0;z-index:1;background:var(--panel)}.standing-table th,.standing-table td{padding:12px 10px!important}.standing-scroll{scrollbar-color:#5d4d75 var(--panel)}.standing-scroll:focus-visible{outline:2px solid var(--purple);outline-offset:-2px}@media(max-width:1100px){.sports-scoreboards .score-list{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:720px){.sports-scoreboards .score-list{grid-template-columns:minmax(0,1fr)}.standing-table th:first-child{width:95px;min-width:95px}.standing-table th,.standing-table td{padding:10px!important}.standing-table{min-width:950px}}
+/* Standings must not inherit the jobs table's fixed layout or column widths. */
+.standing-table{table-layout:auto}
+.standing-table th,.standing-table td{width:auto;min-width:48px;font-variant-numeric:tabular-nums}
+.standing-table th:first-child{width:240px;min-width:240px}
+.standing-table .standing-name{white-space:nowrap}
+@media(max-width:720px){.standing-table th:first-child{width:130px;min-width:130px}.standing-table th,.standing-table td{min-width:48px}}
