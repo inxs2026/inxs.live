@@ -22,7 +22,7 @@ const DATA_PATHS = new Set([
   '/stats-document', '/stock-document',
 ]);
 const PAGES = { '/': 'index.html', '/briefing': 'index.html', '/dashboard': 'dashboard.html', '/stocks': 'stocks.html',
-  '/woodbine': 'woodbine.html', '/woodbine-stats': 'woodbine-stats.html', '/health': 'health.html', '/cameras': 'cameras.html', '/sports': 'sports.html' };
+  '/woodbine': 'woodbine.html', '/woodbine-stats': 'woodbine-stats.html', '/health': 'health.html', '/cameras': 'cameras.html', '/sports': 'sports.html', '/sports/nhl': 'sports.html', '/sports/mlb': 'sports.html', '/sports/nfl': 'sports.html' };
 const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png',
   '.ico': 'image/x-icon', '.json': 'application/json; charset=utf-8', '.woff2': 'font/woff2' };
