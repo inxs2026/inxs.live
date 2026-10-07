@@ -13,3 +13,4 @@
 .standing-group h3::after{content:'Scroll sideways for all statistics';display:none;margin-top:6px;font-size:12px;font-weight:400;color:var(--muted)}
 
 @media(max-width:720px){.standing-group h3::after{display:block}}
+.sports-scoreboards .game-middle{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-width:0;max-width:128px;text-align:center}.sports-scoreboards .game-series{font-size:11px;line-height:1.4;color:var(--muted);white-space:normal}.sports-scoreboards .game-teams{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}

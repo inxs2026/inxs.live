@@ -1,6 +1,7 @@
 """Date-specific scoreboards and explicitly selected season standings."""
 import datetime as dt
 import json
+import re
 import threading
 import time
 import urllib.request
@@ -66,3 +67,18 @@ def standings(league):
         with urllib.request.urlopen(req,timeout=12) as response:data=json.loads(response.read(4000000))
         return normalize_standings(league,data,sports_teams.registry(slug))
     return cached('standings:'+league+':'+str(season_year(league,today())),read,600)
+
+
+def playoff_series(competition):
+    """Use provider playoff status only; regular-season series are not playoffs."""
+    series=competition.get('series') or {}
+    if series.get('type')!='playoff':return None
+    summary=series.get('summary')
+    if not isinstance(summary,str) or not summary.strip():return None
+    for competitor in competition.get('competitors',[]):
+        team=competitor.get('team') or {}
+        abbreviation=team.get('abbreviation')
+        name=team.get('shortDisplayName') or team.get('displayName')
+        if abbreviation and name:
+            summary=re.sub(r'\b'+re.escape(abbreviation)+r'\b',lambda _:name,summary)
+    return summary.strip()

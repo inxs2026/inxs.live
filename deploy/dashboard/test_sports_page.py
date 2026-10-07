@@ -30,4 +30,12 @@ class SportsTests(unittest.TestCase):
    result=sports_page.standings('NHL');url=request.call_args.args[0].full_url
    self.assertIn('season=2027',url);self.assertNotIn('&type=',url)
    stats=result['data']['groups'][0]['rows'][0]['stats'];self.assertEqual(stats['pointsFor'],'16');self.assertEqual(stats['pointsAgainst'],'8');self.assertEqual(stats['Home'],'3-0-0')
+ def test_playoff_series_uses_provider_status_and_expands_team_name(self):
+  game={'series':{'type':'playoff','summary':'CHW lead series 2-0'},'competitors':[{'team':{'abbreviation':'CHW','shortDisplayName':'White Sox'}}]}
+  self.assertEqual(sports_page.playoff_series(game),'White Sox lead series 2-0')
+  for summary in ['Series tied 1-1','CHW win series 3-0']:
+   game['series']['summary']=summary;self.assertEqual(sports_page.playoff_series(game),summary.replace('CHW','White Sox'))
+  game['series']['type']='regular-season';self.assertIsNone(sports_page.playoff_series(game))
+  self.assertIsNone(sports_page.playoff_series({}))
+  self.assertIsNone(sports_page.playoff_series({'series':{'type':'playoff'}}))
 if __name__=='__main__':unittest.main()
