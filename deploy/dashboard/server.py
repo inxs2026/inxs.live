@@ -24,6 +24,7 @@ import operations
 import codex_usage
 import performance
 import sports_teams
+import sports_page
 import acknowledgements
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -258,8 +259,8 @@ def headlines(kind):
             continue
     raise RuntimeError('Feeds unavailable')
 
-def scores():
-    target = dt.datetime.now(ZoneInfo('America/Toronto')).date()
+def scores(target=None):
+    target = target or dt.datetime.now(ZoneInfo('America/Toronto')).date()
     leagues = [('NHL', 'hockey/nhl'), ('MLB', 'baseball/mlb'), ('NFL', 'football/nfl')]
     results = []
     failed = []
@@ -331,13 +332,19 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         path = urllib.parse.urlparse(self.path).path
-        if path in ('/cameras','/cameras/'):
+        if path in ('/cameras','/cameras/','/sports','/sports/'):
             self.send_response(302)
-            self.send_header('Location','https://inxs.live/cameras')
+            self.send_header('Location','https://inxs.live'+path.rstrip('/'))
             self.send_header('Cache-Control','no-store')
             self.end_headers()
         elif path == '/api/acknowledgements':
             self.respond(json.dumps(acknowledgements.listing()).encode(),'application/json')
+        elif path in ('/api/sports-scores','/api/sports-standings'):
+            try:
+                query=urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
+                data=sports_page.scoreboard(query.get('date',[''])[0],scores) if path=='/api/sports-scores' else sports_page.standings(query.get('league',['NHL'])[0])
+                self.respond(json.dumps(data).encode(),'application/json')
+            except ValueError:self.send_error(400)
         elif path == '/api/jobs':
             self.respond(json.dumps(inventory()).encode(), 'application/json')
         elif path == '/api/codex-usage':

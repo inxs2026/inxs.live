@@ -68,3 +68,22 @@ The existing bridge service has write access only to its private state folder.
 Restart `dashboard-bridge` after changing relay code. Confirm actual video on
 all six channels before reporting the feature connected. Tests:
 `python3 -m unittest discover -s deploy -p test_cameras.py` and `npm test`.
+
+
+## Sports
+
+`/sports` follows Daily briefing in the shared navigation. The briefing contains
+weather and Canadian/U.S. news; Sports has scoreboards for NHL, MLB, and NFL,
+Today/Yesterday/Tomorrow shortcuts, and a date picker spanning 2000-2099. Future
+empty feeds are labeled as having no games listed yet, and failed league feeds
+are distinguished from empty schedules. Standings show the current season
+independently of the chosen game date. Season years are explicit to avoid
+upstream defaults selecting a future MLB season.
+
+The authenticated bridge forwards `/api/sports-scores?date=YYYY-MM-DD` and
+`/api/sports-standings?league=NHL|MLB|NFL` to Dashboard. The `sports_page.py`
+module caches today's scores for a minute, other dates and standings for ten
+minutes, and labels retained data stale after a failed refresh. Existing ESPN
+team branding is reused. The LAN Sports navigation redirects to the protected
+INXS.live page. Verify with `npm test` and
+`python3 -m unittest discover -s deploy/dashboard -p test_sports_page.py`.

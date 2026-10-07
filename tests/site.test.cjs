@@ -28,11 +28,11 @@ after(async () => { await Promise.all([new Promise(r => server.close(r)), new Pr
 const request = (route, options = {}) => fetch(base + route, { redirect: 'manual', ...options });
 const login = (password, next = '/') => request('/login', { method: 'POST', headers: { Origin: base, 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ password, next }).toString() });
 test('pages, tools, scripts, and reports are protected before sign-in', async () => {
-  for (const route of ['/', '/tools', '/invoice', '/leasecreate/js/app.js', '/index.html', '/app.js', '/cameras']) {
+  for (const route of ['/', '/tools', '/invoice', '/leasecreate/js/app.js', '/index.html', '/app.js', '/cameras', '/sports']) {
     const res = await request(route); assert.equal(res.status, 303); assert.match(res.headers.get('location'), /^\/login/);
     assert.match(res.headers.get('cache-control'), /no-store/);
   }
-  for (const route of ['/api/jobs', '/api/cameras', '/camera-stream/1/index.m3u8', '/camera-stream/1/segment_123.ts', '/stock-document?report=private.pdf']) assert.equal((await request(route)).status, 401);
+  for (const route of ['/api/jobs', '/api/cameras', '/api/sports-scores', '/api/sports-standings', '/camera-stream/1/index.m3u8', '/camera-stream/1/segment_123.ts', '/stock-document?report=private.pdf']) assert.equal((await request(route)).status, 401);
 });
 test('wrong passwords and cross-origin sign-ins fail', async () => {
   assert.equal((await login('incorrect')).status, 401);
@@ -46,7 +46,7 @@ test('spaces in the password work and session cookie is secure', async () => {
   cookie = set.split(';')[0];
 });
 test('dashboard and every existing tool page serve after sign-in', async () => {
-  for (const route of ['/', '/dashboard', '/briefing', '/stocks', '/woodbine', '/woodbine-stats', '/health', '/cameras', '/tools', '/invoice', '/mortgage', '/leasescan', '/leasecreate/', '/leasecreate/js/app.js']) {
+  for (const route of ['/', '/dashboard', '/briefing', '/stocks', '/woodbine', '/woodbine-stats', '/health', '/cameras', '/sports', '/tools', '/invoice', '/mortgage', '/leasescan', '/leasecreate/', '/leasecreate/js/app.js']) {
     const res = await request(route, { headers: { Cookie: cookie } }); assert.equal(res.status, 200, route);
   }
   const html = await (await request('/', { headers: { Cookie: cookie } })).text();
@@ -91,4 +91,14 @@ test('camera reads use the authenticated fixed bridge and reject arbitrary strea
  }
  for(const route of ['/camera-stream/7/index.m3u8','/camera-stream/1/private.json','/camera-stream/1/config.env','/cameras.json'])assert.equal((await request(route,{headers:{Cookie:auth}})).status,404);
  assert.equal((await request('/api/cameras',{method:'POST',headers:{Cookie:auth}})).status,405);
+});
+
+test('Sports is directly after briefing and scoreboard has moved off the briefing',async()=>{
+ const fresh=await login(password),auth=fresh.headers.get('set-cookie').split(';')[0];
+ for(const route of ['/','/sports','/stocks','/health','/cameras','/tools']){
+  const html=await(await request(route,{headers:{Cookie:auth}})).text();assert.match(html,/aria-label="Daily briefing"[^]*?<\/a>\s*<a[^>]+href="\/sports"/);
+  if(route==='/')assert.doesNotMatch(html,/id="scores"|On the scoreboard/);
+  if(route==='/sports')for(const id of ['sports-today','sports-yesterday','sports-tomorrow','sports-date','standings'])assert.ok(html.includes('id="'+id+'"'));
+ }
+ for(const route of ['/api/sports-scores?date=2026-10-08','/api/sports-standings?league=MLB']){const res=await request(route,{headers:{Cookie:auth}});assert.equal(res.status,200);assert.equal((await res.json()).path,route);}
 });
