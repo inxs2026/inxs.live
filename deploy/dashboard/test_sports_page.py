@@ -1,5 +1,6 @@
 import datetime as dt
 import unittest
+import io,json
 from unittest.mock import patch
 import sports_page
 class SportsTests(unittest.TestCase):
@@ -23,4 +24,10 @@ class SportsTests(unittest.TestCase):
   result=sports_page.normalize_standings('NFL',data,{'1':{'logo':'https://a.espncdn.com/team.png','color':'#123456','displayName':'Buffalo Bills'}})
   row=result['groups'][0]['rows'][0];self.assertEqual(row['team']['displayName'],'Buffalo Bills');self.assertEqual(row['stats']['wins'],'3');self.assertNotIn('losses',row['stats'])
   with self.assertRaises(ValueError):sports_page.normalize_standings('NFL',{}, {})
+ def test_standings_request_keeps_full_stats_not_alternate_split_view(self):
+  data={'season':{'displayName':'2026-27'},'children':[{'name':'Eastern','standings':{'entries':[{'team':{'id':'1','abbreviation':'TOR'},'stats':[{'name':'pointsFor','displayValue':'16'},{'name':'pointsAgainst','displayValue':'8'},{'name':'Home','displayValue':'3-0-0'}]}]}}]}
+  with patch.object(sports_page,'today',return_value=dt.date(2026,10,7)),patch.object(sports_page.sports_teams,'registry',return_value={}),patch.object(sports_page.urllib.request,'urlopen',return_value=io.BytesIO(json.dumps(data).encode())) as request:
+   result=sports_page.standings('NHL');url=request.call_args.args[0].full_url
+   self.assertIn('season=2027',url);self.assertNotIn('&type=',url)
+   stats=result['data']['groups'][0]['rows'][0]['stats'];self.assertEqual(stats['pointsFor'],'16');self.assertEqual(stats['pointsAgainst'],'8');self.assertEqual(stats['Home'],'3-0-0')
 if __name__=='__main__':unittest.main()

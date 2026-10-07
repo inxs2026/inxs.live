@@ -61,7 +61,7 @@ def standings(league):
     if league not in SLUGS:raise ValueError('Unsupported league')
     def read():
         year=season_year(league,today());slug=SLUGS[league]
-        url=f'https://site.api.espn.com/apis/v2/sports/{slug}/standings?season={year}&type=2'
+        url=f'https://site.api.espn.com/apis/v2/sports/{slug}/standings?season={year}'
         req=urllib.request.Request(url,headers={'User-Agent':'INXS/1.0 (personal sports page)'})
         with urllib.request.urlopen(req,timeout=12) as response:data=json.loads(response.read(4000000))
         return normalize_standings(league,data,sports_teams.registry(slug))
