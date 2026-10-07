@@ -10,3 +10,4 @@
 .standing-table th:first-child{width:240px;min-width:240px}
 .standing-table .standing-name{white-space:nowrap}
 @media(max-width:720px){.standing-table th:first-child{width:130px;min-width:130px}.standing-table th,.standing-table td{min-width:48px}}
+.standing-group h3::after{content:'Scroll sideways for all statistics';display:block;margin-top:6px;font-size:12px;font-weight:400;color:var(--muted)}
