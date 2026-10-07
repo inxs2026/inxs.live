@@ -1,0 +1,13 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),path=require('node:path');
+function fixture(){
+ const elements={},requests=[],buttons=['NHL','MLB','NFL'].map(name=>({dataset:{standingLeague:name},classList:{toggle(){}},setAttribute(){},addEventListener(name,fn){this[name]=fn;}}));
+ function element(id){return elements[id]??= {value:'',dataset:{},innerHTML:'',textContent:'',classList:{toggle(){}},setAttribute(){},checkValidity:()=>true,querySelector:()=>null,addEventListener(name,fn){this[name]=fn;}};}
+ const ctx={$:element,Intl,Date,encodeURIComponent,document:{hidden:false,getElementById:element,querySelectorAll:()=>buttons,addEventListener(){}},setInterval(){},getJSON:url=>{requests.push(url);return new Promise(()=>{});},esc:String,formatted:String,applyScoreTeamColors(){},scoreLeagueMarkup:name=>name,scoreTeamMarkup:team=>team?.name||''};
+ vm.createContext(ctx);vm.runInContext(fs.readFileSync(path.join(__dirname,'../web/sports.js'),'utf8'),ctx);ctx.torontoDate=()=> '2026-10-07';return {ctx,elements,requests,buttons};
+}
+test('today yesterday tomorrow and calendar request the selected date',()=>{
+ const {elements,requests}=fixture();for(const [button,date] of [['sports-yesterday','2026-10-06'],['sports-today','2026-10-07'],['sports-tomorrow','2026-10-08']]){elements[button].click();assert.equal(elements['sports-date'].value,date);assert.equal(requests.at(-1),'/api/sports-scores?date='+date);}
+ elements['sports-date'].value='2026-11-02';elements['sports-date'].change();assert.equal(requests.at(-1),'/api/sports-scores?date=2026-11-02');
+});
+test('calendar steps stay on dates across daylight-saving changes and standings switch separately',()=>{const {ctx,buttons,requests}=fixture();assert.equal(ctx.moveSportsDate('2026-11-01',1),'2026-11-02');assert.equal(ctx.moveSportsDate('2026-03-08',-1),'2026-03-07');buttons[1].click();assert.equal(requests.at(-1),'/api/sports-standings?league=MLB');buttons[2].click();assert.equal(requests.at(-1),'/api/sports-standings?league=NFL');});
+test('future games show VS and missing league feeds are distinct from empty schedules',()=>{const {ctx,elements}=fixture();const html=ctx.sportsGame({id:'1',league:'NHL',state:'pre',date:'2026-10-08',status:'Scheduled',teams:[{name:'TOR',score:'0'},{name:'MTL',score:'0'}]});assert.match(html,/>VS</);assert.doesNotMatch(html,/0 – 0/);ctx.renderSportsScores({leagues:[{league:'NHL',events:[]},{league:'MLB',events:[]}]},'2026-10-08');assert.match(elements['sports-scoreboards'].innerHTML,/No games listed for this date yet/);assert.match(elements['sports-scoreboards'].innerHTML,/scores are unavailable/);});
