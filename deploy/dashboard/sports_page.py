@@ -34,7 +34,7 @@ def cached(key,reader,ttl):
 
 def scoreboard(value,reader):
     date=date_value(value)
-    return cached('scores:'+date.isoformat(),lambda:reader(date),60 if date==today() else 600)
+    return cached('scores:'+date.isoformat(),lambda:reader(date),60 if date>=today() else 600)
 
 def season_year(league,date):
     if league=='NHL':return date.year+1 if date.month>=7 else date.year

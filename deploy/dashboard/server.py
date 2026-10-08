@@ -25,6 +25,7 @@ import codex_usage
 import performance
 import sports_teams
 import sports_page
+import sports_odds
 import acknowledgements
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -275,6 +276,7 @@ def scores(target=None):
             competition = event['competitions'][0]
             teams = sorted(competition['competitors'], key=lambda c: c.get('homeAway') == 'home')
             events.append(dict(id=event['id'], date=event['date'], status=event['status']['type']['shortDetail'], state=event['status']['type']['state'], seriesSummary=sports_page.playoff_series(competition) if name=='MLB' else None, teams=[sports_teams.competitor(t,brands) for t in teams], url='https://www.espn.com/' + slug + '/game/_/gameId/' + event['id']))
+        sports_odds.attach(events,name,target)
         return dict(league=name, logo=sports_teams.branding((data.get('leagues') or [{}])[0])['logo'], events=events)
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:
         futures = {pool.submit(league, pair): pair[0] for pair in leagues}
