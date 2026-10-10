@@ -370,6 +370,7 @@
     let activeJobId = null;
     let activeUploadId = null;
     let activeUploadRequest = null;
+    let activeChunkController = null;
     let batchCancelled = false;
     let batchStartedAt = 0;
 
@@ -459,6 +460,36 @@
       }
     };
 
+    // Retry only reads and replacement of the same numbered upload chunk.
+    const requestWithRecovery = async (url, options = {}, onRetry = () => {}) => {
+      const attempts = 6;
+      for (let attempt = 0; attempt < attempts; attempt++) {
+        if (batchCancelled && options.method === 'POST') throw new Error('Upload cancelled');
+        const controller = new AbortController();
+        const chunkRequest = options.method === 'POST';
+        if (chunkRequest) activeChunkController = controller;
+        const timeout = setTimeout(() => controller.abort(), chunkRequest ? 90000 : 20000);
+        try {
+          const resp = await fetch(url, { ...options, signal: controller.signal });
+          const data = await readApiResponse(resp);
+          if (resp.ok) return { resp, data };
+          const retryable = [408, 429, 500, 502, 503, 504, 520, 522, 524].includes(resp.status);
+          const err = new Error(data.error || `Request failed with HTTP ${resp.status}`);
+          err.permanent = !retryable;
+          throw err;
+        } catch (err) {
+          if (batchCancelled && chunkRequest) throw new Error('Upload cancelled');
+          if (err.permanent) throw err;
+          if (attempt === attempts - 1) throw new Error('Connection interrupted. Could not reconnect after several attempts. Please try again.');
+          onRetry(attempt + 1);
+        } finally {
+          clearTimeout(timeout);
+          if (chunkRequest && activeChunkController === controller) activeChunkController = null;
+        }
+        await new Promise(resolve => setTimeout(resolve, Math.min(1000 * 2 ** attempt, 10000)));
+      }
+    };
+
     const updateUploadProgress = (idx, loaded, total) => {
       const uploadPct = total > 0 ? (loaded / total) * 100 : 0;
       setJobRow(idx, 'uploading', uploadPct, '-');
@@ -467,39 +498,30 @@
 
     const pollJob = async (jobId, idx, batchIndex, totalFiles) => {
       const started = Date.now();
-      return new Promise((resolve) => {
-        const timer = setInterval(async () => {
-          try {
-            const resp = await fetch(`/api/progress/${jobId}`);
-            const data = await readApiResponse(resp);
-            if (!resp.ok) throw new Error(data.error || 'Job failed');
-
-            const progress = Number(data.progress || 0);
-            const elapsedSec = (Date.now() - started) / 1000;
-            const jobEta = progress > 0 && progress < 100
-              ? formatDuration((elapsedSec / (progress / 100)) - elapsedSec)
-              : '-';
-
-            setJobRow(idx, data.status || 'running', progress, jobEta);
-            const overall = ((batchIndex + (progress / 100)) / totalFiles) * 100;
-            setProgress(overall);
-            updateBatchEta(overall);
-            statusEl.textContent = data.message || data.status || 'Running';
-
-            if (data.status === 'done') {
-              clearInterval(timer);
-              setJobRow(idx, 'done', 100, '0s');
-              resolve({ ok: true, data });
-            } else if (data.status === 'error' || data.status === 'cancelled') {
-              clearInterval(timer);
-              resolve({ ok: false, data });
-            }
-          } catch (err) {
-            clearInterval(timer);
-            resolve({ ok: false, data: { message: err.message || 'Polling failed', status: 'error' } });
+      while (true) {
+        try {
+          const { data } = await requestWithRecovery(`/api/progress/${jobId}`, {}, () => {
+            statusEl.textContent = 'Connection interrupted · reconnecting to your conversion…';
+          });
+          const progress = Number(data.progress || 0);
+          const elapsedSec = (Date.now() - started) / 1000;
+          const jobEta = progress > 0 && progress < 100
+            ? formatDuration((elapsedSec / (progress / 100)) - elapsedSec) : '-';
+          setJobRow(idx, data.status || 'running', progress, jobEta);
+          const overall = ((batchIndex + (progress / 100)) / totalFiles) * 100;
+          setProgress(overall);
+          updateBatchEta(overall);
+          statusEl.textContent = data.message || data.status || 'Running';
+          if (data.status === 'done') {
+            setJobRow(idx, 'done', 100, '0s');
+            return { ok: true, data };
           }
-        }, 900);
-      });
+          if (data.status === 'error' || data.status === 'cancelled') return { ok: false, data };
+        } catch (err) {
+          return { ok: false, data: { message: err.message || 'Polling failed', status: 'error' } };
+        }
+        await new Promise(resolve => setTimeout(resolve, 900));
+      }
     };
 
     const createJob = async () => {
@@ -587,9 +609,10 @@
           fd.append('total_chunks', String(totalChunks));
           fd.append('chunk', chunk, file.name);
 
-          const resp = await fetch('/api/upload-chunk', { method: 'POST', body: fd });
-          const data = await readApiResponse(resp);
-          if (!resp.ok) throw new Error(data.error || 'Could not upload chunk');
+          await requestWithRecovery('/api/upload-chunk', { method: 'POST', body: fd }, () => {
+            setJobRow(idx, 'reconnecting', (chunkIndex / totalChunks) * 100, '-');
+            statusEl.textContent = `Connection interrupted · retrying chunk ${chunkIndex + 1}/${totalChunks}…`;
+          });
 
           const uploadPct = ((chunkIndex + 1) / totalChunks) * 100;
           setJobRow(idx, 'uploading', uploadPct, '-');
@@ -674,6 +697,7 @@
     cancelBtn.addEventListener('click', async () => {
       batchCancelled = true;
       cancelBtn.disabled = true;
+      if (activeChunkController) activeChunkController.abort();
       if (activeUploadRequest) {
         activeUploadRequest.abort();
       }
