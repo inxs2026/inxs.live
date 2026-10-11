@@ -4,6 +4,13 @@ services:
       context: ../apps/video-converter
     container_name: inxs-video-converter
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      FILE_TTL_SECONDS: ${CONVERTER_FILE_TTL_SECONDS:-86400}
     ports:
       - "13000:3000"
     volumes:
@@ -33,6 +40,11 @@ services:
       start_period: 40s
 
   cloudflared:
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     image: cloudflare/cloudflared:latest
     container_name: inxs-cloudflared
     restart: unless-stopped

@@ -3,6 +3,7 @@ import os
 import shutil
 import subprocess
 import threading
+import time
 import uuid
 from pathlib import Path
 from typing import Dict
@@ -62,6 +63,13 @@ CHUNK_UPLOADS_DIR = resolve_storage_dir("CHUNK_UPLOADS_DIR", UPLOADS_DIR / "chun
 jobs_lock = threading.Lock()
 jobs: Dict[str, Dict[str, str]] = {}
 job_processes: Dict[str, subprocess.Popen] = {}
+
+# Retention: uploads, converted outputs, orphaned *_partial files and abandoned
+# chunk-upload sessions are removed once older than FILE_TTL_SECONDS (default 24h).
+# Files belonging to a job that is still in progress are never touched.
+FILE_TTL_SECONDS = int(os.environ.get("FILE_TTL_SECONDS", str(24 * 3600)))
+CLEANUP_INTERVAL_SECONDS = max(60, int(os.environ.get("CLEANUP_INTERVAL_SECONDS", "3600")))
+ACTIVE_JOB_STATUSES = {"uploading", "preparing", "probing", "queued", "running", "cancelling"}
 
 MP4_FAMILY_FORMATS = {"mp4", "mov", "m4v"}
 MP4_COPY_VIDEO_CODECS = {"h264", "hevc", "mpeg4", "av1"}
@@ -268,6 +276,7 @@ def set_job(job_id: str, **fields: str) -> None:
     with jobs_lock:
         if job_id in jobs:
             jobs[job_id].update(fields)
+            jobs[job_id]["updated_at"] = time.time()
 
 
 def get_job_status(job_id: str) -> str:
@@ -708,6 +717,99 @@ def prepare_uploaded_job(
     convert_job(job_id, input_path, output_format, quality_preset, platform_preset, original_stem)
 
 
+def _file_age_seconds(path: Path, now: float) -> float:
+    st = path.stat()
+    return now - max(st.st_mtime, st.st_ctime)
+
+
+def _dir_age_seconds(path: Path, now: float) -> float:
+    newest = path.stat().st_mtime
+    for child in path.iterdir():
+        try:
+            newest = max(newest, child.stat().st_mtime)
+        except OSError:
+            continue
+    return now - newest
+
+
+def cleanup_expired_files(now: float | None = None) -> dict:
+    """Delete files older than FILE_TTL_SECONDS, skipping in-progress jobs."""
+    if FILE_TTL_SECONDS <= 0:
+        return {"files": 0, "bytes": 0}
+
+    now = time.time() if now is None else now
+    removed_files = 0
+    removed_bytes = 0
+
+    with jobs_lock:
+        active_ids = {jid for jid, job in jobs.items() if job.get("status") in ACTIVE_JOB_STATUSES}
+        active_outputs = {
+            job.get("output_path")
+            for job in jobs.values()
+            if job.get("status") in ACTIVE_JOB_STATUSES and job.get("output_path")
+        }
+        stale_job_ids = [
+            jid
+            for jid, job in jobs.items()
+            if job.get("status") not in ACTIVE_JOB_STATUSES
+            and now - float(job.get("updated_at") or job.get("created_at") or now) > FILE_TTL_SECONDS
+        ]
+        for jid in stale_job_ids:
+            jobs.pop(jid, None)
+
+    def belongs_to_active_job(name: str) -> bool:
+        return any(jid in name for jid in active_ids)
+
+    for directory in (DOWNLOADS_DIR, UPLOADS_DIR):
+        for path in directory.iterdir():
+            try:
+                if not path.is_file():
+                    continue
+                if belongs_to_active_job(path.name) or str(path) in active_outputs:
+                    continue
+                if _file_age_seconds(path, now) <= FILE_TTL_SECONDS:
+                    continue
+                size = path.stat().st_size
+                path.unlink()
+                removed_files += 1
+                removed_bytes += size
+            except OSError:
+                continue
+
+    for session_dir in CHUNK_UPLOADS_DIR.iterdir():
+        try:
+            if not session_dir.is_dir() or _dir_age_seconds(session_dir, now) <= FILE_TTL_SECONDS:
+                continue
+            size = sum(p.stat().st_size for p in session_dir.iterdir() if p.is_file())
+            shutil.rmtree(session_dir)
+            removed_files += 1
+            removed_bytes += size
+        except OSError:
+            continue
+
+    if removed_files or stale_job_ids:
+        print(
+            f"[cleanup] removed {removed_files} expired file(s)/upload session(s), "
+            f"{removed_bytes / 1_000_000:.1f} MB; pruned {len(stale_job_ids)} stale job(s)",
+            flush=True,
+        )
+
+    return {"files": removed_files, "bytes": removed_bytes, "jobs": len(stale_job_ids)}
+
+
+def _cleanup_loop() -> None:
+    while True:
+        try:
+            cleanup_expired_files()
+        except Exception as exc:  # never let the sweeper thread die
+            print(f"[cleanup] sweep failed: {exc}", flush=True)
+        time.sleep(CLEANUP_INTERVAL_SECONDS)
+
+
+if FILE_TTL_SECONDS > 0:
+    threading.Thread(target=_cleanup_loop, name="file-cleanup", daemon=True).start()
+
+
 @app.get("/")
 def index():
     return render_template(
@@ -802,6 +904,7 @@ def start_convert():
             "message": "Waiting for upload",
             "output_path": "",
             "output_name": "",
+            "created_at": time.time(),
         }
 
     return jsonify({"job_id": job_id})
@@ -902,6 +1005,7 @@ def complete_upload():
             "message": "Queued",
             "output_path": "",
             "output_name": "",
+            "created_at": time.time(),
         }
 
     thread = threading.Thread(
