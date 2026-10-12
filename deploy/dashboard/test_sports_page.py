@@ -38,4 +38,15 @@ class SportsTests(unittest.TestCase):
   game['series']['type']='regular-season';self.assertIsNone(sports_page.playoff_series(game))
   self.assertIsNone(sports_page.playoff_series({}))
   self.assertIsNone(sports_page.playoff_series({'series':{'type':'playoff'}}))
+class StandingsViewTests(unittest.TestCase):
+ def test_mlb_feed_order_does_not_put_division_leader_last(self):
+  entries=[{'team':{'id':str(i),'abbreviation':name},'stats':[{'name':'winPercent','value':pct,'displayValue':str(pct)},{'name':'playoffSeed','value':seed}]} for i,(name,pct,seed) in enumerate([('NYY',.578,4),('BOS',.537,5),('TB',.605,1)])]
+  data={'children':[{'name':'American League','children':[{'name':'AL East','standings':{'entries':entries}}]}]}
+  result=sports_page.standings_views(sports_page.normalize_standings('MLB',data,{}))
+  self.assertEqual([r['team']['name'] for r in result['views']['american'][0]['rows']],['TB','NYY','BOS'])
+  self.assertEqual(result['views']['wildcard'][0]['rows'][0]['team']['name'],'TB')
+  self.assertEqual([r['team']['name'] for r in result['views']['wildcard'][1]['rows']],['NYY','BOS'])
+ def test_nfl_postseason_belongs_to_following_calendar_year(self):
+  with patch.object(sports_page,'today',return_value=dt.date(2026,10,12)),patch.object(sports_page.urllib.request,'urlopen') as request:
+   self.assertEqual(sports_page.postseason('NFL',2026,{}),[]);request.assert_not_called()
 if __name__=='__main__':unittest.main()

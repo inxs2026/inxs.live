@@ -29,16 +29,40 @@ const standingColumns={
  MLB:[['GP','gamesPlayed','Games played'],['W','wins','Wins'],['L','losses','Losses'],['PCT','winPercent','Winning percentage'],['GB','gamesBehind','Games behind'],['RS','pointsFor','Runs scored'],['RA','pointsAgainst','Runs allowed'],['DIFF','pointDifferential','Run differential'],['HOME','Home','Home record'],['AWAY','Road','Away record'],['L10','Last Ten Games','Last ten games'],['STRK','streak','Current streak']],
  NFL:[['W','wins','Wins'],['L','losses','Losses'],['T','ties','Ties'],['PCT','winPercent','Winning percentage'],['PF','pointsFor','Points for'],['PA','pointsAgainst','Points against'],['DIFF','pointDifferential','Point differential'],['HOME','Home','Home record'],['AWAY','Road','Away record'],['DIV','divisionRecord','Division record'],['CONF','vs. Conf.','Conference record'],['STRK','streak','Current streak']]
 };
-function renderStandings(data){const cols=standingColumns[data.league];$('sports-standings').innerHTML=data.groups.map(group=>`<section class="panel standing-group"><h3>${esc(group.name)}</h3><div class="standing-scroll" tabindex="0" role="region" aria-label="${esc(group.name)} standings; scroll for more statistics"><table class="standing-table"><thead><tr><th scope="col">Team</th>${cols.map(([label,,description])=>`<th scope="col" title="${esc(description)}">${label}</th>`).join('')}</tr></thead><tbody>${group.rows.map(row=>`<tr><th scope="row">${scoreTeamMarkup(row.team,'away')}<span class="standing-name">${esc(row.team.displayName||row.team.name)}</span></th>${cols.map(([,key])=>`<td>${esc(row.stats[key]??'—')}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>`).join('');applyScoreTeamColors($('sports-standings'));}
+const standingViews={NHL:[['eastern','Eastern'],['western','Western'],['wildcard','Wild Card'],['playoffs','Playoffs']],MLB:[['american','American League'],['national','National League'],['expanded','Expanded'],['wildcard','Wild Card'],['playoffs','Playoffs']],NFL:[['afc','AFC'],['nfc','NFC'],['wildcard','Wild Card'],['playoffs','Playoffs']]};
+const savedStandingViews={};let standingView=standingViews[standingLeague][0][0],standingData=null;
+function renderStandingTabs(){
+ $('standings-tabs').innerHTML=standingViews[standingLeague].map(([key,label])=>`<button type="button" data-standing-view="${key}" class="${standingView===key?'selected':''}" aria-pressed="${standingView===key}">${label}</button>`).join('');
+ for(const button of $('standings-tabs').querySelectorAll('[data-standing-view]'))button.addEventListener('click',()=>selectStandingView(button.dataset.standingView));
+}
+function selectStandingView(view){
+ if(!standingViews[standingLeague].some(([key])=>key===view))return;
+ standingView=view;savedStandingViews[standingLeague]=view;renderStandingTabs();
+ if(standingData?.league===standingLeague&&(view!=='playoffs'||Object.hasOwn(standingData,'postseason')))renderStandings(standingData);
+ else{$('sports-standings').innerHTML='<p class="empty">Loading standings…</p>';loadSportsStandings();}
+}
+function renderStandings(data){
+ const wildcard=standingView==='wildcard',playoffs=standingView==='playoffs';
+ let cols=standingColumns[data.league];
+ if(wildcard&&data.league==='MLB')cols=cols.map(c=>c[0]==='GB'?['WCGB','wildCardBehind','Games behind the final wild-card spot; + means ahead']:c);
+ const groups=data.views?.[standingView]||data.groups;
+ let html=wildcard||playoffs?`<p class="sports-note">${esc(data.wildCardNote||'Current playoff picture. Qualification is not yet confirmed.')}${wildcard?' · The line marks the final wild-card position.':''}</p>`:'';
+ if(playoffs){
+  const games=data.postseason||[],rounds=[...new Set(games.map(g=>g.round))];
+  html+=games.length?`<div class="postseason-games sports-scoreboards">${rounds.map(round=>`<section class="panel sports-panel"><h3 class="sports-league-heading">${esc(round)}</h3><div class="score-list">${games.filter(g=>g.round===round).sort((a,b)=>a.date.localeCompare(b.date)).map(sportsGame).join('')}</div></section>`).join('')}</div>`:'<p class="empty postseason-empty">No confirmed postseason matchups for this season yet. The current playoff picture is below; playoff rounds and championship games will appear when scheduled.</p>';
+ }
+ html+=groups.map(group=>`<section class="panel standing-group"><h3>${esc(group.name)}</h3><div class="standing-scroll" tabindex="0" role="region" aria-label="${esc(group.name)} standings; scroll for more statistics"><table class="standing-table"><thead><tr><th scope="col">Team</th>${cols.map(([label,,description])=>`<th scope="col" title="${esc(description)}">${label}</th>`).join('')}</tr></thead><tbody>${group.rows.map((row,index)=>`<tr class="${group.cutoff&&index===group.cutoff?'wildcard-cutoff':''}"><th scope="row"><span class="standing-rank">${index+1}</span>${scoreTeamMarkup(row.team,'away')}<span class="standing-name">${esc(row.team.displayName||row.team.name)}</span>${row.inSpot?'<span class="standing-spot" title="Currently in a wild-card position">WC</span>':''}</th>${cols.map(([,key])=>`<td>${esc(row.stats[key]??'—')}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>`).join('');
+ $('sports-standings').innerHTML=html;applyScoreTeamColors($('sports-standings'));
+}
 async function loadSportsStandings(){const league=standingLeague,request=++standingRequest;
- try{const f=await getJSON('/api/sports-standings?league='+league);if(request!==standingRequest)return;if(!f.data)throw new Error('Unavailable');renderStandings(f.data);$('standings-updated').textContent=league+' · '+(f.data.season||'Current season')+' · ESPN · '+(f.stale?'Last confirmed ':'Updated ')+formatted(f.updatedAt)+(f.error?' · '+f.error:'');}
+ try{const f=await getJSON('/api/sports-standings?league='+league+(standingView==='playoffs'?'&view=playoffs':''));if(request!==standingRequest)return;if(!f.data)throw new Error('Unavailable');standingData=f.data;renderStandings(f.data);$('standings-updated').textContent=league+' · '+(f.data.season||'Current season')+' · ESPN · '+(f.stale?'Last confirmed ':'Updated ')+formatted(f.updatedAt)+(f.error?' · '+f.error:'');}
  catch{if(request!==standingRequest)return;$('standings-updated').textContent=league+' standings unavailable. Retrying automatically.';}
 }
 $('sports-date').value=torontoDate();$('sports-date').addEventListener('change',()=>{if($('sports-date').checkValidity())loadSportsScores();});
 for(const [id,offset] of [['sports-today',0],['sports-yesterday',-1],['sports-tomorrow',1]])$(id).addEventListener('click',()=>{$('sports-date').value=moveSportsDate(torontoDate(),offset);loadSportsScores();});
 for(const [id,offset] of [['sports-previous',-1],['sports-next',1]])$(id).addEventListener('click',()=>{$('sports-date').value=moveSportsDate($('sports-date').value,offset);loadSportsScores();});
 function selectSportsLeague(league,updateURL=true){
- if(!sportsLeagues.includes(league))return;standingLeague=league;
+ if(!sportsLeagues.includes(league))return;standingLeague=league;standingView=savedStandingViews[league]||standingViews[league][0][0];standingData=null;renderStandingTabs();
  for(const button of document.querySelectorAll('[data-standing-league]')){const selected=button.dataset.standingLeague===league;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));}
  $('league-scores-heading').textContent=league+' scores';$('league-standings-heading').textContent=league+' standings';
  if(updateURL)history.pushState({},'', '/sports/'+league.toLowerCase());

@@ -24,3 +24,17 @@
 .game-odds-foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:5px;margin-top:8px;font-size:10px;color:var(--muted)}.game-odds-foot a{color:var(--muted);text-decoration:none}.game-odds-foot a:hover{color:var(--purple)}
 .game-odds-unavailable{margin-top:16px;padding-top:10px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}
 @media(max-width:720px){.league-tabs{flex-wrap:wrap}}
+
+/* Conference and playoff views, compact on desktop and wrapping on phones. */
+#standings .sports-heading{flex-wrap:wrap;align-items:center}
+.standings-tabs{display:flex;flex-wrap:wrap;gap:4px;padding:4px;border-radius:22px;background:#20212c;max-width:100%}
+.standings-tabs button{border:0;border-radius:18px;padding:9px 15px;min-height:40px;background:transparent;color:var(--muted);font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.standings-tabs button.selected{background:#11121a;color:var(--text);font-weight:700}
+.standings-tabs button:hover{color:var(--text)}
+.standings-tabs button:focus-visible{outline:2px solid var(--purple);outline-offset:1px}
+.standings-season-note{margin-top:-6px}.standing-rank{display:inline-block;min-width:20px;margin-right:5px;color:var(--muted);font-size:11px}
+.standing-spot{margin-left:8px;font-size:10px;color:var(--muted)}
+.standing-table tr.wildcard-cutoff>*{border-top:2px dashed #83739a!important}
+.postseason-games .sports-panel{margin-bottom:18px}.postseason-empty{padding:18px;border:1px solid var(--line);border-radius:12px;color:var(--muted);line-height:1.6}
+.standing-table th:first-child{width:245px;min-width:245px}
+@media(max-width:720px){.standings-tabs{width:100%;border-radius:14px}.standings-tabs button{flex:1 1 auto;padding:9px 10px;font-size:12px}.standing-table th:first-child{width:145px;min-width:145px}.standing-rank{min-width:14px;margin-right:3px}.standing-spot{margin-left:4px}}

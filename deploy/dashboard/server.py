@@ -344,7 +344,7 @@ class Handler(BaseHTTPRequestHandler):
         elif path in ('/api/sports-scores','/api/sports-standings'):
             try:
                 query=urllib.parse.parse_qs(urllib.parse.urlsplit(self.path).query)
-                data=sports_page.scoreboard(query.get('date',[''])[0],scores) if path=='/api/sports-scores' else sports_page.standings(query.get('league',['NHL'])[0])
+                data=sports_page.scoreboard(query.get('date',[''])[0],scores) if path=='/api/sports-scores' else sports_page.standings(query.get('league',['NHL'])[0],query.get('view',[''])[0])
                 self.respond(json.dumps(data).encode(),'application/json')
             except ValueError:self.send_error(400)
         elif path == '/api/jobs':
