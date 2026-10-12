@@ -47,3 +47,5 @@
 .standing-table .wildcard-section th{position:static!important;text-align:left!important;white-space:normal;font-size:11px;letter-spacing:.035em;font-weight:700;color:var(--text);background:#20212c!important;padding:12px!important}.wildcard-group .standing-table th:first-child{min-width:255px}
 .wildcard-automatic{padding:16px 18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}.wildcard-automatic summary{cursor:pointer;line-height:1.5}.wildcard-automatic p{line-height:1.6}.wildcard-automatic>div{display:flex;flex-wrap:wrap;gap:14px}.wildcard-automatic>div>span{display:flex;align-items:center;gap:7px}.wildcard-automatic .game-team{display:flex}.wildcard-automatic .game-team strong,.wildcard-automatic .team-colors{display:none}.wildcard-automatic .team-logo{width:24px;height:24px}
 @media(max-width:720px){.wildcard-spots{grid-template-columns:1fr}.wildcard-spot{padding:12px}.wildcard-summary{padding:14px}.wildcard-group .standing-table th:first-child{min-width:170px}.wildcard-row-status{margin-left:0;font-size:10px}}
+
+.wildcard-eliminated .standing-name,.wildcard-eliminated .wildcard-row-status{color:var(--muted)}
