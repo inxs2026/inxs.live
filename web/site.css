@@ -21,3 +21,9 @@
  .rail .rail-bottom{height:24px;min-height:24px;flex-shrink:0}
 }
 @media(max-width:720px){.rail .nav-label{color:#d8d5e2;font-weight:700}.rail .rail-link.selected .nav-label{color:#c5a8ff}}
+
+/* INXS horse identity: keep the supplied artwork intact. */
+.rail .brand .inxs-logo{width:40px;height:40px;flex:none;object-fit:contain;border-radius:7px}
+@media(min-width:721px){.rail .brand{height:48px;gap:10px;background:transparent;padding:0 7px}.rail .brand-name{font-size:18px;font-weight:750;letter-spacing:1px}}
+.mobile-inxs-logo{display:none}
+@media(max-width:720px){.mobile-inxs-logo{display:inline-block;width:28px;height:28px;object-fit:contain;border-radius:5px;margin-right:8px;vertical-align:middle}.breadcrumb{display:flex;align-items:center;flex-wrap:wrap}}
