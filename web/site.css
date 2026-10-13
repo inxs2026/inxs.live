@@ -27,3 +27,10 @@
 @media(min-width:721px){.rail .brand{height:48px;gap:10px;background:transparent;padding:0 7px}.rail .brand-name{font-size:18px;font-weight:750;letter-spacing:1px}}
 .mobile-inxs-logo{display:none}
 @media(max-width:720px){.mobile-inxs-logo{display:inline-block;width:28px;height:28px;object-fit:contain;border-radius:5px;margin-right:8px;vertical-align:middle}.breadcrumb{display:flex;align-items:center;flex-wrap:wrap}}
+
+/* Approved section colours from the temporary INXS logo preview. */
+.rail .brand .inxs-logo,.mobile-inxs-logo{filter:hue-rotate(var(--section-hue,0deg))}
+.rail-link .nav-horse-logo{width:26px;height:26px;object-fit:contain;flex:none;border-radius:5px;filter:hue-rotate(var(--nav-hue,0deg))}
+.rail .rail-link.selected{color:var(--section-accent,#c7a7ff);background:color-mix(in srgb,var(--section-accent,#c7a7ff) 12%,transparent);border-color:color-mix(in srgb,var(--section-accent,#c7a7ff) 35%,transparent)}
+.rail .rail-link.selected .nav-label,.page-heading h1 span,.page-heading .eyebrow{color:var(--section-accent,#c7a7ff)}
+@media(max-width:720px){.rail-link .nav-horse-logo{width:23px;height:23px}.rail .rail-link.selected .nav-label{color:var(--section-accent,#c7a7ff)}}
