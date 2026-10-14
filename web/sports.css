@@ -53,3 +53,8 @@
 /* Full conference picture: automatic berths stay visible above wild cards. */
 .wildcard-division .wildcard-row-status{color:var(--muted);line-height:1.5}
 .wildcard-group .wildcard-cutoff>*{border-top:3px dashed #bca6d5!important}
+
+/* Numbered wild-card spots and a visible boundary after the last spot. */
+.wildcard-inside .wildcard-row-status{font-weight:700;line-height:1.5}
+.wildcard-group .wildcard-inside>td{background:#b495ff09!important}
+.standing-table .wildcard-cutoff-label th{border-top:3px dashed #bca6d5!important}
