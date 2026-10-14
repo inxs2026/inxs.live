@@ -49,3 +49,7 @@
 @media(max-width:720px){.wildcard-spots{grid-template-columns:1fr}.wildcard-spot{padding:12px}.wildcard-summary{padding:14px}.wildcard-group .standing-table th:first-child{min-width:170px}.wildcard-row-status{margin-left:0;font-size:10px}}
 
 .wildcard-eliminated .standing-name,.wildcard-eliminated .wildcard-row-status{color:var(--muted)}
+
+/* Full conference picture: automatic berths stay visible above wild cards. */
+.wildcard-division .wildcard-row-status{color:var(--muted);line-height:1.5}
+.wildcard-group .wildcard-cutoff>*{border-top:3px dashed #bca6d5!important}
