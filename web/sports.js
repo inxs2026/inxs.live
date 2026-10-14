@@ -42,17 +42,16 @@ function selectStandingView(view){
  else{$('sports-standings').innerHTML='<p class="empty">Loading standings…</p>';loadSportsStandings();}
 }
 function renderStandings(data){
- const wildcard=standingView==='wildcard',playoffs=standingView==='playoffs',conferenceView=data.league==='NFL'&&['afc','nfc'].includes(standingView)&&!!data.views?.wildcard;
+ const wildcard=standingView==='wildcard',playoffs=standingView==='playoffs';
  let cols=standingColumns[data.league];
  if(wildcard&&data.league==='MLB')cols=cols.map(c=>c[0]==='GB'?['WCGB','wildCardBehind','Games behind the final wild-card spot; + means ahead']:c);
- let groups=data.views?.[standingView]||data.groups;
- if(conferenceView){const conference=standingView==='afc'?'American Football Conference':'National Football Conference';groups=data.views.wildcard.filter(g=>g.name.startsWith(conference+' · '));}
- let html=wildcard||playoffs||conferenceView?`<p class="sports-note">${esc(data.wildCardNote||'Current playoff picture. Qualification is not yet confirmed.')}${wildcard?' · Holding a spot = currently inside the cutoff. Chasing = currently outside. All teams are listed: division positions first, then wild-card spots and teams below the cutoff.':''}</p>`:'';
+ const groups=data.views?.[standingView]||data.groups;
+ let html=wildcard||playoffs?`<p class="sports-note">${esc(data.wildCardNote||'Current playoff picture. Qualification is not yet confirmed.')}${wildcard?' · Holding a spot = currently inside the cutoff. Chasing = currently outside. All teams are listed: division positions first, then wild-card spots and teams below the cutoff.':''}</p>`:'';
  if(playoffs){
   const games=data.postseason||[],rounds=[...new Set(games.map(g=>g.round))];
   html+=games.length?`<div class="postseason-games sports-scoreboards">${rounds.map(round=>`<section class="panel sports-panel"><h3 class="sports-league-heading">${esc(round)}</h3><div class="score-list">${games.filter(g=>g.round===round).sort((a,b)=>a.date.localeCompare(b.date)).map(sportsGame).join('')}</div></section>`).join('')}</div>`:'<p class="empty postseason-empty">No confirmed postseason matchups for this season yet. The current playoff picture is below; playoff rounds and championship games will appear when scheduled.</p>';
  }
- html+=wildcard||conferenceView?wildCardMarkup(data,groups,cols,!conferenceView):groups.map(group=>`<section class="panel standing-group"><h3>${esc(group.name)}</h3><div class="standing-scroll" tabindex="0" role="region" aria-label="${esc(group.name)} standings; scroll for more statistics"><table class="standing-table"><thead><tr><th scope="col">Team</th>${cols.map(([label,,description])=>`<th scope="col" title="${esc(description)}">${label}</th>`).join('')}</tr></thead><tbody>${group.rows.map((row,index)=>`<tr class="${group.cutoff&&index===group.cutoff?'wildcard-cutoff':''}"><th scope="row"><span class="standing-rank">${index+1}</span>${scoreTeamMarkup(row.team,'away')}<span class="standing-name">${esc(row.team.displayName||row.team.name)}</span>${row.inSpot?'<span class="standing-spot" title="Currently in a wild-card position">WC</span>':''}</th>${cols.map(([,key])=>`<td>${esc(row.stats[key]??'—')}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>`).join('');
+ html+=wildcard?wildCardMarkup(data,groups,cols):groups.map(group=>`<section class="panel standing-group"><h3>${esc(group.name)}</h3><div class="standing-scroll" tabindex="0" role="region" aria-label="${esc(group.name)} standings; scroll for more statistics"><table class="standing-table"><thead><tr><th scope="col">Team</th>${cols.map(([label,,description])=>`<th scope="col" title="${esc(description)}">${label}</th>`).join('')}</tr></thead><tbody>${group.rows.map((row,index)=>`<tr class="${group.cutoff&&index===group.cutoff?'wildcard-cutoff':''}"><th scope="row"><span class="standing-rank">${index+1}</span>${scoreTeamMarkup(row.team,'away')}<span class="standing-name">${esc(row.team.displayName||row.team.name)}</span>${row.inSpot?'<span class="standing-spot" title="Currently in a wild-card position">WC</span>':''}</th>${cols.map(([,key])=>`<td>${esc(row.stats[key]??'—')}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>`).join('');
  $('sports-standings').innerHTML=html;applyScoreTeamColors($('sports-standings'));
 }
 function wildCardMarkup(data,groups,cols,showSummary=true){
