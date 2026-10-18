@@ -46,7 +46,7 @@ function escape(value) {
   return value.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 }
 function loginPage(next, error = '') {
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Sign in · INXS</title><link rel="icon" href="/favicon.ico?v=horse1"><style>
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Sign in · INXS</title><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=damato1"><meta name="apple-mobile-web-app-title" content="INXS"><link rel="icon" href="/favicon.ico?v=horse1"><style>
   *{box-sizing:border-box}body{margin:0;min-height:100dvh;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at top,#2d2042,#101017 65%);color:#eee9f7;font:16px system-ui,sans-serif}.card{width:min(100%,420px);padding:36px;border:1px solid #463750;border-radius:22px;background:#19151fe8;box-shadow:0 24px 90px #0005}.brand{display:flex;align-items:center;gap:14px;font-size:12px;letter-spacing:3px;color:#bfa2ed}h1{font-size:30px;margin:20px 0 10px}p{color:#b5a8c6;line-height:1.6}label{display:block;margin:28px 0 9px}input,button{width:100%;font:inherit;border-radius:10px;padding:14px}input{background:#101017;border:1px solid #645174;color:#fff}input:focus{outline:2px solid #b99cec;outline-offset:2px}button{margin-top:18px;border:0;background:#b99cec;color:#19101f;font-weight:700;cursor:pointer}.error{color:#ffb4be;font-size:14px}.note{font-size:12px;margin-bottom:0}
   </style></head><body><main class="card"><div class="brand"><img src="/inxs-logo.png" alt="INXS" width="64" height="64" style="object-fit:contain;border-radius:10px">INXS.LIVE</div><h1>Your workspace.</h1><p>Sign in to open your dashboard and tools.</p><form method="post" action="/login"><input type="hidden" name="next" value="${escape(safeNext(next))}"><label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required autofocus maxlength="256">${error ? `<p class="error" role="alert">${error}</p>` : ''}<button type="submit">Open dashboard →</button></form><p class="note">Your session lasts 12 hours. Sign out when you’re finished.</p></main></body></html>`;
 }
@@ -100,7 +100,7 @@ async function handler(req, res) {
     if (pathname.includes('\\') || pathname.includes('\0') || pathname.split('/').some(x => x === '..' || x === '.')) throw new Error();
   } catch { return send(res, 400, 'Invalid request.'); }
   // Only the public brand artwork is available before sign-in.
-  if (['/inxs-logo.png', '/favicon.ico', '/favicon.svg'].includes(pathname) && ['GET', 'HEAD'].includes(req.method)) {
+  if (['/inxs-logo.png', '/favicon.ico', '/favicon.svg', '/apple-touch-icon.png'].includes(pathname) && ['GET', 'HEAD'].includes(req.method)) {
     const original = (await webAssets())[pathname.slice(1)];
     if (!original) return send(res, 404, 'Not found.');
     res.setHeader('Cache-Control', 'public, max-age=86400');
