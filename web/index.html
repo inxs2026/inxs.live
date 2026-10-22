@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101017"><title>Dashboard · Daily briefing</title><link rel="icon" href="/favicon.ico?v=horse1"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/mobile.css"><link rel="stylesheet" href="/pages.css"><script src="/team-branding.js" defer></script><script src="/app.js" defer></script><script src="/attention.js" defer></script><link rel="stylesheet" href="/site.css"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=damato1"><meta name="apple-mobile-web-app-title" content="INXS"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101017"><title>Dashboard · Daily briefing</title><link rel="icon" href="/favicon.ico?v=horse1"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/mobile.css"><link rel="stylesheet" href="/pages.css"><link rel="stylesheet" href="/operations.css"><script src="/team-branding.js" defer></script><script src="/app.js" defer></script><script src="/attention.js" defer></script><script src="/codex-usage.js" defer></script><link rel="stylesheet" href="/site.css"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=damato1"><meta name="apple-mobile-web-app-title" content="INXS"></head>
 <body style="--section-hue:128deg;--section-accent:#e1bc73">
 <svg class="svg-library" aria-hidden="true"><defs>
 <symbol id="ico-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
@@ -34,6 +34,7 @@
 <main>
 <section class="page-heading"><div><p class="eyebrow">A MOMENT TO CATCH UP</p><h1>Your daily <span>briefing.</span></h1><p class="subtitle">The forecast and the headlines.</p></div><div class="heading-right"><span id="today">Loading date…</span><time id="clock">--:--</time></div></section>
 <section id="attention-strip" class="attention-strip" aria-label="Dashboard attention notices">Checking what needs attention…</section>
+<section class="health-section briefing-codex" aria-label="Codex usage"><header><div><h2>Codex usage</h2><p>Your remaining account allowance.</p></div><div class="briefing-codex-actions"><a href="/health">Health &amp; backups ↗</a><button class="icon-button" id="refresh-codex" aria-label="Refresh Codex usage"><svg><use href="#ico-refresh"/></svg></button></div></header><div class="health-grid" id="codex-usage"><p class="empty">Checking Codex usage…</p></div><p class="codex-checked" id="codex-checked" role="status"></p></section>
 <div class="connection"><span class="dot purple"></span> Toronto weather · Canadian & U.S. news</div>
 <section class="briefing briefing-page" aria-label="Weather and news">
 

@@ -34,3 +34,7 @@
 .rail .rail-link.selected{color:var(--section-accent,#c7a7ff);background:color-mix(in srgb,var(--section-accent,#c7a7ff) 12%,transparent);border-color:color-mix(in srgb,var(--section-accent,#c7a7ff) 35%,transparent)}
 .rail .rail-link.selected .nav-label,.page-heading h1 span,.page-heading .eyebrow{color:var(--section-accent,#c7a7ff)}
 @media(max-width:720px){.rail-link .nav-horse-logo{width:23px;height:23px}.rail .rail-link.selected .nav-label{color:var(--section-accent,#c7a7ff)}}
+
+/* Shared account usage on the Daily Briefing front page. */
+.briefing-codex{margin:22px 0 28px}.briefing-codex .health-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.briefing-codex .health-card{padding:18px 20px;min-width:0}.briefing-codex .health-card h3{margin:0;font-size:15px}.briefing-codex .codex-bucket{margin:5px 0 10px}.briefing-codex .disk-value{font-size:28px}.briefing-codex .disk-value small{font-size:13px;color:var(--muted);font-weight:400}.briefing-codex .codex-meter{margin:12px 0}.briefing-codex .codex-card>p{font-size:12px}.briefing-codex .backup-note{margin-bottom:0}.briefing-codex-actions{display:flex;align-items:center;gap:14px}.briefing-codex-actions a{font-size:12px;color:var(--muted);text-decoration:none}.briefing-codex-actions a:hover{color:var(--text)}
+@media(max-width:720px){.briefing-codex .health-grid{grid-template-columns:minmax(0,1fr)}.briefing-codex-actions{gap:8px}.briefing-codex-actions a{font-size:11px}.briefing-codex header{gap:10px}}
