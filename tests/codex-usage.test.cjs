@@ -16,3 +16,5 @@ test('resuming and reconnecting refresh usage without overlapping requests',asyn
  listeners.online();assert.equal(calls,3);resolve({windows:[],note:'Ready'});await new Promise(setImmediate);
  listeners.pageshow();assert.equal(calls,4);resolve({windows:[],note:'Ready'});await new Promise(setImmediate);assert.equal(elements['refresh-codex'].disabled,false);
 });
+
+test('banked resets keep an authoritative count, Toronto expiries and unknown states',()=>{const html=ctx.codexBankedResets({availableCount:3,credits:[{title:'Full reset',expiresAt:1793298145}]},false);assert.match(html,/3 available/);assert.match(html,/Oct 29, 2026/);assert.match(html,/EDT/);assert.match(html,/1 of 3/);assert.match(ctx.codexBankedResets({availableCount:3,credits:null},true),/3 last confirmed/);assert.match(ctx.codexBankedResets({availableCount:0,credits:[]},false),/No banked resets available/);assert.doesNotMatch(ctx.codexBankedResets(null,false),/0 available/);assert.match(ctx.codexBankedResets({availableCount:1,credits:[{title:'<unsafe>',expiresAt:null}]},false),/Expiry time unavailable/);assert.doesNotMatch(html,/button/);});

@@ -18,4 +18,16 @@ class UsageTests(unittest.TestCase):
  def test_signin_required_does_not_show_old_quota(self):
   c.SNAPSHOT={'state':'current','windows':[{'remainingPercent':70}]}
   with patch.object(c,'read_limits',return_value={'state':'signin-required','windows':[],'note':'Reconnect'}):self.assertEqual(c.usage()['windows'],[])
+class BankedResetTests(unittest.TestCase):
+ def test_unknown_is_not_zero_and_count_only_is_preserved(self):
+  self.assertEqual(c.normalize_banked({}),{'availableCount':None,'credits':None})
+  self.assertEqual(c.normalize_banked({'rateLimitResetCredits':{'availableCount':3,'credits':None}}),{'availableCount':3,'credits':None})
+ def test_count_is_authoritative_and_details_are_safe_and_sorted(self):
+  bank={'availableCount':3,'access_token':'secret','credits':[{'id':'private','status':'available','title':'Full reset','expiresAt':200},{'status':'consumed','expiresAt':50},{'status':'available','expiresAt':100}]}
+  result=c.normalize_banked({'rateLimitResetCredits':bank});self.assertEqual(result['availableCount'],3)
+  self.assertEqual([x['expiresAt'] for x in result['credits']],[100,200]);self.assertNotIn('private',str(result));self.assertNotIn('secret',str(result))
+ def test_null_expiry_does_not_become_a_date_and_zero_stays_zero(self):
+  result=c.normalize_banked({'rateLimitResetCredits':{'availableCount':1,'credits':[{'status':'available','expiresAt':None}]}})
+  self.assertIsNone(result['credits'][0]['expiresAt'])
+  self.assertEqual(c.normalize_banked({'rateLimitResetCredits':{'availableCount':0,'credits':[]}})['credits'],[])
 if __name__=='__main__':unittest.main()

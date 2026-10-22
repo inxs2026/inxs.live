@@ -6,6 +6,7 @@ import selectors
 import subprocess
 import threading
 import time
+from pathlib import Path
 
 LOCK = threading.Lock()
 SNAPSHOT = None
@@ -34,8 +35,27 @@ def normalize(result):
                              resetsAt=reset if isinstance(reset,(int,float)) and math.isfinite(reset) else None))
     return rows
 
+def normalize_banked(result):
+    bank=result.get('rateLimitResetCredits')
+    if not isinstance(bank,dict):return dict(availableCount=None,credits=None)
+    count=bank.get('availableCount')
+    if not isinstance(count,int) or isinstance(count,bool) or count<0:count=None
+    details=bank.get('credits');rows=None
+    if isinstance(details,list):
+        rows=[]
+        for credit in details:
+            if not isinstance(credit,dict) or credit.get('status')!='available':continue
+            expiry=credit.get('expiresAt')
+            valid=isinstance(expiry,(int,float)) and not isinstance(expiry,bool) and math.isfinite(expiry) and expiry>0
+            rows.append(dict(title=str(credit.get('title') or 'Rate-limit reset')[:160],expiresAt=expiry if valid else None))
+        rows.sort(key=lambda row:row['expiresAt'] if row['expiresAt'] is not None else float('inf'))
+    # The source count is authoritative; detail rows may be capped or unavailable.
+    return dict(availableCount=count,credits=[] if count==0 else rows)
+
 def read_limits():
-    proc = subprocess.Popen(['/usr/local/bin/codex','app-server','--listen','stdio://'], stdin=subprocess.PIPE,
+    reader=Path.home()/'.local/share/inxs-codex-usage/node_modules/.bin/codex'
+    binary=str(reader) if reader.exists() else '/usr/local/bin/codex'
+    proc = subprocess.Popen([binary,'app-server','--listen','stdio://'], stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,text=True,bufsize=1)
     selector=selectors.DefaultSelector();selector.register(proc.stdout,selectors.EVENT_READ)
     deadline=time.monotonic()+25
@@ -58,8 +78,9 @@ def read_limits():
             if '401' in error or 'unauthorized' in error or 'not logged' in error:
                 return dict(state='signin-required',windows=[],note='Sign in to Codex on the Linux machine to connect your usage meter.')
             return dict(state='unavailable',windows=[],note='Codex usage could not be checked. Retrying automatically.')
-        windows=normalize(response.get('result') or {})
-        return dict(state='current' if windows else 'unavailable',windows=windows,
+        result=response.get('result') or {}
+        windows=normalize(result)
+        return dict(state='current' if windows else 'unavailable',windows=windows,bankedResets=normalize_banked(result),
                     note='Account-wide allowance, shared across Codex devices.' if windows else 'No usage windows were supplied for this account.')
     finally:
         selector.close();proc.terminate()
