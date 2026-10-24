@@ -26,7 +26,8 @@ def listing():
     with connect() as db:
         keys=[row[0] for row in db.execute('SELECT identity FROM notices WHERE acknowledged_at IS NOT NULL AND resolved_at IS NULL')]
         history=[dict(row) for row in db.execute('SELECT n.*,v.note AS verification,v.checked_at AS verified_at FROM notices n LEFT JOIN verifications v ON n.identity=v.identity ORDER BY n.id DESC LIMIT 100')]
-        return dict(keys=keys,history=history)
+        recent=[dict(row) for row in db.execute('SELECT n.*,v.note AS verification,v.checked_at AS verified_at FROM notices n LEFT JOIN verifications v ON n.identity=v.identity WHERE n.acknowledged_at IS NOT NULL ORDER BY n.acknowledged_at DESC,n.id DESC LIMIT 5')]
+        return dict(keys=keys,history=history,recentAcknowledgements=recent)
 
 def observe(notices,complete=False):
     if not isinstance(notices,list) or len(notices)>64:raise ValueError('Invalid notices')
