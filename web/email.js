@@ -25,7 +25,7 @@
    if(!accounts.length){
     $('email-connect').disabled=!configured;
     $('email-setup-title').textContent=configured?'Connect your first Gmail account':'Your Mail page is ready for Google setup';
-    $('email-setup-description').textContent=configured?'Connect lexiinxs@gmail.com to read and send email here. Your password is entered only on Google’s sign-in page.':'The Mail page is installed. A Google OAuth client must be configured before lexiinxs@gmail.com can sign in.';
+    $('email-setup-description').textContent=configured?'Connect lexiinxs@gmail.com to read and send email here. Your password is entered only on Google’s sign-in page.':'Your Mail page is ready. Google’s connection settings still need to be completed before lexiinxs@gmail.com can sign in.';
     $('email-setup-note').textContent=configured?'This connection allows reading, sending, and organizing mail. Your existing Gmail app will keep working.':'No mailbox is connected yet. Once Google setup is complete, the Connect with Google button will become available.';
     if(!$('email-status').classList.contains('error'))status(configured?'Ready to connect Gmail.':'Awaiting Google connection setup.');return;
    }
