@@ -37,10 +37,10 @@
  }
  function updateGmailLink(){ $('email-gmail').href='https://mail.google.com/mail/u/?authuser='+encodeURIComponent(account); }
  function clearReader(){selected=null;++reading;$('email-message').innerHTML='<div class="email-empty"><h2>Your conversations</h2><p>Select a message to read it.</p></div>';}
- async function load(successMessage=''){const seq=++generation;const requested=account;clearReader();$('email-messages').innerHTML='<div class="email-empty">Loading messages…</div>';$('email-next').hidden=true;$('email-previous').hidden=true;status('Checking '+account+'…');
+ async function load(successMessage=''){$('email-empty-trash').hidden=folder!=='TRASH';const seq=++generation;const requested=account;clearReader();$('email-messages').innerHTML='<div class="email-empty">Loading messages…</div>';$('email-next').hidden=true;$('email-previous').hidden=true;status('Checking '+account+'…');
   try{const result=await api('messages',undefined,{account,folder,q:search,page});if(seq!==generation||requested!==account)return;items=result.messages;next=result.nextPage;renderList();$('email-next').hidden=!next;$('email-previous').hidden=!pages.length;status(successMessage || account+' · '+(items.length?'Latest messages loaded.':'No messages in this view.'));}catch(error){if(seq!==generation)return;$('email-messages').innerHTML='<div class="email-empty">Messages could not be loaded. Use Refresh to try again.</div>';status(error.message,true);}
  }
- function renderList(){ $('email-folder-title').textContent=names[folder];document.querySelectorAll('[data-mail-folder]').forEach(b=>b.classList.toggle('selected',b.dataset.mailFolder===folder));$('email-messages').innerHTML=items.length?items.map(m=>'<button class="email-message-row'+(m.unread?' unread':'')+(selected?.id===m.id?' selected':'')+'" type="button" data-message="'+esc(m.id)+'"><span class="email-row-top"><span class="email-row-sender">'+(m.unread?'<span class="email-unread-dot" aria-label="Unread"></span>':'')+esc(folder==='SENT'?m.to:m.from)+'</span><span class="email-row-date">'+esc(date(m.date))+'</span></span><span class="email-row-subject">'+(m.starred?'★ ':'')+esc(m.subject)+'</span><span class="email-row-snippet">'+esc(m.snippet)+'</span></button>').join(''):'<div class="email-empty">'+(search?'No messages match your search.':'This folder is empty.')+'</div>'; }
+ function renderList(){ $('email-folder-title').textContent=names[folder];document.querySelectorAll('[data-mail-folder]').forEach(b=>b.classList.toggle('selected',b.dataset.mailFolder===folder));$('email-messages').innerHTML=items.length?items.map(m=>'<button class="email-message-row'+(m.unread?' unread':'')+(selected?.id===m.id?' selected':'')+'" type="button" data-message="'+esc(m.id)+'"><span class="email-row-top"><span class="email-row-sender">'+(m.unread?'<span class="email-unread-dot" aria-label="Unread"></span>':'')+esc(folder==='SENT'?m.to:m.from)+'</span><span class="email-row-date">'+esc(date(m.date))+'</span></span><span class="email-row-subject">'+(m.starred?'★ ':'')+esc(m.subject)+'</span><span class="email-row-snippet">'+esc(m.snippet)+'</span></button>').join(''):'<div class="email-empty">'+(search?'No messages match your search.':(next?'No visible messages on this page.':'This folder is empty.'))+'</div>'; }
  async function openMessage(id){const seq=++reading, current=account;selected=null;$('email-message').innerHTML='<div class="email-empty">Opening message…</div>';try{const message=await api('message',undefined,{account:current,id});if(seq!==reading||current!==account)return;selected=message;renderList();renderMessage();if(message.unread){await api('modify',{account:current,id,action:'read'});if(seq!==reading||current!==account)return;message.unread=false;const row=items.find(x=>x.id===id);if(row)row.unread=false;renderList();}}catch(error){if(seq!==reading)return;status(error.message,true);$('email-message').innerHTML='<div class="email-empty">This message could not be opened.</div>';}}
  function renderMessage(){const m=selected;$('email-message').innerHTML='<div class="email-reader-top"><span class="email-note">'+esc(names[folder])+'</span><button class="email-text-button" type="button" data-mail-action="'+(m.starred?'unstar':'star')+'">'+(m.starred?'★ Starred':'☆ Star')+'</button></div><h2>'+esc(m.subject)+'</h2><div class="email-reader-meta"><strong>'+esc(m.from)+'</strong><br>To: '+esc(m.to)+'<br>'+esc(date(m.date,true))+'</div><div class="email-body">'+esc(m.body)+'</div>'+(m.attachments.length?'<div class="email-attachments">'+m.attachments.map(a=>'<button class="email-button email-attachment" type="button" data-attachment="'+esc(a.id)+'">↓ '+esc(a.name)+' · '+Math.ceil(a.size/1024)+' KB</button>').join('')+'</div>':'')+'<div class="email-reader-actions">'+(folder==='TRASH'?'<button class="email-button primary" type="button" data-mail-action="restore">Restore to Inbox</button>':folder!=='DRAFT'?'<button class="email-button primary" type="button" data-mail-action="reply">Reply</button><button class="email-button danger" type="button" data-mail-action="trash" aria-label="Delete message (move to Gmail Trash)">Delete</button>':'<span class="email-note">Edit this draft in Gmail.</span>')+(folder==='INBOX'?'<button class="email-button" type="button" data-mail-action="archive">Archive</button>':'')+'</div>';}
  async function connect(email){try{status('Preparing Google sign-in…');const result=await api('connect',{email});const url=new URL(result.url);if(url.origin!=='https://accounts.google.com')throw new Error('Invalid Google connection link.');location.assign(url.href);}catch(error){status(error.message,true);}}
@@ -51,6 +51,23 @@
  $('email-compose-dialog').addEventListener('cancel',e=>{if(sending)e.preventDefault();});
  $('email-account').onchange=()=>{account=$('email-account').value;page='';pages=[];updateGmailLink();load();};
  document.querySelectorAll('[data-mail-folder]').forEach(b=>b.onclick=()=>{folder=b.dataset.mailFolder;page='';pages=[];load();});
+ let emptyingTrash=false;
+ $('email-empty-trash').onclick=async()=>{
+  if(emptyingTrash)return;
+  const current=account;emptyingTrash=true;$('email-empty-trash').disabled=true;
+  status('Emptying Trash…');
+  try{
+   let cursor='';const seen=new Set();
+   do{
+    if(seen.has(cursor))throw new Error('Trash could not be fully cleared. Refresh and try again.');
+    seen.add(cursor);
+    const result=await api('empty-trash',{account:current,page:cursor});cursor=result.nextPage||'';
+   }while(cursor);
+   if(current===account&&folder==='TRASH'){page='';pages=[];await load('Trash emptied.');}
+  }catch(error){
+   if(current===account&&folder==='TRASH'){page='';pages=[];await load();if(current===account&&folder==='TRASH')status(error.message,true);}
+  }finally{emptyingTrash=false;$('email-empty-trash').disabled=false;}
+ };
  $('email-refresh').onclick=()=>load();$('email-search-form').onsubmit=e=>{e.preventDefault();search=$('email-search').value.trim();page='';pages=[];load();};
  $('email-next').onclick=()=>{pages.push(page);page=next;load();};$('email-previous').onclick=()=>{page=pages.pop()||'';load();};
  $('email-messages').onclick=e=>{const b=e.target.closest('[data-message]');if(b)openMessage(b.dataset.message);};

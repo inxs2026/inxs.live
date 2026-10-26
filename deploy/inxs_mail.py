@@ -52,6 +52,9 @@ def database():
             email TEXT NOT NULL, expires REAL NOT NULL);
         CREATE TABLE IF NOT EXISTS sent_requests (
             request TEXT PRIMARY KEY, email TEXT NOT NULL, result TEXT, created REAL NOT NULL);
+        CREATE TABLE IF NOT EXISTS hidden_trash (
+            email TEXT NOT NULL, message TEXT NOT NULL, hidden REAL NOT NULL,
+            PRIMARY KEY (email, message));
     ''')
     return db
 
@@ -305,13 +308,44 @@ def messages(query):
     if page:
         params['pageToken'] = page
     token = access_token(email)
-    result = gmail(email, 'messages?' + urllib.parse.urlencode(params), token=token)
-    ids = [item_id(m['id']) for m in result.get('messages', [])]
+    deadline = time.monotonic() + 8
+    # Keep provider page tokens intact; skip fully hidden pages within a bounded read.
+    for attempt in range(10):
+        result = gmail(email, 'messages?' + urllib.parse.urlencode(params), token=token)
+        ids = [item_id(m['id']) for m in result.get('messages', [])]
+        if folder == 'TRASH' and ids:
+            with database() as db:
+                hidden = {row['message'] for row in db.execute(
+                    'SELECT message FROM hidden_trash WHERE email=? AND message IN (' + ','.join('?' for _ in ids) + ')',
+                    (email, *ids))}
+            ids = [mid for mid in ids if mid not in hidden]
+        following = result.get('nextPageToken', '')
+        if folder != 'TRASH' or ids or not following or time.monotonic() >= deadline:
+            break
+        params['pageToken'] = following
     def load(mid):
         return summary(gmail(email, 'messages/' + mid + '?format=metadata', token=token))
     with concurrent.futures.ThreadPoolExecutor(max_workers=6) as pool:
         items = list(pool.map(load, ids))
     return {'messages': items, 'nextPage': result.get('nextPageToken', ''), 'account': email}
+
+
+def empty_trash(data):
+    """Dismiss a page of Gmail Trash IDs locally. Never send Gmail mutations."""
+    email = email_address(data.get('account', ''))
+    page = data.get('page', '')
+    if not isinstance(page, str) or len(page) > 2048:
+        raise MailError('Invalid Trash page.')
+    params = {'labelIds': 'TRASH', 'includeSpamTrash': 'true', 'maxResults': 500}
+    if page:
+        params['pageToken'] = page
+    # Listing validates the connected account before any local dismissal is saved.
+    result = gmail(email, 'messages?' + urllib.parse.urlencode(params))
+    ids = [item_id(item['id']) for item in result.get('messages', [])]
+    with database() as db:
+        db.executemany('INSERT OR REPLACE INTO hidden_trash VALUES (?,?,?)',
+                       [(email, mid, time.time()) for mid in ids])
+    return {'emptied': True, 'count': len(ids), 'nextPage': result.get('nextPageToken', '')}
 
 
 def message(query):
@@ -333,6 +367,8 @@ def modify(data):
         return {'ok': True, 'restored': True}
     if data.get('action') == 'trash':
         gmail(email, 'messages/' + mid + '/trash', method='POST')
+        with database() as db:
+            db.execute('DELETE FROM hidden_trash WHERE email=? AND message=?', (email, mid))
         return {'ok': True, 'trashed': True}
     actions = {'read': ([], ['UNREAD']), 'unread': (['UNREAD'], []),
                'star': (['STARRED'], []), 'unstar': ([], ['STARRED']), 'archive': ([], ['INBOX'])}
@@ -433,6 +469,7 @@ def disconnect(data):
     email = email_address(data.get('account', ''))
     with database() as db:
         db.execute('DELETE FROM accounts WHERE email=?', (email,))
+        db.execute('DELETE FROM hidden_trash WHERE email=?', (email,))
     return {'disconnected': email}
 
 
@@ -442,7 +479,8 @@ def handle(method, path, query, data, session):
     reads = {'status': lambda: status(), 'unread': lambda: unread(), 'messages': lambda: messages(query),
              'message': lambda: message(query), 'attachment': lambda: attachment(query)}
     writes = {'connect': lambda: connect(data, session), 'callback': lambda: callback(data, session),
-              'modify': lambda: modify(data), 'send': lambda: send(data), 'disconnect': lambda: disconnect(data)}
+              'modify': lambda: modify(data), 'send': lambda: send(data), 'disconnect': lambda: disconnect(data),
+              'empty-trash': lambda: empty_trash(data)}
     name = path.removeprefix('/api/mail/')
     fn = (reads if method == 'GET' else writes if method == 'POST' else {}).get(name)
     if not fn:

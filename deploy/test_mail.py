@@ -180,6 +180,73 @@ class MailTests(unittest.TestCase):
             with self.assertRaisesRegex(mail.MailError,'message left Trash'):
                 mail.modify({'account':'lexiinxs@gmail.com','id':'abc','action':'restore'})
 
+    def test_empty_trash_only_lists_google_and_saves_local_ids(self):
+        from urllib.parse import urlsplit, parse_qs
+        with patch.object(mail,'gmail',return_value={'messages':[{'id':'abc'},{'id':'def'}],'nextPageToken':'page2'}) as external:
+            result=mail.empty_trash({'account':'lexiinxs@gmail.com','page':'','q':'ignored-search'})
+            self.assertEqual(external.call_count,1)
+            self.assertEqual(len(external.call_args.args),2)
+            self.assertEqual(external.call_args.kwargs,{})
+            query=parse_qs(urlsplit(external.call_args.args[1]).query)
+            self.assertEqual(query['labelIds'],['TRASH'])
+            self.assertNotIn('q',query)
+            self.assertEqual(result,{'emptied':True,'count':2,'nextPage':'page2'})
+        with mail.database() as db:
+            self.assertEqual(db.execute('SELECT COUNT(*) FROM hidden_trash WHERE email=?',('lexiinxs@gmail.com',)).fetchone()[0],2)
+
+    def test_empty_trash_failure_does_not_hide_messages(self):
+        with patch.object(mail,'gmail',side_effect=mail.MailError('Unavailable',502)):
+            with self.assertRaises(mail.MailError):mail.empty_trash({'account':'lexiinxs@gmail.com'})
+        with mail.database() as db:
+            self.assertEqual(db.execute('SELECT COUNT(*) FROM hidden_trash').fetchone()[0],0)
+
+    def test_local_dismissals_survive_reopen_and_skip_hidden_provider_pages(self):
+        with mail.database() as db:
+            db.execute('INSERT INTO hidden_trash VALUES (?,?,?)',('lexiinxs@gmail.com','abc',time.time()))
+        calls=[]
+        def fake(email,path,**kwargs):
+            calls.append(path)
+            if 'format=metadata' in path:return {'id':'def','payload':{'headers':[]}}
+            if 'pageToken=next' in path:return {'messages':[{'id':'def'}]}
+            return {'messages':[{'id':'abc'}],'nextPageToken':'next'}
+        with patch.object(mail,'access_token',return_value='fixture'),patch.object(mail,'gmail',side_effect=fake):
+            result=mail.messages({'account':'lexiinxs@gmail.com','folder':'TRASH'})
+            self.assertEqual([m['id'] for m in result['messages']],['def'])
+            self.assertFalse(any('messages/abc?' in path for path in calls))
+
+    def test_dismissals_do_not_affect_other_accounts_or_inbox(self):
+        with mail.database() as db:
+            db.execute('INSERT INTO hidden_trash VALUES (?,?,?)',('lexiinxs@gmail.com','abc',time.time()))
+        def fake(email,path,**kwargs):
+            return {'id':'abc','payload':{'headers':[]}} if 'format=metadata' in path else {'messages':[{'id':'abc'}]}
+        with patch.object(mail,'access_token',return_value='fixture'),patch.object(mail,'gmail',side_effect=fake):
+            self.assertEqual(len(mail.messages({'account':'lexiinxs@gmail.com','folder':'TRASH'})['messages']),0)
+            self.assertEqual(len(mail.messages({'account':'other@gmail.com','folder':'TRASH'})['messages']),1)
+            self.assertEqual(len(mail.messages({'account':'lexiinxs@gmail.com','folder':'INBOX'})['messages']),1)
+
+    def test_deleting_again_makes_message_visible_in_app_trash(self):
+        with mail.database() as db:
+            db.execute('INSERT INTO hidden_trash VALUES (?,?,?)',('lexiinxs@gmail.com','abc',time.time()))
+        with patch.object(mail,'gmail',return_value={'id':'abc'}):
+            mail.modify({'account':'lexiinxs@gmail.com','id':'abc','action':'trash'})
+        with mail.database() as db:
+            self.assertEqual(db.execute('SELECT COUNT(*) FROM hidden_trash').fetchone()[0],0)
+
+    def test_disconnecting_removes_only_that_accounts_dismissals(self):
+        with mail.database() as db:
+            db.executemany('INSERT INTO hidden_trash VALUES (?,?,?)',[(email,'abc',time.time()) for email in ('lexiinxs@gmail.com','other@gmail.com')])
+        mail.disconnect({'account':'lexiinxs@gmail.com'})
+        with mail.database() as db:
+            self.assertEqual([row['email'] for row in db.execute('SELECT email FROM hidden_trash')],['other@gmail.com'])
+
+    def test_empty_trash_cursor_is_validated_and_forwarded(self):
+        with patch.object(mail,'gmail') as external:
+            with self.assertRaises(mail.MailError):mail.empty_trash({'account':'lexiinxs@gmail.com','page':{}})
+            external.assert_not_called()
+        with patch.object(mail,'gmail',return_value={'messages':[]}) as external:
+            mail.empty_trash({'account':'lexiinxs@gmail.com','page':'page2'})
+            self.assertIn('pageToken=page2',external.call_args.args[1])
+
     def test_paths_and_actions_are_allowlisted(self):
         with self.assertRaises(mail.MailError):mail.handle('GET','/api/mail/status',{}, {},'')
         with self.assertRaises(mail.MailError):mail.handle('POST','/api/mail/status',{}, {},'a'*64)

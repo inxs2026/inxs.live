@@ -118,3 +118,15 @@ Restore to Inbox first calls messages.untrash, then explicitly adds INBOX and
 removes SPAM. A failure of the second step states that the message has already
 left Trash instead of claiming it reached Inbox. This uses the existing Gmail
 permission. No permanent-delete or Empty Trash endpoint is exposed.
+
+## Local Empty Trash
+
+Empty Trash is available only in the Trash view. It dismisses all currently
+listed Gmail Trash IDs for the selected account into the private hidden_trash
+table. It does not call any Google mutation API and does not affect Gmail's
+Trash or other Gmail folders. The browser follows the provider's 500-ID page
+tokens until enumeration finishes; no search filter is applied to the empty
+operation. Dismissals survive service restarts, are scoped to the mailbox,
+and are removed on disconnect. Deleting the same message through INXS again
+removes its local dismissal so it appears in Trash again. A message restored
+in Gmail can still appear in the INXS Inbox: filtering applies to Trash only.

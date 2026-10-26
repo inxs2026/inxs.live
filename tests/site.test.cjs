@@ -146,3 +146,14 @@ test('Only exact Mail informational routes and their stylesheet are public',asyn
  for(const route of ['/','/email','/email.html','/mail-info.html','/privacy.html','/terms.html','/mail-public.css/other','/email.js','/mail-info/../email'])assert.equal((await request(route)).status,303,route);
  for(const route of ['/api/mail/status','/api/mail/unread','/api/mail/message','/api/cameras'])assert.equal((await request(route)).status,401,route);
 });
+
+test('Local Empty Trash requires session and same-origin JSON and only forwards to the bridge',async()=>{
+ const route='/api/mail/empty-trash',body=JSON.stringify({account:'lexiinxs@gmail.com',page:''});
+ assert.equal((await request(route,{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},body})).status,401);
+ const fresh=await login(password),auth=fresh.headers.get('set-cookie').split(';')[0];
+ const headers={Cookie:auth,Origin:base,'Content-Type':'application/json'};
+ assert.equal((await request(route,{headers:{Cookie:auth}})).status,405);
+ assert.equal((await request(route,{method:'POST',headers:{...headers,Origin:'https://invalid.example'},body})).status,403);
+ const res=await request(route,{method:'POST',headers,body});assert.equal(res.status,200);
+ const result=await res.json();assert.equal(result.path,route);assert.equal(result.method,'POST');assert.deepEqual(JSON.parse(result.body),JSON.parse(body));
+});
