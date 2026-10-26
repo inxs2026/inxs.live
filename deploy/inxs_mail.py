@@ -140,9 +140,9 @@ def access_token(email):
         return result['access_token']
 
 
-def gmail(email, path, data=None, token=None):
+def gmail(email, path, data=None, token=None, method=None):
     return request_json('https://gmail.googleapis.com/gmail/v1/users/me/' + path,
-                        data=data, token=token or access_token(email))
+                        data=data, token=token or access_token(email), method=method)
 
 
 def status():
@@ -321,6 +321,9 @@ def message(query):
 
 def modify(data):
     email, mid = email_address(data.get('account', '')), item_id(data.get('id'))
+    if data.get('action') == 'trash':
+        gmail(email, 'messages/' + mid + '/trash', method='POST')
+        return {'ok': True, 'trashed': True}
     actions = {'read': ([], ['UNREAD']), 'unread': (['UNREAD'], []),
                'star': (['STARRED'], []), 'unstar': ([], ['STARRED']), 'archive': ([], ['INBOX'])}
     if data.get('action') not in actions:

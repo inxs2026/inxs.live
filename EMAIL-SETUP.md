@@ -100,3 +100,12 @@ workspace routes still require authentication. Domain ownership verification,
 Google publishing, and any requested Google verification remain console tasks.
 Publishing does not update an already-issued Testing grant: reconnect the same
 Gmail account from Add Gmail after changing to In production.
+
+## Moving messages to Trash
+
+The message reader's Delete button calls Google's recoverable message-trash
+endpoint through the existing session- and origin-protected modify route.
+It uses the already authorized gmail.modify scope. No permanent-delete API
+is exposed. Successful moves refresh the current message list and show a
+status message. Errors leave the message in the reader and show the failure.
+Restore a deleted message using Gmail's Trash. Drafts remain view-only here.

@@ -128,6 +128,23 @@ class MailTests(unittest.TestCase):
         with patch.object(mail,'status',return_value={'configured':True,'accounts':[{'email':'lexiinxs@gmail.com'},{'email':'other@gmail.com'}]}), patch.object(mail,'gmail',return_value={'messagesUnread':3}):
             self.assertEqual(mail.unread()['unread'],6)
 
+    def test_trash_uses_recoverable_endpoint_with_empty_post(self):
+        with patch.object(mail,'gmail',return_value={'id':'abc','labelIds':['TRASH']}) as external:
+            result=mail.modify({'account':'lexiinxs@gmail.com','id':'abc','action':'trash'})
+            external.assert_called_once_with('lexiinxs@gmail.com','messages/abc/trash',method='POST')
+            self.assertEqual(result,{'ok':True,'trashed':True})
+
+    def test_trash_failure_is_not_reported_as_success(self):
+        with patch.object(mail,'gmail',side_effect=mail.MailError('Google unavailable',502)):
+            with self.assertRaises(mail.MailError):
+                mail.modify({'account':'lexiinxs@gmail.com','id':'abc','action':'trash'})
+
+    def test_trash_rejects_path_injection_before_calling_google(self):
+        with patch.object(mail,'gmail') as external:
+            with self.assertRaises(mail.MailError):
+                mail.modify({'account':'lexiinxs@gmail.com','id':'../abc','action':'trash'})
+            external.assert_not_called()
+
     def test_paths_and_actions_are_allowlisted(self):
         with self.assertRaises(mail.MailError):mail.handle('GET','/api/mail/status',{}, {},'')
         with self.assertRaises(mail.MailError):mail.handle('POST','/api/mail/status',{}, {},'a'*64)
