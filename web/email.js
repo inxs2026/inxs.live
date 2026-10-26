@@ -13,12 +13,13 @@
  }
  function date(value,full=false){const d=new Date(value);return Number.isNaN(d.valueOf())?'':new Intl.DateTimeFormat('en-CA',{...(full?{dateStyle:'medium',timeStyle:'short'}:{month:'short',day:'numeric'}),timeZone:'America/Toronto'}).format(d);}
  async function init() {
+  let connectionError='';
   try {
    const query=new URLSearchParams(location.search);
    if(location.pathname==='/email/oauth/callback'){
     const data={state:query.get('state')||'',code:query.get('code')||'',error:query.get('error')||''};
     history.replaceState(null,'','/email');status('Completing your Google connection…');
-    try{const result=await api('callback',data);account=result.connected;status('Connected '+account+'.');}catch(error){status(error.message,true);}
+    try{const result=await api('callback',data);account=result.connected;status('Connected '+account+'.');}catch(error){connectionError=error.message;status(connectionError,true);}
    }
    const result=await api('status');accounts=result.accounts;configured=result.configured;
    $('email-workspace').hidden=!accounts.length;$('email-setup').hidden=!!accounts.length;$('email-compose').disabled=!accounts.length;$('email-add').disabled=!configured;
@@ -32,7 +33,7 @@
    if(!accounts.some(a=>a.email===account))account=accounts[0].email;
    const options=accounts.map(a=>'<option value="'+esc(a.email)+'">'+esc(a.email)+'</option>').join('');
    $('email-account').innerHTML=options;$('email-account').value=account;$('email-from').innerHTML=options;
-   updateGmailLink();await load();
+   updateGmailLink();await load();if(connectionError)status(connectionError,true);
   }catch(error){status(error.message,true);}
  }
  function updateGmailLink(){ $('email-gmail').href='https://mail.google.com/mail/u/?authuser='+encodeURIComponent(account); }
