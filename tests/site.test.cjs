@@ -133,3 +133,16 @@ test('Mail tab is present on all dashboard pages and Briefing has a compact mail
   if(route==='/'){assert.ok(html.includes('id="briefing-mail"'));assert.ok(html.includes('/mail-notification.js'));}
  }
 });
+
+test('Only exact Mail informational routes and their stylesheet are public',async()=>{
+ for(const route of ['/mail-info','/privacy','/terms','/mail-public.css']){
+  const res=await request(route);assert.equal(res.status,200,route);assert.equal(res.headers.get('location'),null);
+  assert.match(res.headers.get('content-security-policy'),/default-src 'none'/);
+  assert.equal((await request(route,{method:'HEAD'})).status,200);
+  assert.equal((await request(route,{method:'POST',body:'{}'})).status,405);
+ }
+ const home=await(await request('/mail-info')).text();assert.ok(home.includes('href="/privacy"'));assert.ok(home.includes('href="/terms"'));assert.ok(home.includes('INXS Mail'));
+ const privacy=await(await request('/privacy')).text();assert.ok(privacy.includes('Limited Use'));assert.ok(privacy.includes('Disconnect'));
+ for(const route of ['/','/email','/email.html','/mail-info.html','/privacy.html','/terms.html','/mail-public.css/other','/email.js','/mail-info/../email'])assert.equal((await request(route)).status,303,route);
+ for(const route of ['/api/mail/status','/api/mail/unread','/api/mail/message','/api/cameras'])assert.equal((await request(route)).status,401,route);
+});

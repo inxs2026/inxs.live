@@ -83,3 +83,20 @@ Primary references:
 - https://developers.google.com/identity/protocols/oauth2/web-server
 - https://developers.google.com/workspace/gmail/api/auth/scopes
 - https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send
+
+## Public OAuth branding links
+
+Homepage: https://inxs.live/mail-info
+
+Privacy policy: https://inxs.live/privacy
+
+Terms of use: https://inxs.live/terms
+
+Authorized domain: inxs.live
+
+These static information pages and their exact stylesheet path are accessible
+without login. The root Daily Briefing, /email, all Mail APIs, and all other
+workspace routes still require authentication. Domain ownership verification,
+Google publishing, and any requested Google verification remain console tasks.
+Publishing does not update an already-issued Testing grant: reconnect the same
+Gmail account from Add Gmail after changing to In production.

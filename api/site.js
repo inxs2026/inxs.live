@@ -100,6 +100,15 @@ async function handler(req, res) {
     pathname = decodeURIComponent(url.pathname);
     if (pathname.includes('\\') || pathname.includes('\0') || pathname.split('/').some(x => x === '..' || x === '.')) throw new Error();
   } catch { return send(res, 400, 'Invalid request.'); }
+  // Exact public informational routes; workspace pages and mail APIs remain authenticated.
+  const publicMail = { '/mail-info': 'mail-info.html', '/privacy': 'privacy.html', '/terms': 'terms.html', '/mail-public.css': 'mail-public.css' };
+  if (Object.hasOwn(publicMail, pathname)) {
+    if (!['GET', 'HEAD'].includes(req.method)) return send(res, 405, 'Method not allowed.');
+    const entry = (await webAssets())[publicMail[pathname]];
+    if (!entry) return send(res, 404, 'Page not found.');
+    res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'");
+    return send(res, 200, req.method === 'HEAD' ? '' : Buffer.from(entry, 'base64'), TYPES[path.extname(publicMail[pathname])]);
+  }
   // Only the public brand artwork is available before sign-in.
   if (['/inxs-logo.png', '/favicon.ico', '/favicon.svg', '/apple-touch-icon.png'].includes(pathname) && ['GET', 'HEAD'].includes(req.method)) {
     const original = (await webAssets())[pathname.slice(1)];
