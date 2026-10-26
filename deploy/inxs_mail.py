@@ -298,6 +298,8 @@ def messages(query):
     if len(search) > 500 or len(page) > 2048:
         raise MailError('Search is too long.')
     params = {'maxResults': 20, 'labelIds': folder}
+    if folder == 'TRASH':
+        params['includeSpamTrash'] = 'true'
     if search:
         params['q'] = search
     if page:
@@ -321,6 +323,14 @@ def message(query):
 
 def modify(data):
     email, mid = email_address(data.get('account', '')), item_id(data.get('id'))
+    if data.get('action') == 'restore':
+        gmail(email, 'messages/' + mid + '/untrash', method='POST')
+        try:
+            gmail(email, 'messages/' + mid + '/modify',
+                  {'addLabelIds': ['INBOX'], 'removeLabelIds': ['SPAM']})
+        except MailError as exc:
+            raise MailError('The message left Trash, but could not be moved to Inbox. Refresh or check Gmail.', exc.status) from None
+        return {'ok': True, 'restored': True}
     if data.get('action') == 'trash':
         gmail(email, 'messages/' + mid + '/trash', method='POST')
         return {'ok': True, 'trashed': True}

@@ -145,6 +145,41 @@ class MailTests(unittest.TestCase):
                 mail.modify({'account':'lexiinxs@gmail.com','id':'../abc','action':'trash'})
             external.assert_not_called()
 
+    def test_trash_listing_includes_trash_but_keeps_its_label_filter(self):
+        from urllib.parse import urlsplit, parse_qs
+        with patch.object(mail,'access_token',return_value='fixture'), patch.object(mail,'gmail',return_value={'messages':[]}) as external:
+            mail.messages({'account':'lexiinxs@gmail.com','folder':'TRASH','q':'sample','page':'page-two'})
+            query=parse_qs(urlsplit(external.call_args.args[1]).query)
+            self.assertEqual(query['labelIds'],['TRASH'])
+            self.assertEqual(query['includeSpamTrash'],['true'])
+            self.assertEqual(query['q'],['sample'])
+            self.assertEqual(query['pageToken'],['page-two'])
+
+    def test_normal_inbox_does_not_include_trash(self):
+        with patch.object(mail,'access_token',return_value='fixture'), patch.object(mail,'gmail',return_value={'messages':[]}) as external:
+            mail.messages({'account':'lexiinxs@gmail.com','folder':'INBOX'})
+            self.assertNotIn('includeSpamTrash',external.call_args.args[1])
+
+    def test_restore_untrashes_and_explicitly_moves_to_inbox(self):
+        from unittest.mock import call
+        with patch.object(mail,'gmail',return_value={'id':'abc'}) as external:
+            result=mail.modify({'account':'lexiinxs@gmail.com','id':'abc','action':'restore'})
+            self.assertEqual(external.call_args_list,[
+                call('lexiinxs@gmail.com','messages/abc/untrash',method='POST'),
+                call('lexiinxs@gmail.com','messages/abc/modify',{'addLabelIds':['INBOX'],'removeLabelIds':['SPAM']})])
+            self.assertEqual(result,{'ok':True,'restored':True})
+
+    def test_failed_untrash_does_not_add_inbox_or_claim_restored(self):
+        with patch.object(mail,'gmail',side_effect=mail.MailError('Unavailable',502)) as external:
+            with self.assertRaises(mail.MailError):
+                mail.modify({'account':'lexiinxs@gmail.com','id':'abc','action':'restore'})
+            self.assertEqual(external.call_count,1)
+
+    def test_partial_restore_reports_what_actually_happened(self):
+        with patch.object(mail,'gmail',side_effect=[{'id':'abc'},mail.MailError('Unavailable',502)]):
+            with self.assertRaisesRegex(mail.MailError,'message left Trash'):
+                mail.modify({'account':'lexiinxs@gmail.com','id':'abc','action':'restore'})
+
     def test_paths_and_actions_are_allowlisted(self):
         with self.assertRaises(mail.MailError):mail.handle('GET','/api/mail/status',{}, {},'')
         with self.assertRaises(mail.MailError):mail.handle('POST','/api/mail/status',{}, {},'a'*64)

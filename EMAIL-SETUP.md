@@ -108,4 +108,13 @@ endpoint through the existing session- and origin-protected modify route.
 It uses the already authorized gmail.modify scope. No permanent-delete API
 is exposed. Successful moves refresh the current message list and show a
 status message. Errors leave the message in the reader and show the failure.
-Restore a deleted message using Gmail's Trash. Drafts remain view-only here.
+Open the Trash folder and select Restore to Inbox to recover a deleted message. Drafts remain view-only here.
+
+## Trash folder and restore
+
+Trash uses labelIds=TRASH with includeSpamTrash=true so Gmail actually returns
+deleted messages. Search and paging use the same folder-scoped list interface.
+Restore to Inbox first calls messages.untrash, then explicitly adds INBOX and
+removes SPAM. A failure of the second step states that the message has already
+left Trash instead of claiming it reached Inbox. This uses the existing Gmail
+permission. No permanent-delete or Empty Trash endpoint is exposed.
