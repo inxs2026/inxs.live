@@ -102,3 +102,34 @@ test('Sports is directly after briefing and scoreboard has moved off the briefin
  }
  for(const route of ['/api/sports-scores?date=2026-10-08','/api/sports-standings?league=MLB']){const res=await request(route,{headers:{Cookie:auth}});assert.equal(res.status,200);assert.equal((await res.json()).path,route);}
 });
+
+test('Mail page and all mail APIs require the existing workspace session', async()=>{
+ assert.equal((await request('/email')).status,303);
+ for(const route of ['/api/mail/status','/api/mail/unread','/api/mail/messages?account=lexiinxs%40gmail.com','/api/mail/send','/email/oauth/callback']){
+  const res=await request(route);assert.equal(res.status,route.startsWith('/api/')?401:303,route);
+ }
+ const fresh=await login(password),auth=fresh.headers.get('set-cookie').split(';')[0];
+ const res=await request('/email',{headers:{Cookie:auth}});assert.equal(res.status,200);
+ const html=await res.text();assert.ok(html.includes('lexiinxs@gmail.com'));assert.ok(html.includes('id="email-compose-dialog"'));
+ const callback=await request('/email/oauth/callback?code=fixture&state=fixture',{headers:{Cookie:auth}});assert.equal(callback.status,200);assert.match(callback.headers.get('cache-control'),/no-store/);
+});
+test('Mail writes validate session, origin, method and JSON before contacting the bridge',async()=>{
+ const fresh=await login(password),auth=fresh.headers.get('set-cookie').split(';')[0];
+ const headers={Cookie:auth,Origin:base,'Content-Type':'application/json'};
+ assert.equal((await request('/api/mail/send',{method:'POST',headers:{...headers,Origin:'https://evil.example'},body:'{}'})).status,403);
+ assert.equal((await request('/api/mail/send',{method:'POST',headers:{Cookie:auth},body:'{}'})).status,403);
+ assert.equal((await request('/api/mail/send',{method:'GET',headers})).status,405);
+ assert.equal((await request('/api/mail/status',{method:'POST',headers,body:'{}'})).status,405);
+ assert.equal((await request('/api/mail/unknown',{headers})).status,404);
+ assert.equal((await request('/api/mail/connect',{method:'POST',headers,body:'{invalid'})).status,400);
+ assert.equal((await request('/api/mail/connect',{method:'POST',headers:{...headers,'Content-Type':'text/plain'},body:'{}'})).status,415);
+ const res=await request('/api/mail/connect',{method:'POST',headers,body:JSON.stringify({email:'lexiinxs@gmail.com'})});assert.equal(res.status,200);const result=await res.json();assert.equal(result.path,'/api/mail/connect');assert.equal(result.method,'POST');assert.deepEqual(JSON.parse(result.body),{email:'lexiinxs@gmail.com'});
+ const unread=await request('/api/mail/unread',{headers:{Cookie:auth}});assert.equal(unread.status,200);assert.equal((await unread.json()).path,'/api/mail/unread');
+});
+test('Mail tab is present on all dashboard pages and Briefing has a compact mail notification',async()=>{
+ const fresh=await login(password),auth=fresh.headers.get('set-cookie').split(';')[0];
+ for(const route of ['/','/sports','/stocks','/woodbine','/woodbine-stats','/dashboard','/health','/tools','/cameras','/email']){
+  const html=await(await request(route,{headers:{Cookie:auth}})).text();assert.ok(html.includes('href="/email" aria-label="Mail"'),route);
+  if(route==='/'){assert.ok(html.includes('id="briefing-mail"'));assert.ok(html.includes('/mail-notification.js'));}
+ }
+});

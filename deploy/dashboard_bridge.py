@@ -4,6 +4,7 @@ import hmac
 import json
 import acknowledgements
 import cameras
+import inxs_mail
 import os
 import threading
 import urllib.error
@@ -25,6 +26,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if not hmac.compare_digest(self.headers.get('Authorization', ''), 'Bearer ' + TOKEN):
             return self.respond(401, b'{"error":"Unauthorized"}', 'application/json')
+        if urllib.parse.urlsplit(self.path).path.startswith('/api/mail/'):
+            return self.mail_request('POST')
         if urllib.parse.urlsplit(self.path).path != '/api/acknowledgements':
             return self.respond(405, b'{"error":"Method not allowed"}', 'application/json')
         try:
@@ -43,6 +46,8 @@ class Handler(BaseHTTPRequestHandler):
         if not hmac.compare_digest(self.headers.get('Authorization', ''), 'Bearer ' + TOKEN):
             return self.respond(401, b'{"error":"Unauthorized"}', 'application/json')
         url = urllib.parse.urlsplit(self.path)
+        if url.path.startswith('/api/mail/'):
+            return self.mail_request('GET')
         if url.path == '/api/cameras':
             try:
                 requested = urllib.parse.parse_qs(url.query).get('channels', [''])[0]
@@ -73,6 +78,33 @@ class Handler(BaseHTTPRequestHandler):
             self.respond(exc.code, b'{"error":"Report unavailable or invalid request"}', 'application/json')
         except Exception:
             self.respond(502, b'{"error":"Linux dashboard unavailable"}', 'application/json')
+        finally:
+            SLOTS.release()
+
+    def mail_request(self, method):
+        if not SLOTS.acquire(blocking=False):
+            return self.respond(503, b'{"error":"Email is busy. Please retry."}', 'application/json')
+        try:
+            url = urllib.parse.urlsplit(self.path)
+            query = {key: value[0] for key, value in urllib.parse.parse_qs(url.query).items()}
+            data = {}
+            if method == 'POST':
+                length = int(self.headers.get('Content-Length', '0'))
+                if length < 2 or length > 3100000:
+                    raise ValueError()
+                if not self.headers.get('Content-Type', '').startswith('application/json'):
+                    raise ValueError()
+                data = json.loads(self.rfile.read(length))
+                if not isinstance(data, dict):
+                    raise ValueError()
+            result = inxs_mail.handle(method, url.path, query, data, self.headers.get('X-Mail-Session', ''))
+            self.respond(200, json.dumps(result).encode(), 'application/json')
+        except inxs_mail.MailError as exc:
+            self.respond(exc.status, json.dumps({'error': str(exc)}).encode(), 'application/json')
+        except (ValueError, UnicodeError):
+            self.respond(400, b'{"error":"Invalid email request."}', 'application/json')
+        except Exception:
+            self.respond(503, b'{"error":"Email is temporarily unavailable."}', 'application/json')
         finally:
             SLOTS.release()
 

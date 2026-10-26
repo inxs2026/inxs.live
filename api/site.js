@@ -1,4 +1,5 @@
 const crypto = require('node:crypto');
+const { mailProxy } = require('../lib/mail-proxy.cjs');
 const { originRead } = require('../lib/origin-read.cjs');
 const fs = require('node:fs/promises');
 const path = require('node:path');
@@ -21,7 +22,7 @@ const DATA_PATHS = new Set([
   '/api/briefing', '/api/health', '/agco-document', '/racing-document',
   '/stats-document', '/stock-document',
 ]);
-const PAGES = { '/': 'index.html', '/briefing': 'index.html', '/dashboard': 'dashboard.html', '/stocks': 'stocks.html',
+const PAGES = { '/email': 'email.html', '/email/oauth/callback': 'email.html', '/': 'index.html', '/briefing': 'index.html', '/dashboard': 'dashboard.html', '/stocks': 'stocks.html',
   '/woodbine': 'woodbine.html', '/woodbine-stats': 'woodbine-stats.html', '/health': 'health.html', '/cameras': 'cameras.html', '/sports': 'sports.html', '/sports/nhl': 'sports.html', '/sports/mlb': 'sports.html', '/sports/nfl': 'sports.html' };
 const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png',
@@ -141,6 +142,7 @@ async function handler(req, res) {
     if (pathname.startsWith('/api/') || pathname.startsWith('/camera-stream/') || DATA_PATHS.has(pathname)) return send(res, 401, JSON.stringify({ error: 'Please sign in.' }), 'application/json');
     return redirect(res, '/login?next=' + encodeURIComponent(safeNext(url.pathname + url.search)));
   }
+  if (await mailProxy(req, res, url)) return;
   let acknowledgementBody;
   if (pathname === '/api/acknowledgements' && req.method === 'POST') {
     if (!sameOrigin(req)) return send(res, 403, 'Invalid request origin.');
