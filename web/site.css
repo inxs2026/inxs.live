@@ -57,3 +57,27 @@
 @media(max-width:720px){.briefing-title-group{gap:10px}.briefing-mail{padding:6px 9px;gap:7px;min-height:40px}.briefing-mail-icon svg{width:18px;height:18px}.briefing-mail-copy strong{font-size:11px}.briefing-mail-copy>span{font-size:10px}.topbar:has(.briefing-title-group){flex-wrap:wrap}.topbar:has(.briefing-title-group) .avatar{display:none}.topbar:has(.briefing-title-group) .topbar-right{margin-left:auto}.briefing-title-group .breadcrumb{font-size:12px}.briefing-title-group .breadcrumb>span{margin:0 5px}}
 @media(prefers-reduced-motion:reduce){.briefing-mail{transition:none}}
 @media(max-width:500px){.briefing-mail-copy>span{display:none}.briefing-mail{min-height:37px}.briefing-title-group .breadcrumb{font-size:0;gap:0}.briefing-title-group .breadcrumb strong{font-size:12px}.briefing-title-group .breadcrumb>span{display:none}.topbar:has(.briefing-title-group){gap:10px}.briefing-title-group{gap:9px}}
+
+/* Proportional navigation, with system health included under Dashboard. */
+@media(min-width:721px){
+ .rail{width:208px;padding:14px 10px;gap:5px}
+ .shell{margin-left:208px}
+ .rail .brand{height:43px;gap:9px;padding:0 8px}
+ .rail .brand .inxs-logo{width:35px;height:35px}
+ .rail .brand-name{font-size:16px}
+ .rail-divider{margin:6px 0}
+ .rail .rail-link{height:36px;min-height:36px;padding:6px 9px;gap:9px;border-radius:10px}
+ .rail .nav-label{font-size:14px;font-weight:650;line-height:1.3}
+ .rail-link .nav-horse-logo{width:23px;height:23px}
+}
+@media(max-width:720px){
+ .rail{grid-template-columns:repeat(20,minmax(0,1fr));grid-template-rows:repeat(2,48px);height:calc(108px + env(safe-area-inset-bottom))}
+ .rail>.rail-link{grid-column:span 4;height:48px;gap:3px}
+ .rail>.rail-link:nth-of-type(n+7){grid-column:span 5}
+ .rail-link .nav-horse-logo{width:21px;height:21px}
+ main{padding-bottom:calc(132px + env(safe-area-inset-bottom))}
+ html{scroll-padding-bottom:128px}
+}
+.dashboard-health>.health-section:first-of-type{margin-top:0}
+.overview-views{padding-bottom:4px}
+@media(max-width:420px){.overview-views{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.overview-views button{padding:10px 9px;font-size:12px}.overview-views button[data-overview-view="health"]{grid-column:1/-1}}

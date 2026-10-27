@@ -87,3 +87,13 @@ minutes, and labels retained data stale after a failed refresh. Existing ESPN
 team branding is reused. The LAN Sports navigation redirects to the protected
 INXS.live page. Verify with `npm test` and
 `python3 -m unittest discover -s deploy/dashboard -p test_sports_page.py`.
+
+## Combined Dashboard (October 27, 2026)
+
+Dashboard now contains Today's workflows, All schedules, and Health & backups
+views under a single page header. The health view includes services, Codex usage,
+Linux storage/uptime/maintenance, and all backup checks. The former Health rail
+entry is removed from all pages. /health and /health.html redirect authenticated
+requests to /dashboard#health-backups; direct links from Briefing go there too.
+Sidebar typography, artwork, spacing, and width are reduced proportionally.
+The nine phone navigation links use a balanced five/four layout in two rows.

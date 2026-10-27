@@ -24,8 +24,31 @@ async function loadTimeline(){
  $('timeline-checked').textContent=`Checked ${formatted(data.checkedAt)}. A successful step does not confirm report delivery.${data.errors.length?' Some schedule sources are unavailable.':''}`;
  }catch{$('timeline-summary').textContent='Timeline unavailable. Use All schedules to inspect the current inventory.';$('summary-next').textContent='Schedule check unavailable';$('summary-next-note').textContent='Use All schedules to review the inventory';}
 }
-function switchOverview(view){const today=view==='today';document.body.classList.toggle('today-view',today);$('timeline-panel').hidden=!today;$('schedules-panel').hidden=today;document.querySelectorAll('[data-overview-view]').forEach(b=>{b.classList.toggle('selected',b.dataset.overviewView===view);b.setAttribute('aria-pressed',String(b.dataset.overviewView===view));});}
-if($('timeline-panel')){document.querySelectorAll('[data-overview-view]').forEach(b=>b.addEventListener('click',()=>switchOverview(b.dataset.overviewView)));$('refresh-timeline').addEventListener('click',loadTimeline);window.addEventListener('hashchange',()=>{if((location.hash==='#automations'||location.hash.startsWith('#job=')))switchOverview('schedules');else if(location.hash==='#timeline-panel')switchOverview('today');});switchOverview((location.hash==='#automations'||location.hash.startsWith('#job='))?'schedules':'today');loadTimeline();setInterval(loadTimeline,60000);}
+function switchOverview(view){
+ const chosen=['today','schedules','health'].includes(view)?view:'today';
+ const today=chosen==='today',health=chosen==='health';
+ document.body.classList.toggle('today-view',today);
+ document.body.classList.toggle('health-view',health);
+ $('timeline-panel').hidden=!today;
+ $('schedules-panel').hidden=chosen!=='schedules';
+ $('health-backups').hidden=!health;
+ for(const id of ['workflow-summary','automation-metrics','connection']){const el=$(id);if(el)el.hidden=health;}
+ document.querySelectorAll('[data-overview-view]').forEach(b=>{const active=b.dataset.overviewView===chosen;b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active));});
+}
+function overviewFromHash(){
+ if(location.hash==='#health-backups'||location.hash==='#codex-usage')return 'health';
+ return location.hash==='#automations'||location.hash.startsWith('#job=')?'schedules':'today';
+}
+if($('timeline-panel')){
+ document.querySelectorAll('[data-overview-view]').forEach(b=>b.addEventListener('click',()=>{
+  const view=b.dataset.overviewView,hash={today:'#timeline-panel',schedules:'#automations',health:'#health-backups'}[view];
+  switchOverview(view);if(location.hash!==hash)history.pushState(null,'',hash);
+ }));
+ $('refresh-timeline').addEventListener('click',loadTimeline);
+ const followHash=()=>switchOverview(overviewFromHash());
+ window.addEventListener('hashchange',followHash);window.addEventListener('popstate',followHash);
+ followHash();loadTimeline();setInterval(loadTimeline,60000);
+}
 window.addEventListener('dashboard:attention',({detail:d})=>{
  if(!$('summary-racing'))return;
  const r=d.racing, offDay=r?.schedule?.scheduled===false&&!r.races.length, available=r?.sources?.filter(s=>s.available).length||0;

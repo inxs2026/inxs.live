@@ -46,7 +46,7 @@ test('spaces in the password work and session cookie is secure', async () => {
   cookie = set.split(';')[0];
 });
 test('dashboard and every existing tool page serve after sign-in', async () => {
-  for (const route of ['/', '/dashboard', '/briefing', '/stocks', '/woodbine', '/woodbine-stats', '/health', '/cameras', '/sports', '/sports/nhl', '/sports/mlb', '/sports/nfl', '/tools', '/invoice', '/mortgage', '/leasescan', '/leasecreate/', '/leasecreate/js/app.js']) {
+  for (const route of ['/', '/dashboard', '/briefing', '/stocks', '/woodbine', '/woodbine-stats', '/dashboard#health-backups', '/cameras', '/sports', '/sports/nhl', '/sports/mlb', '/sports/nfl', '/tools', '/invoice', '/mortgage', '/leasescan', '/leasecreate/', '/leasecreate/js/app.js']) {
     const res = await request(route, { headers: { Cookie: cookie } }); assert.equal(res.status, 200, route);
   }
   const html = await (await request('/', { headers: { Cookie: cookie } })).text();
@@ -95,7 +95,7 @@ test('camera reads use the authenticated fixed bridge and reject arbitrary strea
 
 test('Sports is directly after briefing and scoreboard has moved off the briefing',async()=>{
  const fresh=await login(password),auth=fresh.headers.get('set-cookie').split(';')[0];
- for(const route of ['/','/sports','/stocks','/health','/cameras','/tools']){
+ for(const route of ['/','/sports','/stocks','/dashboard#health-backups','/cameras','/tools']){
   const html=await(await request(route,{headers:{Cookie:auth}})).text();assert.match(html,/aria-label="Daily briefing"[^]*?<\/a>\s*<a[^>]+href="\/sports"/);
   if(route==='/')assert.doesNotMatch(html,/id="scores"|On the scoreboard/);
   if(route==='/sports')for(const id of ['sports-today','sports-yesterday','sports-tomorrow','sports-date','standings'])assert.ok(html.includes('id="'+id+'"'));
@@ -128,7 +128,7 @@ test('Mail writes validate session, origin, method and JSON before contacting th
 });
 test('Mail tab is present on all dashboard pages and Briefing has a compact mail notification',async()=>{
  const fresh=await login(password),auth=fresh.headers.get('set-cookie').split(';')[0];
- for(const route of ['/','/sports','/stocks','/woodbine','/woodbine-stats','/dashboard','/health','/tools','/cameras','/email']){
+ for(const route of ['/','/sports','/stocks','/woodbine','/woodbine-stats','/dashboard','/dashboard#health-backups','/tools','/cameras','/email']){
   const html=await(await request(route,{headers:{Cookie:auth}})).text();assert.ok(html.includes('href="/email" aria-label="Mail"'),route);
   if(route==='/'){assert.ok(html.includes('id="briefing-mail"'));assert.ok(html.includes('/mail-notification.js'));}
  }
@@ -156,4 +156,22 @@ test('Local Empty Trash requires session and same-origin JSON and only forwards 
  assert.equal((await request(route,{method:'POST',headers:{...headers,Origin:'https://invalid.example'},body})).status,403);
  const res=await request(route,{method:'POST',headers,body});assert.equal(res.status,200);
  const result=await res.json();assert.equal(result.path,route);assert.equal(result.method,'POST');assert.deepEqual(JSON.parse(result.body),JSON.parse(body));
+});
+
+test('Dashboard includes health and backups and retired Health routes redirect after authentication',async()=>{
+ const fresh=await login(password),auth=fresh.headers.get('set-cookie').split(';')[0];
+ const html=await(await request('/dashboard',{headers:{Cookie:auth}})).text();
+ for(const id of ['timeline-panel','schedules-panel','health-backups','health-services','health-storage','backup-cards','codex-usage','refresh-health','refresh-codex'])assert.ok(html.includes('id="'+id+'"'),id);
+ assert.ok(html.includes('data-overview-view="health"'));assert.ok(html.includes('/codex-usage.js'));
+ for(const route of ['/health','/health/','/health.html']){
+  const unauth=await request(route);assert.equal(unauth.status,303);assert.match(unauth.headers.get('location'),/^\/login/);
+  const res=await request(route,{headers:{Cookie:auth}});assert.equal(res.status,303);assert.equal(res.headers.get('location'),'/dashboard#health-backups');
+ }
+ for(const route of ['/','/dashboard','/sports','/stocks','/woodbine','/woodbine-stats','/tools','/cameras','/email']){
+  const page=await(await request(route,{headers:{Cookie:auth}})).text();
+  assert.doesNotMatch(page,/aria-label="Health & backups"/);
+  const rail=page.match(/<aside class="rail"[^]*?<\/aside>/)[0];assert.equal((rail.match(/class="rail-link/g)||[]).length,9,route);
+  assert.match(rail,/href="\/dashboard" aria-label="Dashboard"/);
+ }
+ const briefing=await(await request('/',{headers:{Cookie:auth}})).text();assert.ok(briefing.includes('href="/dashboard#health-backups"'));
 });

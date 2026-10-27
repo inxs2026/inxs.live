@@ -23,7 +23,7 @@ const DATA_PATHS = new Set([
   '/stats-document', '/stock-document',
 ]);
 const PAGES = { '/email': 'email.html', '/email/oauth/callback': 'email.html', '/': 'index.html', '/briefing': 'index.html', '/dashboard': 'dashboard.html', '/stocks': 'stocks.html',
-  '/woodbine': 'woodbine.html', '/woodbine-stats': 'woodbine-stats.html', '/health': 'health.html', '/cameras': 'cameras.html', '/sports': 'sports.html', '/sports/nhl': 'sports.html', '/sports/mlb': 'sports.html', '/sports/nfl': 'sports.html' };
+  '/woodbine': 'woodbine.html', '/woodbine-stats': 'woodbine-stats.html', '/cameras': 'cameras.html', '/sports': 'sports.html', '/sports/nhl': 'sports.html', '/sports/mlb': 'sports.html', '/sports/nfl': 'sports.html' };
 const TYPES = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png',
   '.ico': 'image/x-icon', '.json': 'application/json; charset=utf-8', '.woff2': 'font/woff2' };
@@ -150,6 +150,10 @@ async function handler(req, res) {
   if (!validSession(req, secret)) {
     if (pathname.startsWith('/api/') || pathname.startsWith('/camera-stream/') || DATA_PATHS.has(pathname)) return send(res, 401, JSON.stringify({ error: 'Please sign in.' }), 'application/json');
     return redirect(res, '/login?next=' + encodeURIComponent(safeNext(url.pathname + url.search)));
+  }
+  if (['/health', '/health/', '/health.html'].includes(pathname)) {
+    if (!['GET', 'HEAD'].includes(req.method)) return send(res, 405, 'Method not allowed.');
+    return redirect(res, '/dashboard#health-backups');
   }
   if (await mailProxy(req, res, url)) return;
   let acknowledgementBody;
