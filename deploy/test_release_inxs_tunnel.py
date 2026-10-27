@@ -22,6 +22,7 @@ class TunnelReleaseTest(unittest.TestCase):
         service = result['services']['cloudflared']
         self.assertEqual(service['command'], ['tunnel', '--protocol', 'http2', '--no-autoupdate', 'run', '--token', 'secret'])
         self.assertEqual(service['image'], live['Image'])
+        self.assertEqual(module.release([live], 'revision', 'sha256:new')['services']['cloudflared']['image'], 'sha256:new')
         self.assertEqual(service['environment'], live['Config']['Env'])
         self.assertEqual(service['mem_limit'], 128000000)
         self.assertEqual(service['volumes'], ['/tls/ca:/cert:ro'])

@@ -69,7 +69,7 @@ Docker named volumes keep output files across restarts:
 
 ## Tunnel transport reliability
 
-The INXS connector explicitly uses HTTP/2 over TCP (`--protocol http2`). On
+The INXS connector pins cloudflared 2026.10.5 by digest and explicitly uses HTTP/2 over TCP (`--protocol http2`). On
 2026-10-27 its four QUIC connections timed out together during media transfers,
 interrupting uploads and downloads despite a healthy origin. Do not revert to
 `auto`/QUIC without sustained transfer evidence. This is the connector-to-edge
@@ -79,6 +79,8 @@ For an existing remotely managed connector, `release-inxs-tunnel.py <revision>`
 reads its Docker inspect JSON from stdin and renders a **secret-bearing**,
 tunnel-only Compose file. Use private mode-0600 files, never print that output,
 and preserve the original connector stopped under the monitored
-`.pre-health-<12 hex revision>` naming convention for rollback. The exact
-existing image, TLS mounts, credentials, network and resource limits are retained.
+`.pre-health-<12 hex revision>` naming convention for rollback. TLS mounts, credentials, network and resource limits are retained. The optional
+second argument explicitly selects a tested replacement image; otherwise the
+exact running image is retained. Transport-only testing with 2026.5.0 still
+dropped large transfers, so protocol selection alone is not a verified fix.
 Never replace the video services or volumes just to update the tunnel.

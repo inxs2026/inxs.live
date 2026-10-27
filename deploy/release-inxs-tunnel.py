@@ -8,7 +8,7 @@ import json
 import sys
 
 
-def release(inspected, revision):
+def release(inspected, revision, image=None):
     current = inspected[0]
     config = current['Config']
     host = current['HostConfig']
@@ -20,7 +20,7 @@ def release(inspected, revision):
         del command[index:index + 2]
     command[1:1] = ['--protocol', 'http2']
     service = {
-        'image': current['Image'],
+        'image': image or current['Image'],
         'container_name': 'inxs-cloudflared',
         'entrypoint': config['Entrypoint'],
         'command': command,
@@ -50,4 +50,4 @@ def release(inspected, revision):
 
 
 if __name__ == '__main__':
-    json.dump(release(json.load(sys.stdin), sys.argv[1]), sys.stdout, indent=2)
+    json.dump(release(json.load(sys.stdin), sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None), sys.stdout, indent=2)
