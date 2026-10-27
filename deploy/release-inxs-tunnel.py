@@ -18,7 +18,7 @@ def release(inspected, revision, image=None):
     if '--protocol' in command:
         index = command.index('--protocol')
         del command[index:index + 2]
-    command[1:1] = ['--protocol', 'http2']
+    command[1:1] = ['--protocol', 'quic']
     service = {
         'image': image or current['Image'],
         'container_name': 'inxs-cloudflared',

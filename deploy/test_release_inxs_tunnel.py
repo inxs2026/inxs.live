@@ -20,7 +20,7 @@ class TunnelReleaseTest(unittest.TestCase):
         result = module.release([live], 'revision')
         self.assertEqual(list(result['services']), ['cloudflared'])
         service = result['services']['cloudflared']
-        self.assertEqual(service['command'], ['tunnel', '--protocol', 'http2', '--no-autoupdate', 'run', '--token', 'secret'])
+        self.assertEqual(service['command'], ['tunnel', '--protocol', 'quic', '--no-autoupdate', 'run', '--token', 'secret'])
         self.assertEqual(service['image'], live['Image'])
         self.assertEqual(module.release([live], 'revision', 'sha256:new')['services']['cloudflared']['image'], 'sha256:new')
         self.assertEqual(service['environment'], live['Config']['Env'])

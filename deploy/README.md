@@ -69,18 +69,17 @@ Docker named volumes keep output files across restarts:
 
 ## Tunnel transport reliability
 
-The INXS connector pins cloudflared 2026.10.5 by digest and explicitly uses HTTP/2 over TCP (`--protocol http2`). On
-2026-10-27 its four QUIC connections timed out together during media transfers,
-interrupting uploads and downloads despite a healthy origin. Do not revert to
-`auto`/QUIC without sustained transfer evidence. This is the connector-to-edge
-transport; it does not disable HTTPS in the browser.
+The connector pins cloudflared 2026.10.5 by digest and uses QUIC. The old
+2026.5.0 connector dropped media transfers. HTTP/2 did not resolve the fault
+and failed large-download testing. The current QUIC connector completed a
+963,429,041-byte public download with matching SHA-256 and a 109 MB upload
+from Linux without retries in isolated testing. Always verify the canonical
+public hostname after release too; a healthy /healthz is insufficient.
 
-For an existing remotely managed connector, `release-inxs-tunnel.py <revision>`
-reads its Docker inspect JSON from stdin and renders a **secret-bearing**,
-tunnel-only Compose file. Use private mode-0600 files, never print that output,
-and preserve the original connector stopped under the monitored
-`.pre-health-<12 hex revision>` naming convention for rollback. TLS mounts, credentials, network and resource limits are retained. The optional
-second argument explicitly selects a tested replacement image; otherwise the
-exact running image is retained. Transport-only testing with 2026.5.0 still
-dropped large transfers, so protocol selection alone is not a verified fix.
-Never replace the video services or volumes just to update the tunnel.
+`release-inxs-tunnel.py <revision> [image]` reads live Docker inspect JSON on
+stdin and renders a **secret-bearing** tunnel-only Compose file. Use mode-0600
+files; never log the output. The optional image argument explicitly selects a
+tested replacement image; otherwise the exact running image is retained. TLS
+mounts, credentials, networks and resource limits are preserved. Keep the
+original connector stopped as `.pre-health-<12 hex revision>` for rollback.
+Never replace video services or volumes just to update the tunnel.
