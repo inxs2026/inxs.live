@@ -13,7 +13,7 @@ function claimsTopCounts(claims,field,price=false){
   const key=price?String(raw):label.normalize('NFKC').toLocaleLowerCase('en-CA');
   const item=counts.get(key)||{label,count:0,price:price?raw:null};item.count++;counts.set(key,item);
  }
- return [...counts.values()].sort((a,b)=>b.count-a.count||(price?b.price-a.price:a.label.localeCompare(b.label,'en-CA'))).slice(0,5);
+ return [...counts.values()].sort((a,b)=>b.count-a.count||(price?b.price-a.price:a.label.localeCompare(b.label,'en-CA'))).slice(0,7);
 }
 function renderClaimLeaders(claims){
  for(const [id,field,price] of [['claims-top-trainers','new_trainer',false],['claims-top-owners','new_owner',false],['claims-top-prices','claim_price_cad',true]]){
