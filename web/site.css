@@ -81,3 +81,9 @@
 .dashboard-health>.health-section:first-of-type{margin-top:0}
 .overview-views{padding-bottom:4px}
 @media(max-width:420px){.overview-views{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.overview-views button{padding:10px 9px;font-size:12px}.overview-views button[data-overview-view="health"]{grid-column:1/-1}}
+
+/* Ten navigation tabs: two balanced rows of five on phones. */
+@media(max-width:720px){
+ .rail{grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:repeat(2,48px)}
+ .rail>.rail-link,.rail>.rail-link:nth-of-type(n+7){grid-column:auto}
+}

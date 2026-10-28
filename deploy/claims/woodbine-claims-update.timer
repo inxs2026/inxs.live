@@ -1,0 +1,11 @@
+[Unit]
+Description=Update Woodbine claims hourly on race evenings (Toronto time)
+
+[Timer]
+OnCalendar=Thu..Sun *-*-* 15..23:00:00 America/Toronto
+OnCalendar=Mon,Fri,Sat,Sun *-*-* 00:00:00 America/Toronto
+Persistent=false
+Unit=woodbine-claims-update.service
+
+[Install]
+WantedBy=timers.target

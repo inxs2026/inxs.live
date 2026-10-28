@@ -1,0 +1,14 @@
+.claims-status{display:flex;align-items:center;gap:12px;margin:0 0 18px;color:var(--muted);font-size:12px;min-width:0}
+.claims-status p{margin:0;flex:1;min-width:0;overflow-wrap:anywhere}.claims-status .icon-button{flex:none}
+.claims-warning{color:#ffd29c;border-left:3px solid #ffd29c;padding-left:12px}
+.claims-section{padding:20px 22px;margin:0 0 20px;min-width:0}
+.claims-section h2{color:var(--text);font-size:20px;margin:0 0 10px}
+.claims-section h3{color:var(--text);font-size:15px;margin:18px 0 8px}
+.claims-meta{font-size:12px;color:var(--muted);margin:0 0 12px;overflow-wrap:anywhere}
+.claims-total{font-size:14px;font-weight:700;color:var(--text);margin:0 0 5px}
+.claims-item{margin:0 0 10px;min-width:0;overflow-wrap:anywhere;font-size:14px;line-height:1.5}
+.claims-item p{margin:0;white-space:normal}.claims-previous{color:#ff858c}.claims-new{color:#78e6a2}
+.claims-horse{color:#75baff}.claims-empty{margin:8px 0;font-size:14px}
+.claims-source{color:var(--muted);font-size:11px;margin:15px 0 0;overflow-wrap:anywhere}
+.claims-source a{text-decoration:underline;text-underline-offset:3px}
+@media(max-width:720px){.claims-section{padding:16px 14px}.claims-item{font-size:13px}.claims-section h2{font-size:18px}}

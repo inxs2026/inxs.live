@@ -97,3 +97,36 @@ entry is removed from all pages. /health and /health.html redirect authenticated
 requests to /dashboard#health-backups; direct links from Briefing go there too.
 Sidebar typography, artwork, spacing, and width are reduced proportionally.
 The nine phone navigation links use a balanced five/four layout in two rows.
+
+## Woodbine Claims (October 28, 2026)
+
+`/woodbine-claims` is a protected workspace page, linked after Woodbine Stats on
+all ten shared navigation rails. Phone navigation uses two balanced rows of five.
+The compact latest-card report appears first; all current-year claims follow in
+descending date and ascending race/program order. Horse/race names are blue,
+previous connections red, and new connections green. There is no horizontal table.
+
+`/api/woodbine-claims` is served directly by the authenticated bridge using
+`deploy/claims_api.py`. It accepts only the current year's complete and balanced
+snapshot, and marks failed or overdue scheduled refreshes stale. Snapshot state
+is under `~/.local/state/inxs-dashboard/claims/`; no claim records or credentials
+are packaged in public browser assets. Requests without a session receive 401.
+
+`deploy/claims/` retains the chart parsers, year-specific calendar, update wrapper
+and systemd unit definitions. The installed user timer runs at 15:00, 16:00, ...
+23:00 on Thursday-Sunday, plus 00:00 Friday-Monday as the final check of the
+preceding race day. All calendar expressions use America/Toronto explicitly.
+Catch-up outside these windows is disabled. A one-time initial refresh verified
+209 claims, C$3,993,000, across 98 completed cards and four cancelled cards through
+October 25, 2026. The last complete snapshot is retained on any failed update.
+
+The annual parser caches official Equibase charts, rechecks the latest three
+charts and the published results calendar, and checks race/count coverage.
+New connections are extracted from their PDF columns individually so wrapped
+trainer surnames and voided-claim annotations do not contaminate owner names.
+For a new year, install a validated year-specific racing calendar.
+
+Checks: `npm test`,
+`python3 -m unittest discover -s deploy -p test_claims_api.py`, and the standalone
+parser regression suite supplied with the report package. The LAN route redirects
+to the protected INXS page. No Mac Mini or Pi changes were made.

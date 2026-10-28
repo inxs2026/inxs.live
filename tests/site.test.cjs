@@ -170,8 +170,21 @@ test('Dashboard includes health and backups and retired Health routes redirect a
  for(const route of ['/','/dashboard','/sports','/stocks','/woodbine','/woodbine-stats','/tools','/cameras','/email']){
   const page=await(await request(route,{headers:{Cookie:auth}})).text();
   assert.doesNotMatch(page,/aria-label="Health & backups"/);
-  const rail=page.match(/<aside class="rail"[^]*?<\/aside>/)[0];assert.equal((rail.match(/class="rail-link/g)||[]).length,9,route);
+  const rail=page.match(/<aside class="rail"[^]*?<\/aside>/)[0];assert.equal((rail.match(/class="rail-link/g)||[]).length,10,route);
   assert.match(rail,/href="\/dashboard" aria-label="Dashboard"/);
  }
  const briefing=await(await request('/',{headers:{Cookie:auth}})).text();assert.ok(briefing.includes('href="/dashboard#health-backups"'));
+});
+
+test('Woodbine Claims page and its snapshot use the existing authenticated workspace',async()=>{
+ assert.equal((await request('/woodbine-claims')).status,303);
+ assert.equal((await request('/claims.js')).status,303);
+ assert.equal((await request('/api/woodbine-claims')).status,401);
+ const fresh=await login(password),auth=fresh.headers.get('set-cookie').split(';')[0];
+ const res=await request('/woodbine-claims',{headers:{Cookie:auth}});assert.equal(res.status,200);
+ const html=await res.text();assert.ok(html.includes('id="claims-daily"'));assert.ok(html.includes('id="claims-year"'));
+ assert.match(html,/class="rail-link selected" aria-current="page" href="\/woodbine-claims"/);
+ const api=await request('/api/woodbine-claims',{headers:{Cookie:auth}});assert.equal(api.status,200);
+ assert.equal((await api.json()).path,'/api/woodbine-claims');assert.match(api.headers.get('cache-control'),/no-store/);
+ assert.equal((await request('/api/woodbine-claims',{method:'POST',headers:{Cookie:auth}})).status,405);
 });

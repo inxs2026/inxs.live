@@ -1,0 +1,16 @@
+[Unit]
+Description=Refresh verified Woodbine daily and year-to-date claims
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/damato/Projects/INXS-Live
+ExecStart=/usr/bin/python3 /home/damato/Projects/INXS-Live/deploy/claims/update_claims.py
+TimeoutStartSec=16min
+Environment=PYTHONUNBUFFERED=1
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/damato/.local/state/inxs-dashboard/claims

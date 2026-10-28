@@ -4,6 +4,7 @@ import hmac
 import json
 import acknowledgements
 import cameras
+import claims_api
 import inxs_mail
 import os
 import threading
@@ -48,6 +49,11 @@ class Handler(BaseHTTPRequestHandler):
         url = urllib.parse.urlsplit(self.path)
         if url.path.startswith('/api/mail/'):
             return self.mail_request('GET')
+        if url.path == '/api/woodbine-claims':
+            try:
+                return self.respond(200, json.dumps(claims_api.read_report()).encode(), 'application/json')
+            except Exception:
+                return self.respond(503, b'{"error":"Verified claims are temporarily unavailable"}', 'application/json')
         if url.path == '/api/cameras':
             try:
                 requested = urllib.parse.parse_qs(url.query).get('channels', [''])[0]
