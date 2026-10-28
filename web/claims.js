@@ -5,6 +5,22 @@ const claimsDate = value => new Intl.DateTimeFormat('en-CA', {timeZone:'UTC',mon
 function claimsTrainer(value){const text=String(value||'');if(!text.includes(','))return text;const at=text.lastIndexOf(',');return (text.slice(at+1).trim()+' '+text.slice(0,at).trim());}
 function claimsFinish(value){if(!Number.isInteger(value))return String(value||'N/A');const tens=value%100;const suffix=tens>=11&&tens<=13?'th':({1:'st',2:'nd',3:'rd'}[value%10]||'th');return value+suffix;}
 function claimItem(c){return `<article class="claims-item"><p class="claims-previous"><strong class="claims-horse">Race ${esc(c.race)} - ${esc(c.horse)}</strong> · Previous owner: ${esc(c.previous_owner)}; trainer: ${esc(claimsTrainer(c.previous_trainer))}</p><p class="claims-new"><strong>Finish: ${esc(claimsFinish(c.finish_position))} · Claim: ${esc(claimsMoney(c.claim_price_cad))}</strong> · New owner: ${esc(c.new_owner)}; trainer: ${esc(c.new_trainer)}</p></article>`;}
+function claimsTopCounts(claims,field,price=false){
+ const counts=new Map();
+ for(const claim of claims){
+  const raw=price?Number(claim[field]):String(claim[field]||'').replace(/\s+/g,' ').trim();
+  const label=price?claimsMoney(raw):(raw||'Not reported');
+  const key=price?String(raw):label.normalize('NFKC').toLocaleLowerCase('en-CA');
+  const item=counts.get(key)||{label,count:0,price:price?raw:null};item.count++;counts.set(key,item);
+ }
+ return [...counts.values()].sort((a,b)=>b.count-a.count||(price?b.price-a.price:a.label.localeCompare(b.label,'en-CA'))).slice(0,5);
+}
+function renderClaimLeaders(claims){
+ for(const [id,field,price] of [['claims-top-trainers','new_trainer',false],['claims-top-owners','new_owner',false],['claims-top-prices','claim_price_cad',true]]){
+  const rows=claimsTopCounts(claims,field,price);
+  $(id).innerHTML=rows.length?rows.map((row,index)=>`<li><span class="claims-rank">${index+1}</span><span>${esc(row.label)}</span><strong aria-label="${row.count} claims">${row.count}</strong></li>`).join(''):'<li class="claims-leaders-empty">No claims recorded.</li>';
+ }
+}
 function renderClaims(data){
  if(data.complete!==true||data.track!=='Woodbine'||!Array.isArray(data.claims)||!data.daily)throw new Error('Unverified claims report');
  const daily=data.daily;
@@ -15,6 +31,7 @@ function renderClaims(data){
  $('claims-year-title').textContent='All '+data.year+' Claims';
  $('claims-year-total').textContent=data.total_claims+' claims | '+claimsMoney(data.total_claim_value_cad)+' total';
  $('claims-year-meta').textContent=data.completed_cards+' completed cards checked, '+data.coverage_start+' through '+data.coverage_through+'. Newest date first; race numbers in order. All amounts CAD.';
+ renderClaimLeaders(data.claims);
  let previous=null, html='';
  for(const c of data.claims){if(previous!==c.date){html+='<h3>'+esc(claimsDate(c.date))+'</h3>';previous=c.date;}html+=claimItem(c);}
  $('claims-year').innerHTML=html||'<p class="claims-empty">No claims recorded for this year.</p>';

@@ -15,3 +15,14 @@
 
 .claims-summary .claims-meta:last-child{margin-bottom:0}
 .claims-history h3:first-child{margin-top:0}
+.claims-leaderboards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:17px;padding-top:16px;border-top:1px solid var(--line)}
+.claims-leaderboard{min-width:0}.claims-leaderboard h3{font-size:14px;margin:0 0 6px}
+.claims-leaderboard ol{list-style:none;padding:0;margin:0}
+.claims-leaderboard li{display:grid;grid-template-columns:15px minmax(0,1fr) auto;gap:7px;padding:6px 0;border-bottom:1px solid #ffffff08;font-size:13px;align-items:start;overflow-wrap:anywhere}
+.claims-leaderboard li:last-child{border:0}.claims-leaderboard strong{font-variant-numeric:tabular-nums;color:var(--text)}
+.claims-rank{color:var(--muted);font-size:11px;padding-top:2px}.claims-ranking-note{color:var(--muted);font-size:11px;margin:12px 0 0}
+.claims-leaderboard .claims-leaders-empty{display:block;color:var(--muted)}
+@media(max-width:1000px) and (min-width:721px){.claims-leaderboards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:720px){.claims-leaderboards{grid-template-columns:minmax(0,1fr);gap:16px}.claims-leaderboard li{padding:5px 0}}
+
+.claims-leaderboard-title{display:flex;align-items:baseline;justify-content:space-between;gap:8px}.claims-leaderboard-title>span{font-size:11px;color:var(--muted);flex:none}
