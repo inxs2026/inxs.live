@@ -170,7 +170,7 @@ test('Dashboard includes health and backups and retired Health routes redirect a
  for(const route of ['/','/dashboard','/sports','/stocks','/woodbine','/woodbine-stats','/tools','/cameras','/email']){
   const page=await(await request(route,{headers:{Cookie:auth}})).text();
   assert.doesNotMatch(page,/aria-label="Health & backups"/);
-  const rail=page.match(/<aside class="rail"[^]*?<\/aside>/)[0];assert.equal((rail.match(/class="rail-link/g)||[]).length,10,route);
+  const rail=page.match(/<aside class="rail"[^]*?<\/aside>/)[0];assert.equal((rail.match(/class="rail-link/g)||[]).length,11,route);
   assert.match(rail,/href="\/dashboard" aria-label="Dashboard"/);
  }
  const briefing=await(await request('/',{headers:{Cookie:auth}})).text();assert.ok(briefing.includes('href="/dashboard#health-backups"'));

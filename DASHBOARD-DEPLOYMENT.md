@@ -130,3 +130,11 @@ Checks: `npm test`,
 `python3 -m unittest discover -s deploy -p test_claims_api.py`, and the standalone
 parser regression suite supplied with the report package. The LAN route redirects
 to the protected INXS page. No Mac Mini or Pi changes were made.
+
+### Grouped Woodbine navigation
+
+Woodbine Racing, Woodbine Stats and Woodbine Claims now live under a single
+Woodbine disclosure button on every INXS workspace page. The active child and
+parent retain their selected style. The dropdown supports click, outside-click
+closing, Escape and arrow-key entry. Eight top-level navigation items use a
+balanced four/four phone layout; the three child links open above the phone rail.

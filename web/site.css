@@ -87,3 +87,24 @@
  .rail{grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:repeat(2,48px)}
  .rail>.rail-link,.rail>.rail-link:nth-of-type(n+7){grid-column:auto}
 }
+
+/* One Woodbine disclosure contains the three existing Woodbine pages. */
+.rail-group{position:relative;width:100%;min-width:0;flex-shrink:0}
+.rail-group-toggle{width:100%;border:1px solid transparent;background:none;text-align:left}
+.nav-chevron{margin-left:auto;display:inline-block;font-size:13px;line-height:1;transition:transform .15s}
+.rail-group-toggle[aria-expanded="true"] .nav-chevron{transform:rotate(180deg)}
+.rail-submenu{display:grid;gap:3px;padding:5px 0 3px 9px;margin-left:10px;border-left:1px solid #b495ff30}
+.rail .rail-submenu .rail-link{width:100%;min-width:0;gap:7px;padding:5px 6px;min-height:34px;height:auto}
+.rail .rail-submenu .nav-label{font-size:12px;white-space:normal;line-height:1.3}
+.rail-submenu .nav-horse-logo{width:18px;height:18px}
+@media(max-width:720px){
+ .rail{grid-template-columns:repeat(4,minmax(0,1fr));overflow:visible}
+ .rail>.rail-group{position:static;height:48px}
+ .rail-group-toggle{position:relative;height:48px!important;width:100%}
+ .rail-group-toggle .nav-chevron{position:absolute;right:8px;top:8px;font-size:11px}
+ .rail-submenu{position:absolute;left:10px;right:10px;bottom:calc(100% + 8px);padding:7px;margin:0;gap:3px;border:1px solid #514163;border-radius:13px;background:#191521;box-shadow:0 10px 35px #0008;max-height:65vh;overflow-y:auto}
+ .rail .rail-submenu .rail-link{display:flex;flex-direction:row;justify-content:flex-start;height:42px;min-height:42px;padding:9px 12px!important;gap:11px}
+ .rail .rail-submenu .nav-label{font-size:14px;text-align:left;min-height:0;display:block}
+ .rail-submenu .nav-horse-logo{width:22px;height:22px}
+ .rail-submenu .rail-link::after{content:none}
+}
