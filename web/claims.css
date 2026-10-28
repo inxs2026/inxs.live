@@ -12,3 +12,6 @@
 .claims-source{color:var(--muted);font-size:11px;margin:15px 0 0;overflow-wrap:anywhere}
 .claims-source a{text-decoration:underline;text-underline-offset:3px}
 @media(max-width:720px){.claims-section{padding:16px 14px}.claims-item{font-size:13px}.claims-section h2{font-size:18px}}
+
+.claims-summary .claims-meta:last-child{margin-bottom:0}
+.claims-history h3:first-child{margin-top:0}
