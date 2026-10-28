@@ -28,4 +28,4 @@
 .claims-leaderboard-title{display:flex;align-items:baseline;justify-content:space-between;gap:8px}.claims-leaderboard-title>span{font-size:11px;color:var(--muted);flex:none}
 
 .claims-leaderboard li>span:nth-child(2){color:#75baff}
-.claims-leaderboard .claims-rank{color:#78e6a2}
+.claims-leaderboard .claims-rank{color:#ff858c}
