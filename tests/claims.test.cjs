@@ -10,8 +10,20 @@ test('leaders count claiming connections rather than previous connections, retai
  const clean=value=>JSON.parse(JSON.stringify(value));
  assert.deepEqual(clean(context.claimsTopCounts(claims,'new_trainer')).map(r=>[r.label,r.count]),[['Zoe Brown',2],['Amy Green',1],['Bob White',1]]);
  assert.equal(context.claimsTopCounts(claims,'new_owner')[0].label,'Partnership A and B');
- assert.deepEqual(clean(context.claimsTopCounts(claims,'claim_price_cad',true)).map(r=>[r.label,r.count]),[['C$25,000',2],['C$7,500',2]]);
+ assert.deepEqual(clean(context.claimsTopCounts(claims,'claim_price_cad',true)).map(r=>[r.label,r.count]),[['C$25,000–C$23,500',2],['C$7,500–C$7,000',2]]);
  assert.equal(context.claimsTopCounts(Array.from({length:8},(_,i)=>({new_trainer:'Trainer '+i})),'new_trainer').length,7);
 });
 test('leader labels are escaped and zero annual claims have a clear empty state',()=>{const {context,els}=fixture();context.renderClaimLeaders([{new_trainer:'<img src=x onerror=alert(1)>',new_owner:'A & B',claim_price_cad:'25000.00'}]);assert.match(els['claims-top-trainers'].innerHTML,/&lt;img/);assert.doesNotMatch(els['claims-top-trainers'].innerHTML,/<img/);context.renderClaimLeaders([]);assert.match(els['claims-top-owners'].innerHTML,/No claims recorded/);});
 test('claims navigation is beside the other Woodbine tabs on every workspace page',()=>{for(const name of ['index.html','sports.html','stocks.html','woodbine.html','woodbine-stats.html','woodbine-claims.html','dashboard.html','tools/index.html','cameras.html','email.html']){const html=fs.readFileSync('web/'+name,'utf8');const rail=html.match(/<aside class="rail"[^]*?<\/aside>/)[0];assert.equal((rail.match(/class="rail-link/g)||[]).length,11,name);assert.equal((rail.match(/aria-current="page"/g)||[]).length,1,name);assert.match(rail,/href="\/woodbine-stats"[^]*?href="\/woodbine-claims"[^]*?href="\/dashboard"/);}});
+
+test('price categories combine weight allowance pairs and preserve actual claim values',()=>{
+ const {context}=fixture();
+ const values=[7500,7000,10000,9500,15000,14000,25000,23500,32000,40000,50000];
+ const claims=values.map(claim_price_cad=>({...sample.claims[0],claim_price_cad}));
+ const rows=JSON.parse(JSON.stringify(context.claimsTopCounts(claims,'claim_price_cad',true)));
+ assert.equal(rows.length,7);
+ assert.deepEqual(rows.map(r=>[r.price,r.count]),[[25000,2],[15000,2],[10000,2],[7500,2],[50000,1],[40000,1],[32000,1]]);
+ assert.equal(rows.find(r=>r.price===7500).label,'C$7,500–C$7,000');
+ assert.match(context.claimItem(claims[1]),/Claim: C\$7,000<\/strong>/);
+ assert.equal(claims.reduce((sum,c)=>sum+c.claim_price_cad,0),values.reduce((sum,v)=>sum+v,0));
+});

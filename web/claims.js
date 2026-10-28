@@ -5,13 +5,22 @@ const claimsDate = value => new Intl.DateTimeFormat('en-CA', {timeZone:'UTC',mon
 function claimsTrainer(value){const text=String(value||'');if(!text.includes(','))return text;const at=text.lastIndexOf(',');return (text.slice(at+1).trim()+' '+text.slice(0,at).trim());}
 function claimsFinish(value){if(!Number.isInteger(value))return String(value||'N/A');const tens=value%100;const suffix=tens>=11&&tens<=13?'th':({1:'st',2:'nd',3:'rd'}[value%10]||'th');return value+suffix;}
 function claimItem(c){return `<article class="claims-item"><p class="claims-previous"><strong class="claims-horse">Race ${esc(c.race)} - ${esc(c.horse)}</strong> · Previous owner: ${esc(c.previous_owner)}; trainer: ${esc(claimsTrainer(c.previous_trainer))}</p><p class="claims-new"><strong>Finish: ${esc(claimsFinish(c.finish_position))} · Claim: ${esc(claimsMoney(c.claim_price_cad))}</strong> · New owner: ${esc(c.new_owner)}; trainer: ${esc(c.new_trainer)}</p></article>`;}
+// Woodbine price pairs offer a lower tag for a weight allowance.
+// Group the price statistics only; individual claims and dollar totals retain actual prices.
+function claimsPriceLevel(value){
+ const amount=Number(value);
+ const levels=[[7500,7000],[10000,9500],[15000,14000],[25000,23500]];
+ const pair=levels.find(level=>level.includes(amount));
+ return pair?{price:pair[0],label:claimsMoney(pair[0])+'–'+claimsMoney(pair[1])}:{price:amount,label:claimsMoney(amount)};
+}
 function claimsTopCounts(claims,field,price=false){
  const counts=new Map();
  for(const claim of claims){
   const raw=price?Number(claim[field]):String(claim[field]||'').replace(/\s+/g,' ').trim();
-  const label=price?claimsMoney(raw):(raw||'Not reported');
-  const key=price?String(raw):label.normalize('NFKC').toLocaleLowerCase('en-CA');
-  const item=counts.get(key)||{label,count:0,price:price?raw:null};item.count++;counts.set(key,item);
+  const level=price?claimsPriceLevel(raw):null;
+  const label=price?level.label:(raw||'Not reported');
+  const key=price?String(level.price):label.normalize('NFKC').toLocaleLowerCase('en-CA');
+  const item=counts.get(key)||{label,count:0,price:price?level.price:null};item.count++;counts.set(key,item);
  }
  return [...counts.values()].sort((a,b)=>b.count-a.count||(price?b.price-a.price:a.label.localeCompare(b.label,'en-CA'))).slice(0,7);
 }
