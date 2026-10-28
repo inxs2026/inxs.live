@@ -66,3 +66,20 @@ Docker named volumes keep output files across restarts:
 - `cloudflared` only makes outbound connections, so no router port forwarding is required.
 - Keep the existing DNS/Vercel setup for `inxs.live` and `www.inxs.live`.
 - The backend ports use high host ports only for the local tunnel origin, not for public Internet exposure.
+
+## Tunnel transport reliability
+
+The connector pins cloudflared 2026.10.5 by digest and uses QUIC. The old
+2026.5.0 connector dropped media transfers. HTTP/2 did not resolve the fault
+and failed large-download testing. The current QUIC connector completed a
+963,429,041-byte public download with matching SHA-256 and a 109 MB upload
+from Linux without retries in isolated testing. Always verify the canonical
+public hostname after release too; a healthy /healthz is insufficient.
+
+`release-inxs-tunnel.py <revision> [image]` reads live Docker inspect JSON on
+stdin and renders a **secret-bearing** tunnel-only Compose file. Use mode-0600
+files; never log the output. The optional image argument explicitly selects a
+tested replacement image; otherwise the exact running image is retained. TLS
+mounts, credentials, networks and resource limits are preserved. Keep the
+original connector stopped as `.pre-health-<12 hex revision>` for rollback.
+Never replace video services or volumes just to update the tunnel.

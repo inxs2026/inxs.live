@@ -45,10 +45,11 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    image: cloudflare/cloudflared:latest
+    image: cloudflare/cloudflared:2026.10.5@sha256:1b1d34d0a9c0bfca9de72db8460d328db3f19edd2b96169114e3e893a97bbe53
     container_name: inxs-cloudflared
     restart: unless-stopped
-    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    # Pin the tested connector release; old 2026.5.0 dropped media transfers.
+    command: tunnel --protocol quic --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
     environment:
       TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
     depends_on:

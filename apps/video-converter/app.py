@@ -33,11 +33,15 @@ PLATFORM_PRESETS = {
 }
 BASE_DIR = Path(__file__).resolve().parent
 MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "100"))
-DIRECT_UPLOAD_MB = min(
-    int(os.environ.get("DIRECT_UPLOAD_MB", str(max(MAX_UPLOAD_MB - 5, 1)))),
+# Bound individual requests, not total file size, to make tunnel retries cheap.
+# Clamp legacy environment settings too; existing pages may still send 24 MB
+# chunks, which the unchanged MAX_CONTENT_LENGTH continues to accept.
+CHUNK_UPLOAD_MB = max(1, min(int(os.environ.get("CHUNK_UPLOAD_MB", "4")), 4, MAX_UPLOAD_MB))
+DIRECT_UPLOAD_MB = max(1, min(
+    int(os.environ.get("DIRECT_UPLOAD_MB", str(CHUNK_UPLOAD_MB))),
+    CHUNK_UPLOAD_MB,
     MAX_UPLOAD_MB,
-)
-CHUNK_UPLOAD_MB = max(1, min(int(os.environ.get("CHUNK_UPLOAD_MB", "24")), MAX_UPLOAD_MB))
+))
 app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_MB * 1024 * 1024
 
 

@@ -461,8 +461,12 @@
     };
 
     // Retry only reads and replacement of the same numbered upload chunk.
+    // HTTPS-scanning antivirus (e.g. Norton Web Shield) resets a few percent of
+    // chunk requests; the first QUIET_RETRIES are instant and silent so a lone
+    // reset never shows "reconnecting". Only a sustained outage is surfaced.
     const requestWithRecovery = async (url, options = {}, onRetry = () => {}) => {
-      const attempts = 6;
+      const QUIET_RETRIES = 2;
+      const attempts = options.method === 'POST' ? 12 : 6;
       for (let attempt = 0; attempt < attempts; attempt++) {
         if (batchCancelled && options.method === 'POST') throw new Error('Upload cancelled');
         const controller = new AbortController();
@@ -481,12 +485,13 @@
           if (batchCancelled && chunkRequest) throw new Error('Upload cancelled');
           if (err.permanent) throw err;
           if (attempt === attempts - 1) throw new Error('Connection interrupted. Could not reconnect after several attempts. Please try again.');
-          onRetry(attempt + 1);
+          if (attempt >= QUIET_RETRIES) onRetry(attempt + 1);
         } finally {
           clearTimeout(timeout);
           if (chunkRequest && activeChunkController === controller) activeChunkController = null;
         }
-        await new Promise(resolve => setTimeout(resolve, Math.min(1000 * 2 ** attempt, 10000)));
+        const quiet = attempt < QUIET_RETRIES;
+        await new Promise(resolve => setTimeout(resolve, quiet ? 250 : Math.min(1000 * 2 ** (attempt - QUIET_RETRIES), 10000)));
       }
     };
 
